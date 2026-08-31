@@ -1,0 +1,13 @@
+{
+  "itemGroup.soulland": "Example Mod Tab",
+  "block.soulland.example_block": "Example Block",
+  "item.soulland.example_item": "Example Item",
+
+  "soulland.configuration.title": "SoulLand Configs",
+  "soulland.configuration.section.soulland.common.toml": "SoulLand Configs",
+  "soulland.configuration.section.soulland.common.toml.title": "SoulLand Configs",
+  "soulland.configuration.items": "Item List",
+  "soulland.configuration.logDirtBlock": "Log Dirt Block",
+  "soulland.configuration.magicNumberIntroduction": "Magic Number Text",
+  "soulland.configuration.magicNumber": "Magic Number"
+}
