@@ -15,5 +15,17 @@
   "attribute.soulland.defense": "Defense",
   "attribute.soulland.health": "Health",
   "attribute.soulland.spirit": "Spirit",
-  "attribute.soulland.cultivation_speed": "Cultivation Speed"
+  "attribute.soulland.cultivation_speed": "Cultivation Speed",
+  "soulland.cultivation.level_up": "Cultivation level increased to %s.",
+  "soulland.cultivation.bottleneck": "You reached a bottleneck at level %s.",
+  "soulland.cultivation.bottleneck_100": "You need god inheritance or at least one rebirth to reach level 100.",
+  "soulland.cultivation.breakthrough.not_ready": "You are not ready for a breakthrough.",
+  "soulland.cultivation.breakthrough.success": "Breakthrough successful. You reached level %s.",
+  "soulland.cultivation.breakthrough.failed": "Breakthrough failed. Your next attempt gains +%s%% success chance.",
+  "soulland.cultivation.breakthrough.lightning_start": "The heavens answer your breakthrough attempt with lightning.",
+  "soulland.cultivation.breakthrough.died": "You died during the special breakthrough and did not advance.",
+  "soulland.cultivation.breakthrough.use_special": "This level requires a special lightning breakthrough.",
+  "soulland.cultivation.breakthrough.not_special_level": "Your current level does not require a special breakthrough.",
+  "soulland.cultivation.title.locked": "You must reach level 90 before setting a title.",
+  "soulland.cultivation.title.set": "Your title is now %s."
 }

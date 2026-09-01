@@ -13,6 +13,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 /**
  * Registers all {@code /cultivation} sub-commands.
@@ -28,7 +29,11 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public class CultivationCommands {
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static void register(RegisterCommandsEvent event) {
+        register(event.getDispatcher());
+    }
+
+    private static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("cultivation")
                 .then(Commands.literal("status")
                         .executes(CultivationCommands::status))
@@ -52,7 +57,7 @@ public class CultivationCommands {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         String bottleneckStr = data.isInBottleneck()
                 ? " §e(BOTTLENECK)"
                 : "";
@@ -76,7 +81,7 @@ public class CultivationCommands {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         if (CultivationManager.requiresSpecialBreakthrough(data.getLevel())) {
             player.sendSystemMessage(Component.translatable("soulland.cultivation.breakthrough.use_special"));
             return 0;
@@ -91,7 +96,7 @@ public class CultivationCommands {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         if (!CultivationManager.requiresSpecialBreakthrough(data.getLevel())) {
             player.sendSystemMessage(Component.translatable("soulland.cultivation.breakthrough.not_special_level"));
             return 0;
@@ -100,7 +105,7 @@ public class CultivationCommands {
         if (!(player.level() instanceof ServerLevel serverLevel)) return 0;
 
         // Record the tick of the lightning strike for survival-confirmation timing
-        player.getPersistentData().putLong("soulland_special_bt_strike_tick", player.level().getGameTime());
+        player.getPersistentData().putLong(com.zelf115.soulland.Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY, player.level().getGameTime());
         BreakthroughManager.beginSpecialBreakthrough(player, data, serverLevel);
         return 1;
     }
@@ -109,7 +114,7 @@ public class CultivationCommands {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         if (data.getLevel() < 90) {
             player.sendSystemMessage(Component.translatable("soulland.cultivation.title.locked"));
             return 0;
@@ -125,7 +130,7 @@ public class CultivationCommands {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         int level = data.getLevel();
         int required = (level / 10) + 1;
 
@@ -144,7 +149,7 @@ public class CultivationCommands {
         if (player == null) return 0;
 
         double amount = com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "amount");
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationEvents.addXpAndCheckLevelUp(player, data, amount);
         player.sendSystemMessage(Component.literal("§aAdded " + amount + " cultivation XP."));
         return 1;

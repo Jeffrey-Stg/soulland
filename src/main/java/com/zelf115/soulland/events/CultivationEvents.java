@@ -1,5 +1,6 @@
 package com.zelf115.soulland.events;
 
+import com.zelf115.soulland.Cultivation;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.cultivation.BreakthroughManager;
@@ -51,7 +52,7 @@ public class CultivationEvents {
         Player player = event.getEntity();
         if (player.level().isClientSide()) return;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         int level = data.getLevel();
         long gameTick = player.level().getGameTime();
 
@@ -59,10 +60,10 @@ public class CultivationEvents {
         if (BreakthroughManager.hasPendingSpecialBreakthrough(player) && player.isAlive()) {
             // We wait one full second after the bolt before confirming survival to let
             // damage processing complete.
-            long strikeTime = player.getPersistentData().getLong("soulland_special_bt_strike_tick");
+            long strikeTime = player.getPersistentData().getLong(Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY);
             if (strikeTime > 0 && gameTick - strikeTime >= CultivationManager.TPS) {
                 BreakthroughManager.resolveSpecialBreakthrough(player, data);
-                player.getPersistentData().remove("soulland_special_bt_strike_tick");
+                player.getPersistentData().remove(Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY);
             }
         }
 
@@ -93,7 +94,7 @@ public class CultivationEvents {
         if (!(event.getSource().getEntity() instanceof Player player)) return;
         if (player.level().isClientSide()) return;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         int playerLevel = data.getLevel();
         int playerTier = data.getPlayerTier();
         int beastTier = CultivationManager.beastTierFromHealth(victim.getMaxHealth());
@@ -118,7 +119,7 @@ public class CultivationEvents {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
         if (player.level().isClientSide()) return;
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
     }
 
@@ -129,7 +130,7 @@ public class CultivationEvents {
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         Player player = event.getEntity();
         if (player.level().isClientSide()) return;
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA);
+        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
 
         // Cancel any pending special breakthrough (player died during it)
@@ -146,11 +147,11 @@ public class CultivationEvents {
      */
     private static void tickMeditation(Player player, CultivationData data, long gameTick) {
         // Use a simple counter stored in persistent data to throttle ticks
-        long lastMeditationTick = player.getPersistentData().getLong("soulland_last_meditation_tick");
+        long lastMeditationTick = player.getPersistentData().getLong(Cultivation.LAST_MEDITATION_TICK_KEY);
 
         // -- Regular meditation XP every MEDITATION_TICK_INTERVAL --
         if (gameTick - lastMeditationTick >= CultivationManager.MEDITATION_TICK_INTERVAL) {
-            player.getPersistentData().putLong("soulland_last_meditation_tick", gameTick);
+            player.getPersistentData().putLong(Cultivation.LAST_MEDITATION_TICK_KEY, gameTick);
 
             double spiritValue = Stats.getSpirit(player);
             double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
@@ -166,9 +167,9 @@ public class CultivationEvents {
                 // but only the Spirit stat increases (once per minute).
                 data.addXp(xpGain);
 
-                long lastSpiritTick = player.getPersistentData().getLong("soulland_last_spirit_tick");
+                long lastSpiritTick = player.getPersistentData().getLong(Cultivation.LAST_SPIRIT_TICK_KEY);
                 if (gameTick - lastSpiritTick >= CultivationManager.TICKS_PER_MINUTE) {
-                    player.getPersistentData().putLong("soulland_last_spirit_tick", gameTick);
+                    player.getPersistentData().putLong(Cultivation.LAST_SPIRIT_TICK_KEY, gameTick);
                     Stats.addSpirit(player, CultivationManager.SPIRIT_BOTTLENECK_INCREASE_PER_MINUTE);
                 }
             } else {

@@ -91,6 +91,7 @@ public class SoulLand {
         // Register Attributes
         modEventBus.addListener(AttributeEvents::modifyPlayerAttributes);
         Stats.register(modEventBus);
+        Cultivation.register(modEventBus);
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

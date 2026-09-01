@@ -1,5 +1,6 @@
 package com.zelf115.soulland.cultivation;
 
+import com.zelf115.soulland.Cultivation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -138,7 +139,7 @@ public class BreakthroughManager {
 
         // The player is now "mid-breakthrough"; surviving (checked on next player tick)
         // will trigger resolveSpecialBreakthrough.
-        player.getPersistentData().putBoolean("soulland_pending_special_bt", true);
+        player.getPersistentData().putBoolean(Cultivation.PENDING_SPECIAL_BREAKTHROUGH_KEY, true);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.breakthrough.lightning_start"));
     }
 
@@ -150,7 +151,7 @@ public class BreakthroughManager {
      * @param data   the player's cultivation data
      */
     public static void resolveSpecialBreakthrough(Player player, CultivationData data) {
-        player.getPersistentData().remove("soulland_pending_special_bt");
+        player.getPersistentData().remove(Cultivation.PENDING_SPECIAL_BREAKTHROUGH_KEY);
         int newLevel = data.getLevel() + 1;
         data.setLevel(newLevel);
         data.setInBottleneck(false);
@@ -166,7 +167,7 @@ public class BreakthroughManager {
      * @param player the deceased player
      */
     public static void cancelSpecialBreakthroughOnDeath(Player player) {
-        player.getPersistentData().remove("soulland_pending_special_bt");
+        player.getPersistentData().remove(Cultivation.PENDING_SPECIAL_BREAKTHROUGH_KEY);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.breakthrough.died"));
     }
 
@@ -175,6 +176,6 @@ public class BreakthroughManager {
      * for survival confirmation.
      */
     public static boolean hasPendingSpecialBreakthrough(Player player) {
-        return player.getPersistentData().getBoolean("soulland_pending_special_bt");
+        return player.getPersistentData().getBoolean(Cultivation.PENDING_SPECIAL_BREAKTHROUGH_KEY);
     }
 }

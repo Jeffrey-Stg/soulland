@@ -14,7 +14,7 @@ public class Stats {
 
     //region Health
     public static final Holder<Attribute> HEALTH = ATTRIBUTES.register(
-            "Health",
+            "health",
             () -> new RangedAttribute(
                     String.format("attribute.%s.health",SoulLand.MODID), // Translation key
                     0.0,                          // Default value
@@ -39,7 +39,7 @@ public class Stats {
 
     //region Defense
     public static final Holder<Attribute> DEFENSE = ATTRIBUTES.register(
-            "Defense",
+            "defense",
             () -> new RangedAttribute(
                     String.format("attribute.%s.defense",SoulLand.MODID), // Translation key
                     0.0,                          // Default value
@@ -64,7 +64,7 @@ public class Stats {
 
     //region Damage
     public static final Holder<Attribute> DAMAGE = ATTRIBUTES.register(
-            "Damage",
+            "damage",
             () -> new RangedAttribute(
                     String.format("attribute.%s.damage",SoulLand.MODID), // Translation key
                     0.0,                          // Default value
@@ -89,7 +89,7 @@ public class Stats {
 
     //region Speed
     public static final Holder<Attribute> SPEED = ATTRIBUTES.register(
-            "Speed",
+            "speed",
             () -> new RangedAttribute(
                     String.format("attribute.%s.speed",SoulLand.MODID), // Translation key
                     0.0,                          // Default value
@@ -114,7 +114,7 @@ public class Stats {
 
     //region Spirit
     public static final Holder<Attribute> SPIRIT = ATTRIBUTES.register(
-            "Spirit",
+            "spirit",
             () -> new RangedAttribute(
                     String.format("attribute.%s.spirit",SoulLand.MODID), // Translation key
                     0.0,                          // Default value
@@ -137,7 +137,7 @@ public class Stats {
 
     //region Cultivation_Speed
     public static final Holder<Attribute> CULTIVATION_SPEED = ATTRIBUTES.register(
-            "Cultivation Speed",
+            "cultivation_speed",
             () -> new RangedAttribute(
                     String.format("attribute.%s.cultivation_speed",SoulLand.MODID), // Translation key
                     0.0,                          // Default value
