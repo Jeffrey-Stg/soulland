@@ -1,0 +1,8 @@
+{
+  "type": "soulland:rock_spike",
+  "config": {
+    "state": {
+      "Name": "minecraft:stone"
+    }
+  }
+}

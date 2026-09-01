@@ -18,5 +18,8 @@
   "biome.soulland.star_dou_forest": "Star Dou Forest",
   "biome.soulland.icebound_forest": "Icebound Forest",
   "biome.soulland.soul_hell": "Soul Hell",
-  "biome.soulland.soul_end": "Soul End"
+  "biome.soulland.soul_end": "Soul End",
+
+  "commands.soulland.qi": "%s holds %s qi here",
+  "commands.soulland.qi.unknown_biome": "This biome is not registered, so it has no qi"
 }
