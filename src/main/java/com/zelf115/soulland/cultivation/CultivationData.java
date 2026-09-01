@@ -68,7 +68,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     /** Player tier is soul-ring count + 1, minimum 1. */
     public int getPlayerTier() { return Math.max(1, soulRingCount + 1); }
 
-    /** Adds XP and returns the amount actually added (capped at max if provided). */
+    /** Adds raw cultivation XP to the stored total. */
     public void addXp(double amount) { this.xp += amount; }
 
     // ---- NBT Serialization ----

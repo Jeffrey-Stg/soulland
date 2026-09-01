@@ -146,6 +146,9 @@ public class CultivationManager {
         if (spiritValue < 5_000.0D) {
             return 4;
         }
+        if (spiritValue < 10_000.0D) {
+            return 5;
+        }
         if (spiritValue < 20_000.0D) {
             return 6;
         }

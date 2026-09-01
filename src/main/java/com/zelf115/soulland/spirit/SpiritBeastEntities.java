@@ -71,7 +71,7 @@ public final class SpiritBeastEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLD_EYED_LEOPARD = register("gold_eyed_leopard");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLD_SILK_APE = register("gold_silk_ape");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> PURPLE_THUNDER_BEAR = register("purple_thunder_bear");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> YING_YANG_CHAOS_BIRD = register("ying_yang_chaos_bird");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> YIN_YANG_CHAOS_BIRD = register("yin_yang_chaos_bird");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> LIGHTNING_BLUE_LEOPARD = register("lightning_blue_leopard");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> THUNDER_DRAGON = register("thunder_dragon");
 
