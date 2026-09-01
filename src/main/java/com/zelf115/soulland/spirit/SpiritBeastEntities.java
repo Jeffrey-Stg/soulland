@@ -56,6 +56,7 @@ public final class SpiritBeastEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> EVILEYE_TYRANT = register("evileye_tyrant");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLDEN_EYED_BLACK_DRAGON = register("golden_eyed_black_dragon");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> ICE_DEVIL_TITAN = register("ice_devil_titan");
+    // Canon spirit beast name from Soul Land.
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> STAR_ANISE = register("star_anise");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> ICE_BEAR = register("ice_bear");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> BLAZING_DEMON_LION = register("blazing_demon_lion");

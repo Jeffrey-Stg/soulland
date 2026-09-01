@@ -10,6 +10,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 
 public final class SpiritBeastManager {
+    private static final int MAX_EFFECTIVE_LEVEL = 100_000;
     public static final String INITIALIZED_KEY = "soulland_spirit_beast_initialized";
     public static final String YEARS_KEY = "soulland_spirit_beast_years";
     public static final String TIER_KEY = "soulland_spirit_beast_tier";
@@ -36,7 +37,7 @@ public final class SpiritBeastManager {
             final double baseDamage = getBaseValue(monster, Attributes.ATTACK_DAMAGE, 2.0D);
             final double baseArmor = getBaseValue(monster, Attributes.ARMOR, 0.0D);
             final double baseSpeed = getBaseValue(monster, Attributes.MOVEMENT_SPEED, 0.1D);
-            final int effectiveLevel = Math.max(1, years / 100);
+            final int effectiveLevel = Math.min(MAX_EFFECTIVE_LEVEL, Math.max(1, years / 100));
             data.putBoolean(INITIALIZED_KEY, true);
             data.putInt(TIER_KEY, tier);
             data.putInt(YEARS_KEY, years);
@@ -142,6 +143,7 @@ public final class SpiritBeastManager {
     private static String randomBoneSlot(final double roll, final EntityType<?> entityType) {
         final String entityPath = entityType.getDescriptionId().toLowerCase(Locale.ROOT);
         if (entityPath.contains("scorpion") || entityPath.contains("spider") || entityPath.contains("bear") || entityPath.contains("evileye")) {
+            // These beasts use lore-specific external bones instead of the standard body-slot pool.
             return "External Bone";
         }
         if (roll < 0.12D) {

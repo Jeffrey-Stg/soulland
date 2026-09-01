@@ -76,6 +76,7 @@ public final class SoulRingItem extends Item {
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
                 }
+                player.sendSystemMessage(Component.translatable("soulland.soul_ring.overreach_failed"));
                 player.kill();
                 return InteractionResultHolder.fail(stack);
             }

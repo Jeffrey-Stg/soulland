@@ -33,6 +33,7 @@
   "soulland.cultivation.speed_usage.set": "Movement speed usage set to %s%%.",
   "soulland.soul_ring.limit": "You cannot absorb more than %s soul rings at your current cultivation level.",
   "soulland.soul_ring.overreach_warning": "This soul ring is above your spirit limit. Sneak-right-click to risk absorption (%s%% success).",
+  "soulland.soul_ring.overreach_failed": "The overreach absorption failed and the soul ring destroyed your body.",
   "soulland.soul_ring.absorbed": "You absorbed the %s soul ring. Total rings: %s.",
   "soulland.spirit_bone.tier_locked": "Your spirit is only strong enough to absorb up to tier %s spirit bones.",
   "soulland.spirit_bone.absorbed": "You absorbed the %s from %s.",
