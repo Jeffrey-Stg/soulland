@@ -104,7 +104,7 @@ public class CultivationEvents {
 
         final double xpReward = CultivationManager.spiritBeastXpReward(playerLevel, playerTier, beastTier);
 
-        // Apply innate-stat and region-qi multipliers
+        // Apply innate-stat and cultivation-speed multipliers.
         final double spiritValue = Stats.getSpirit(player);
         final double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
         final double cultivationSpeedMultiplier = getCultivationSpeedMultiplier(player);

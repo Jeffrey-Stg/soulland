@@ -58,18 +58,6 @@ public class CultivationManager {
         return required * 5.0 * beastTier / Math.max(1, playerTier) / 100.0;
     }
 
-    /**
-     * Returns the spirit-beast tier (1–6) estimated from the entity's max health.
-     */
-    public static int beastTierFromHealth(float maxHealth) {
-        if (maxHealth < 20f)  return 1;
-        if (maxHealth < 40f)  return 2;
-        if (maxHealth < 80f)  return 3;
-        if (maxHealth < 150f) return 4;
-        if (maxHealth < 300f) return 5;
-        return 6;
-    }
-
     // ---- Stat Formulas ----
 
     /**

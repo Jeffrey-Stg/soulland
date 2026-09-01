@@ -81,6 +81,7 @@ public final class SpiritBeastEntities {
 
     private static DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> register(final String id) {
         final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> holder = ENTITY_TYPES.register(id,
+                // Placeholder size until species-specific models and dimensions are added.
                 () -> EntityType.Builder.<SpiritBeastEntity>of(SpiritBeastEntity::new, MobCategory.MONSTER)
                         .sized(0.9F, 1.8F)
                         .clientTrackingRange(8)

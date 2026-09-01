@@ -141,7 +141,7 @@ public final class SpiritBeastManager {
 
     private static String randomBoneSlot(final double roll, final EntityType<?> entityType) {
         final String entityPath = entityType.getDescriptionId().toLowerCase(Locale.ROOT);
-        if (entityPath.contains("scorpion") || entityPath.contains("spider") || entityPath.contains("bear") || entityPath.contains("eye")) {
+        if (entityPath.contains("scorpion") || entityPath.contains("spider") || entityPath.contains("bear") || entityPath.contains("evileye")) {
             return "External Bone";
         }
         if (roll < 0.12D) {

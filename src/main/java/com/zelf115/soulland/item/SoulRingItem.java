@@ -73,7 +73,9 @@ public final class SoulRingItem extends Item {
                 return InteractionResultHolder.fail(stack);
             }
             if (player.getRandom().nextDouble() >= successChance) {
-                stack.shrink(1);
+                if (!player.getAbilities().instabuild) {
+                    stack.shrink(1);
+                }
                 player.kill();
                 return InteractionResultHolder.fail(stack);
             }
