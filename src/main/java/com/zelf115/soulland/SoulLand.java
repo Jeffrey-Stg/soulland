@@ -1,5 +1,7 @@
 package com.zelf115.soulland;
 
+import com.zelf115.soulland.events.AttributeEvents;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -86,7 +88,9 @@ public class SoulLand {
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
-
+        // Register Attributes
+        modEventBus.addListener(AttributeEvents::modifyPlayerAttributes);
+        Stats.register(modEventBus);
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

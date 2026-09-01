@@ -9,5 +9,11 @@
   "soulland.configuration.items": "Item List",
   "soulland.configuration.logDirtBlock": "Log Dirt Block",
   "soulland.configuration.magicNumberIntroduction": "Magic Number Text",
-  "soulland.configuration.magicNumber": "Magic Number"
+  "soulland.configuration.magicNumber": "Magic Number",
+  "attribute.soulland.speed": "Speed",
+  "attribute.soulland.damage": "Damage",
+  "attribute.soulland.defense": "Defense",
+  "attribute.soulland.health": "Health",
+  "attribute.soulland.spirit": "Spirit",
+  "attribute.soulland.cultivation_speed": "Cultivation Speed"
 }
