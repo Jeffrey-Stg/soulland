@@ -6,13 +6,16 @@ import net.minecraft.world.level.biome.Biome;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 /**
  * Manages qi amounts for biomes.
  * Biomes from this mod have qi between 4 and 10.
- * All other biomes have qi between 1 and 3.
+ * All other biomes have qi between 1 and 3 (randomized).
  */
 public class QiManager {
+
+    private static final Random RANDOM = new Random();
 
     private static final Map<ResourceKey<Biome>, Integer> MOD_BIOME_QI = Map.of(
             SoulLandBiomes.EXTREME_NORTH,   6,
@@ -25,10 +28,12 @@ public class QiManager {
             SoulLandBiomes.SOUL_END,        9
     );
 
-    private static final int DEFAULT_VANILLA_QI = 2;
+    private static int randomVanillaQi() {
+        return 1 + RANDOM.nextInt(3);
+    }
 
     public static int getQiAmount(ResourceKey<Biome> biomeKey) {
-        return Optional.ofNullable(MOD_BIOME_QI.get(biomeKey)).orElse(DEFAULT_VANILLA_QI);
+        return Optional.ofNullable(MOD_BIOME_QI.get(biomeKey)).orElseGet(QiManager::randomVanillaQi);
     }
 
     public static boolean isModBiome(ResourceKey<Biome> biomeKey) {
