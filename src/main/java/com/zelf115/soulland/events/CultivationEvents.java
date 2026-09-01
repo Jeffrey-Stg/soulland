@@ -7,15 +7,15 @@ import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.spirit.SpiritBeastManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -49,23 +49,26 @@ public class CultivationEvents {
      */
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
-        Player player = event.getEntity();
+        final Player player = event.getEntity();
         if (player.level().isClientSide()) return;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        int level = data.getLevel();
-        long gameTick = player.level().getGameTime();
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        final long gameTick = player.level().getGameTime();
 
         // -- Resolve pending special breakthrough (player survived the lightning) --
         if (BreakthroughManager.hasPendingSpecialBreakthrough(player) && player.isAlive()) {
             // We wait one full second after the bolt before confirming survival to let
             // damage processing complete.
-            long strikeTime = player.getPersistentData().getLong(Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY);
+            final long strikeTime = player.getPersistentData().getLong(Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY);
             if (strikeTime > 0 && gameTick - strikeTime >= CultivationManager.TPS) {
                 BreakthroughManager.resolveSpecialBreakthrough(player, data);
                 player.getPersistentData().remove(Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY);
             }
         }
+
+        Stats.syncDerivedPlayerStats(player, data);
+        regenerateSpiritEnergy(player, data);
+        final int level = data.getLevel();
 
         // -- Flight abilities --
         CultivationManager.applyFlightAbilities(player, level);
@@ -74,7 +77,7 @@ public class CultivationEvents {
         CultivationManager.tickElytraGlide(player, level);
 
         // -- Meditation XP (when sneaking and not moving) --
-        if (player.isCrouching() && isStationary(player)) {
+        if (player.hasEffect(SoulLand.MEDITATION_EFFECT)) {
             tickMeditation(player, data, gameTick);
         }
     }
@@ -85,30 +88,32 @@ public class CultivationEvents {
      */
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
-        LivingEntity victim = event.getEntity();
+        final LivingEntity victim = event.getEntity();
 
         // Only reward XP for spirit beasts (hostile mobs)
         if (!(victim instanceof Monster)) return;
+        final Monster spiritBeast = (Monster) victim;
+        SpiritBeastManager.ensureSpiritBeast(spiritBeast);
 
         // Find the player responsible for the kill
         if (!(event.getSource().getEntity() instanceof Player player)) return;
         if (player.level().isClientSide()) return;
 
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        int playerLevel = data.getLevel();
-        int playerTier = data.getPlayerTier();
-        int beastTier = CultivationManager.beastTierFromHealth(victim.getMaxHealth());
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        final int playerLevel = data.getLevel();
+        final int playerTier = data.getPlayerTier();
+        final int beastTier = SpiritBeastManager.getTier(spiritBeast);
 
-        double xpReward = CultivationManager.spiritBeastXpReward(playerLevel, playerTier, beastTier);
+        final double xpReward = CultivationManager.spiritBeastXpReward(playerLevel, playerTier, beastTier);
 
         // Apply innate-stat and region-qi multipliers
-        double spiritValue = Stats.getSpirit(player);
-        double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
-        int regionQi = getRegionQi(player);
-        double qiMultiplier = CultivationManager.regionQiMultiplier(regionQi);
-        double cultivationSpeedMultiplier = getCultivationSpeedMultiplier(player);
+        final double spiritValue = Stats.getSpirit(player);
+        final double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
+        final int regionQi = getRegionQi(player);
+        final double qiMultiplier = CultivationManager.regionQiMultiplier(regionQi);
+        final double cultivationSpeedMultiplier = getCultivationSpeedMultiplier(player);
 
-        double finalXp = xpReward * innateMultiplier * qiMultiplier * cultivationSpeedMultiplier;
+        final double finalXp = xpReward * innateMultiplier * qiMultiplier * cultivationSpeedMultiplier;
         addXpAndCheckLevelUp(player, data, finalXp);
     }
 
@@ -117,10 +122,11 @@ public class CultivationEvents {
      */
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getEntity();
+        final Player player = event.getEntity();
         if (player.level().isClientSide()) return;
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
+        Stats.syncDerivedPlayerStats(player, data);
     }
 
     /**
@@ -128,15 +134,38 @@ public class CultivationEvents {
      */
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
-        Player player = event.getEntity();
+        final Player player = event.getEntity();
         if (player.level().isClientSide()) return;
-        CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
+        Stats.syncDerivedPlayerStats(player, data);
 
         // Cancel any pending special breakthrough (player died during it)
         if (BreakthroughManager.hasPendingSpecialBreakthrough(player)) {
             BreakthroughManager.cancelSpecialBreakthroughOnDeath(player);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLivingIncomingDamage(final LivingIncomingDamageEvent event) {
+        final LivingEntity victim = event.getEntity();
+        float updatedAmount = event.getAmount();
+
+        if (event.getSource().getEntity() instanceof Player attackingPlayer) {
+            updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, Stats.getDamage(attackingPlayer));
+        } else if (event.getSource().getEntity() instanceof Monster spiritBeast) {
+            SpiritBeastManager.ensureSpiritBeast(spiritBeast);
+            updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, SpiritBeastManager.getDamageStat(spiritBeast));
+        }
+
+        if (victim instanceof Player defendingPlayer) {
+            updatedAmount = Stats.applyDefenseReduction(updatedAmount, Stats.getDefense(defendingPlayer));
+        } else if (victim instanceof Monster spiritBeast) {
+            SpiritBeastManager.ensureSpiritBeast(spiritBeast);
+            updatedAmount = Stats.applyDefenseReduction(updatedAmount, SpiritBeastManager.getDefenseStat(spiritBeast));
+        }
+
+        event.setAmount(updatedAmount);
     }
 
     // ---- Helper Methods ----
@@ -147,19 +176,19 @@ public class CultivationEvents {
      */
     private static void tickMeditation(Player player, CultivationData data, long gameTick) {
         // Use a simple counter stored in persistent data to throttle ticks
-        long lastMeditationTick = player.getPersistentData().getLong(Cultivation.LAST_MEDITATION_TICK_KEY);
+        final long lastMeditationTick = player.getPersistentData().getLong(Cultivation.LAST_MEDITATION_TICK_KEY);
 
         // -- Regular meditation XP every MEDITATION_TICK_INTERVAL --
         if (gameTick - lastMeditationTick >= CultivationManager.MEDITATION_TICK_INTERVAL) {
             player.getPersistentData().putLong(Cultivation.LAST_MEDITATION_TICK_KEY, gameTick);
 
-            double spiritValue = Stats.getSpirit(player);
-            double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
-            int regionQi = getRegionQi(player);
-            double qiMultiplier = CultivationManager.regionQiMultiplier(regionQi);
-            double cultivationSpeedMultiplier = getCultivationSpeedMultiplier(player);
+            final double spiritValue = Stats.getSpirit(player);
+            final double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
+            final int regionQi = getRegionQi(player);
+            final double qiMultiplier = CultivationManager.regionQiMultiplier(regionQi);
+            final double cultivationSpeedMultiplier = getCultivationSpeedMultiplier(player);
 
-            double xpGain = CultivationManager.MEDITATION_XP_PER_TICK
+            final double xpGain = CultivationManager.MEDITATION_XP_PER_TICK
                     * innateMultiplier * qiMultiplier * cultivationSpeedMultiplier;
 
             if (data.isInBottleneck()) {
@@ -167,7 +196,7 @@ public class CultivationEvents {
                 // but only the Spirit stat increases (once per minute).
                 data.addXp(xpGain);
 
-                long lastSpiritTick = player.getPersistentData().getLong(Cultivation.LAST_SPIRIT_TICK_KEY);
+                final long lastSpiritTick = player.getPersistentData().getLong(Cultivation.LAST_SPIRIT_TICK_KEY);
                 if (gameTick - lastSpiritTick >= CultivationManager.TICKS_PER_MINUTE) {
                     player.getPersistentData().putLong(Cultivation.LAST_SPIRIT_TICK_KEY, gameTick);
                     Stats.addSpirit(player, CultivationManager.SPIRIT_BOTTLENECK_INCREASE_PER_MINUTE);
@@ -186,11 +215,11 @@ public class CultivationEvents {
         data.addXp(amount);
 
         while (true) {
-            int level = data.getLevel();
+            final int level = data.getLevel();
             if (level >= CultivationManager.MAX_LEVEL) break;
             if (data.isInBottleneck()) break;
 
-            double required = CultivationManager.xpRequiredForLevel(level);
+            final double required = CultivationManager.xpRequiredForLevel(level);
             if (data.getXp() < required) break;
 
             // Check if next level hits a bottleneck gate
@@ -214,17 +243,18 @@ public class CultivationEvents {
 
             // Consume XP and advance level
             data.setXp(data.getXp() - required);
-            int newLevel = level + 1;
+            final int newLevel = level + 1;
             data.setLevel(newLevel);
 
             // Apply stats for the new level
-            boolean isBreakthroughLevel = (newLevel % 10 == 1) && newLevel >= 11 && newLevel <= 91;
+            final boolean isBreakthroughLevel = (newLevel % 10 == 1) && newLevel >= 11 && newLevel <= 91;
             if (isBreakthroughLevel) {
                 CultivationManager.applyBreakthroughStats(player, newLevel);
             } else {
                 CultivationManager.applyRegularLevelStats(player, newLevel);
             }
 
+            Stats.syncDerivedPlayerStats(player, data);
             CultivationManager.applyFlightAbilities(player, newLevel);
 
             // Notify player
@@ -239,12 +269,6 @@ public class CultivationEvents {
                 break;
             }
         }
-    }
-
-    /** Returns {@code true} if the player's horizontal movement is negligible. */
-    private static boolean isStationary(Player player) {
-        var motion = player.getDeltaMovement();
-        return Math.abs(motion.x) < 0.01 && Math.abs(motion.z) < 0.01;
     }
 
     /**
@@ -262,7 +286,17 @@ public class CultivationEvents {
      * The base value of 0 means no bonus; positive values add a proportional bonus.
      */
     private static double getCultivationSpeedMultiplier(Player player) {
-        double cultivationSpeed = Stats.getCultivationSpeed(player);
+        final double cultivationSpeed = Stats.getCultivationSpeed(player);
         return 1.0 + Math.max(0.0, cultivationSpeed / 100.0);
+    }
+
+    private static void regenerateSpiritEnergy(final Player player, final CultivationData data) {
+        final double maxSpiritEnergy = Stats.getMaxSpiritEnergy(player);
+        if (maxSpiritEnergy <= 0.0D || data.getSpiritEnergy() >= maxSpiritEnergy) {
+            return;
+        }
+
+        final double regenPerTick = Stats.getSpiritEnergyRegenPerSecond(player) / CultivationManager.TPS;
+        data.setSpiritEnergy(Math.min(maxSpiritEnergy, data.getSpiritEnergy() + regenPerTick));
     }
 }

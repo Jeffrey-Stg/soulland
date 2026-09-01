@@ -1,14 +1,21 @@
 package com.zelf115.soulland;
 
+import com.zelf115.soulland.cultivation.CultivationData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 public class Stats {
+    private static final double DEFAULT_PLAYER_MAX_HEALTH = 20.0;
+    private static final double DEFAULT_PLAYER_ATTACK_DAMAGE = 1.0;
+    private static final double DEFAULT_PLAYER_MOVEMENT_SPEED = 0.1;
+    private static final double DEFAULT_PLAYER_ATTACK_SPEED = 4.0;
+
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(Registries.ATTRIBUTE, SoulLand.MODID);
 
@@ -23,14 +30,14 @@ public class Stats {
             ).setSyncable(true)                   // Sync to client if needed
     );
     public static double getHealth(Player player) {
-        AttributeInstance instance = player.getAttribute(HEALTH);
+        final AttributeInstance instance = player.getAttribute(HEALTH);
         return instance != null ? instance.getValue() : 100.0;
     }
 
-    public static void AddHealth(Player player, double amount) {
+    public static void addHealth(Player player, double amount) {
         if (player.level().isClientSide()) return; // Always mutate on server
 
-        AttributeInstance instance = player.getAttribute(HEALTH);
+        final AttributeInstance instance = player.getAttribute(HEALTH);
         if (instance != null) {
             instance.setBaseValue(instance.getBaseValue() + amount);
         }
@@ -48,14 +55,14 @@ public class Stats {
             ).setSyncable(true)                   // Sync to client if needed
     );
     public static double getDefense(Player player) {
-        AttributeInstance instance = player.getAttribute(DEFENSE);
+        final AttributeInstance instance = player.getAttribute(DEFENSE);
         return instance != null ? instance.getValue() : 100.0;
     }
 
-    public static void AddDefense(Player player, double amount) {
+    public static void addDefense(Player player, double amount) {
         if (player.level().isClientSide()) return; // Always mutate on server
 
-        AttributeInstance instance = player.getAttribute(DEFENSE);
+        final AttributeInstance instance = player.getAttribute(DEFENSE);
         if (instance != null) {
             instance.setBaseValue(instance.getBaseValue() + amount);
         }
@@ -73,14 +80,14 @@ public class Stats {
             ).setSyncable(true)                   // Sync to client if needed
     );
     public static double getDamage(Player player) {
-        AttributeInstance instance = player.getAttribute(DAMAGE);
+        final AttributeInstance instance = player.getAttribute(DAMAGE);
         return instance != null ? instance.getValue() : 100.0;
     }
 
     public static void addDamage(Player player, double amount) {
         if (player.level().isClientSide()) return; // Always mutate on server
 
-        AttributeInstance instance = player.getAttribute(DAMAGE);
+        final AttributeInstance instance = player.getAttribute(DAMAGE);
         if (instance != null) {
             instance.setBaseValue(instance.getBaseValue() + amount);
         }
@@ -98,14 +105,14 @@ public class Stats {
             ).setSyncable(true)                   // Sync to client if needed
     );
     public static double getSpeed(Player player) {
-        AttributeInstance instance = player.getAttribute(SPEED);
+        final AttributeInstance instance = player.getAttribute(SPEED);
         return instance != null ? instance.getValue() : 100.0;
     }
 
     public static void addSpeed(Player player, double amount) {
         if (player.level().isClientSide()) return; // Always mutate on server
 
-        AttributeInstance instance = player.getAttribute(SPEED);
+        final AttributeInstance instance = player.getAttribute(SPEED);
         if (instance != null) {
             instance.setBaseValue(instance.getBaseValue() + amount);
         }
@@ -123,12 +130,12 @@ public class Stats {
             ).setSyncable(true)                   // Sync to client if needed
     );
     public static double getSpirit(Player player) {
-        AttributeInstance instance = player.getAttribute(SPIRIT);
+        final AttributeInstance instance = player.getAttribute(SPIRIT);
         return instance != null ? instance.getValue() : 100.0;
     }
     public static void addSpirit(Player player, double amount) {
         if (player.level().isClientSide()) return;
-        AttributeInstance instance = player.getAttribute(SPIRIT);
+        final AttributeInstance instance = player.getAttribute(SPIRIT);
         if (instance != null) {
             instance.setBaseValue(instance.getBaseValue() + amount);
         }
@@ -147,17 +154,69 @@ public class Stats {
     );
 
     public static double getCultivationSpeed(Player player) {
-        AttributeInstance instance = player.getAttribute(CULTIVATION_SPEED);
+        final AttributeInstance instance = player.getAttribute(CULTIVATION_SPEED);
         return instance != null ? instance.getValue() : 100.0;
     }
     public static void addCultivationSpeed(Player player, double amount) {
         if (player.level().isClientSide()) return;
-        AttributeInstance instance = player.getAttribute(CULTIVATION_SPEED);
+        final AttributeInstance instance = player.getAttribute(CULTIVATION_SPEED);
         if (instance != null) {
             instance.setBaseValue(instance.getBaseValue() + amount);
         }
     }
     //endregion
+
+    public static double getMaxSpiritEnergy(final Player player) {
+        return Math.max(0.0, getSpirit(player) / 10.0);
+    }
+
+    public static double getSpiritEnergyRegenPerSecond(final Player player) {
+        return getMaxSpiritEnergy(player) * (getSpirit(player) / 10000.0);
+    }
+
+    public static void syncDerivedPlayerStats(final Player player, final CultivationData data) {
+        if (player.level().isClientSide()) {
+            return;
+        }
+
+        final double healthStat = getHealth(player);
+        final double damageStat = getDamage(player);
+        final double defenseStat = getDefense(player);
+        final double speedStat = getSpeed(player);
+        final double maxHealth = (DEFAULT_PLAYER_MAX_HEALTH + healthStat / 20.0) * (1.0 + healthStat / 10000.0);
+        final double movementSpeed = DEFAULT_PLAYER_MOVEMENT_SPEED * (1.0 + speedStat / 2500.0) * (data.getMovementUsagePercent() / 100.0);
+        final double attackSpeed = DEFAULT_PLAYER_ATTACK_SPEED * (1.0 + speedStat / 10000.0);
+        setVanillaBaseValue(player, Attributes.MAX_HEALTH, maxHealth);
+        setVanillaBaseValue(player, Attributes.ATTACK_DAMAGE, DEFAULT_PLAYER_ATTACK_DAMAGE + damageStat / 20.0);
+        setVanillaBaseValue(player, Attributes.ARMOR, defenseStat / 50.0);
+        setVanillaBaseValue(player, Attributes.MOVEMENT_SPEED, movementSpeed);
+        setVanillaBaseValue(player, Attributes.ATTACK_SPEED, attackSpeed);
+        if (player.getHealth() > player.getMaxHealth()) {
+            player.setHealth(player.getMaxHealth());
+        }
+
+        final double maxSpiritEnergy = getMaxSpiritEnergy(player);
+        if (data.getSpiritEnergy() <= 0.0 || data.getSpiritEnergy() > maxSpiritEnergy) {
+            data.setSpiritEnergy(maxSpiritEnergy);
+        }
+    }
+
+    public static double applyOutgoingDamageBonus(final double baseDamage, final double damageStat) {
+        final double multiplicativeBonus = 1.0 + damageStat / 10000.0;
+        return baseDamage * multiplicativeBonus;
+    }
+
+    public static float applyDefenseReduction(final float incomingDamage, final double defenseStat) {
+        final double reduction = Math.min(0.90, defenseStat / 10000.0);
+        return (float) (incomingDamage * (1.0 - reduction));
+    }
+
+    private static void setVanillaBaseValue(final Player player, final Holder<Attribute> attribute, final double value) {
+        final AttributeInstance instance = player.getAttribute(attribute);
+        if (instance != null) {
+            instance.setBaseValue(value);
+        }
+    }
 
     public static void register(IEventBus modEventBus) {
         ATTRIBUTES.register(modEventBus);

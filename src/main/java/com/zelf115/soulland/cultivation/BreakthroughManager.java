@@ -39,8 +39,8 @@ public class BreakthroughManager {
     public static final double REGULAR_BASE_CHANCE = 0.50;
     /** Additional success probability per breakthrough failure. */
     public static final double FAILURE_BONUS_CHANCE = 0.05;
-    /** Cooldown in ticks (30 s) imposed after a failed breakthrough attempt. */
-    public static final int FAILURE_COOLDOWN_TICKS = 20 * 30;
+    /** Cooldown in ticks (5 min) imposed after a failed breakthrough attempt. */
+    public static final int FAILURE_COOLDOWN_TICKS = 20 * 60 * 5;
 
     private static final Random RANDOM = new Random();
 
@@ -64,9 +64,9 @@ public class BreakthroughManager {
     public static boolean canAttemptRegularBreakthrough(CultivationData data, long gameTick) {
         if (!data.isInBottleneck()) return false;
         if (gameTick < data.getBreakthroughCooldownUntil()) return false;
-        int level = data.getLevel();
+        final int level = data.getLevel();
         if (CultivationManager.requiresSoulRing(level)) {
-            int requiredRings = level / CultivationManager.SOUL_RING_GATE_INTERVAL;
+            final int requiredRings = level / CultivationManager.SOUL_RING_GATE_INTERVAL;
             if (data.getSoulRingCount() < requiredRings) return false;
         }
         return true;
@@ -91,7 +91,7 @@ public class BreakthroughManager {
 
         if (RANDOM.nextDouble() < successChance) {
             // Success
-            int newLevel = data.getLevel() + 1;
+            final int newLevel = data.getLevel() + 1;
             data.setLevel(newLevel);
             data.setInBottleneck(false);
             data.setBreakthroughFailures(0);
@@ -103,7 +103,7 @@ public class BreakthroughManager {
             // Failure
             data.setBreakthroughFailures(data.getBreakthroughFailures() + 1);
             data.setBreakthroughCooldownUntil(gameTick + FAILURE_COOLDOWN_TICKS);
-            int totalBonus = data.getBreakthroughFailures() * 5;
+            final int totalBonus = data.getBreakthroughFailures() * 5;
             player.sendSystemMessage(Component.translatable(
                     "soulland.cultivation.breakthrough.failed",
                     totalBonus));
@@ -129,9 +129,9 @@ public class BreakthroughManager {
         }
 
         // Summon a lightning bolt at the player's position
-        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
+        final LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
         if (bolt != null) {
-            BlockPos pos = player.blockPosition();
+            final BlockPos pos = player.blockPosition();
             bolt.moveTo(Vec3.atBottomCenterOf(pos));
             bolt.setVisualOnly(false); // causes real damage
             serverLevel.addFreshEntity(bolt);
@@ -152,7 +152,7 @@ public class BreakthroughManager {
      */
     public static void resolveSpecialBreakthrough(Player player, CultivationData data) {
         player.getPersistentData().remove(Cultivation.PENDING_SPECIAL_BREAKTHROUGH_KEY);
-        int newLevel = data.getLevel() + 1;
+        final int newLevel = data.getLevel() + 1;
         data.setLevel(newLevel);
         data.setInBottleneck(false);
         CultivationManager.applyBreakthroughStats(player, newLevel);

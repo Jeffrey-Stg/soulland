@@ -29,6 +29,7 @@ public class CultivationManager {
     public static final int TPS = 20;
     /** Ticks between passive meditation XP ticks (1 second). */
     public static final int MEDITATION_TICK_INTERVAL = TPS;
+    public static final int MEDITATION_DURATION_TICKS = TPS * 60 * 5;
     /** Passive XP awarded per meditation tick (before multipliers). */
     public static final double MEDITATION_XP_PER_TICK = 2.0;
     /** Spirit stat increase per minute (60 s) while bottlenecked and meditating. */
@@ -140,6 +141,34 @@ public class CultivationManager {
         return currentLevel == GOD_INHERITANCE_GATE - 1;
     }
 
+    public static int maxSoulRingCountForLevel(final int level) {
+        if (level >= LAST_SOUL_RING_GATE) {
+            return LAST_SOUL_RING_GATE / SOUL_RING_GATE_INTERVAL;
+        }
+        return Math.max(1, level / SOUL_RING_GATE_INTERVAL + 1);
+    }
+
+    public static int maxAbsorbableTier(final double spiritValue) {
+        if (spiritValue < 100.0D) {
+            return 2;
+        }
+        if (spiritValue < 500.0D) {
+            return 3;
+        }
+        if (spiritValue < 5_000.0D) {
+            return 4;
+        }
+        if (spiritValue < 20_000.0D) {
+            return 5;
+        }
+        return 7;
+    }
+
+    public static double overreachSuccessChance(final int allowedTier, final int actualTier, final int rebirthCount) {
+        final int tiersAboveLimit = Math.max(0, actualTier - allowedTier);
+        return Math.max(0.05D, Math.min(0.95D, 0.50D - tiersAboveLimit * 0.05D + rebirthCount * 0.05D));
+    }
+
     // ---- XP Multipliers ----
 
     /**
@@ -181,8 +210,8 @@ public class CultivationManager {
         double spirit  = Stats.getSpirit(player);
 
         Stats.addDamage(player,  regularStatIncrease(damage,  newLevel) - damage);
-        Stats.AddHealth(player,  regularStatIncrease(health,  newLevel) - health);
-        Stats.AddDefense(player, regularStatIncrease(defense, newLevel) - defense);
+        Stats.addHealth(player,  regularStatIncrease(health,  newLevel) - health);
+        Stats.addDefense(player, regularStatIncrease(defense, newLevel) - defense);
         Stats.addSpeed(player,   regularStatIncrease(speed,   newLevel) - speed);
         Stats.addSpirit(player,  regularStatIncrease(spirit,  newLevel) - spirit);
     }
@@ -201,8 +230,8 @@ public class CultivationManager {
         double spirit  = Stats.getSpirit(player);
 
         Stats.addDamage(player,  breakthroughStatValue(damage,  breakthroughLevel) - damage);
-        Stats.AddHealth(player,  breakthroughStatValue(health,  breakthroughLevel) - health);
-        Stats.AddDefense(player, breakthroughStatValue(defense, breakthroughLevel) - defense);
+        Stats.addHealth(player,  breakthroughStatValue(health,  breakthroughLevel) - health);
+        Stats.addDefense(player, breakthroughStatValue(defense, breakthroughLevel) - defense);
         Stats.addSpeed(player,   breakthroughStatValue(speed,   breakthroughLevel) - speed);
         Stats.addSpirit(player,  breakthroughStatValue(spirit,  breakthroughLevel) - spirit);
     }

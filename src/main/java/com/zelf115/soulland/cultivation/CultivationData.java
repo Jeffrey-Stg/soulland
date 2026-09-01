@@ -28,6 +28,10 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private int rebirthCount = 0;
     // Permanent flat bonus applied to all stats, accumulated across rebirths
     private double permanentBonusStats = 0.0;
+    // Current spirit energy resource derived from spirit stat
+    private double spiritEnergy = 0.0;
+    // Percentage of the derived movement speed the player wants to actively use
+    private int movementUsagePercent = 100;
 
     // ---- Getters ----
 
@@ -41,6 +45,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public boolean hasGodInheritance() { return hasGodInheritance; }
     public int getRebirthCount() { return rebirthCount; }
     public double getPermanentBonusStats() { return permanentBonusStats; }
+    public double getSpiritEnergy() { return spiritEnergy; }
+    public int getMovementUsagePercent() { return movementUsagePercent; }
 
     // ---- Setters ----
 
@@ -54,6 +60,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setHasGodInheritance(boolean value) { this.hasGodInheritance = value; }
     public void setRebirthCount(int count) { this.rebirthCount = Math.max(0, count); }
     public void setPermanentBonusStats(double bonus) { this.permanentBonusStats = bonus; }
+    public void setSpiritEnergy(double spiritEnergy) { this.spiritEnergy = Math.max(0.0, spiritEnergy); }
+    public void setMovementUsagePercent(int movementUsagePercent) { this.movementUsagePercent = Math.max(25, Math.min(200, movementUsagePercent)); }
 
     // ---- Convenience ----
 
@@ -78,6 +86,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putBoolean("hasGodInheritance", hasGodInheritance);
         tag.putInt("rebirthCount", rebirthCount);
         tag.putDouble("permanentBonusStats", permanentBonusStats);
+        tag.putDouble("spiritEnergy", spiritEnergy);
+        tag.putInt("movementUsagePercent", movementUsagePercent);
         return tag;
     }
 
@@ -94,5 +104,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         hasGodInheritance = tag.getBoolean("hasGodInheritance");
         rebirthCount = tag.getInt("rebirthCount");
         permanentBonusStats = tag.getDouble("permanentBonusStats");
+        spiritEnergy = Math.max(0.0, tag.getDouble("spiritEnergy"));
+        movementUsagePercent = Math.max(25, Math.min(200, tag.contains("movementUsagePercent") ? tag.getInt("movementUsagePercent") : 100));
     }
 }

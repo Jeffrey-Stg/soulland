@@ -1,14 +1,18 @@
 package com.zelf115.soulland;
 
+import com.zelf115.soulland.effect.MeditationEffect;
 import com.zelf115.soulland.events.AttributeEvents;
+import com.zelf115.soulland.item.SoulRingItem;
+import com.zelf115.soulland.item.SpiritBoneItem;
+import com.zelf115.soulland.network.CultivationNetwork;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -46,11 +50,15 @@ public class SoulLand {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "soulland" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    public static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, MODID);
 
     // Creates a new Block with the id "soulland:example_block", combining the namespace and path
     public static final DeferredBlock<Block> EXAMPLE_BLOCK = BLOCKS.registerSimpleBlock("example_block", BlockBehaviour.Properties.of().mapColor(MapColor.STONE));
     // Creates a new BlockItem with the id "soulland:example_block", combining the namespace and path
     public static final DeferredItem<BlockItem> EXAMPLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", EXAMPLE_BLOCK);
+    public static final DeferredItem<Item> SOUL_RING_ITEM = ITEMS.register("soul_ring", () -> new SoulRingItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<MobEffect, MobEffect> MEDITATION_EFFECT = MOB_EFFECTS.register("meditation", MeditationEffect::new);
 
     /*
      Creates a new food item with the id "soulland:example_id", nutrition 1 and saturation 2
@@ -80,6 +88,7 @@ public class SoulLand {
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+        MOB_EFFECTS.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (SoulLand) to respond directly to events.
@@ -90,6 +99,7 @@ public class SoulLand {
         modEventBus.addListener(this::addCreative);
         // Register Attributes
         modEventBus.addListener(AttributeEvents::modifyPlayerAttributes);
+        modEventBus.addListener(CultivationNetwork::register);
         Stats.register(modEventBus);
         Cultivation.register(modEventBus);
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
@@ -113,6 +123,10 @@ public class SoulLand {
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(EXAMPLE_BLOCK_ITEM);
+        }
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(SOUL_RING_ITEM);
+            event.accept(SPIRIT_BONE_ITEM);
         }
     }
 
