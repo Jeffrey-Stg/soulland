@@ -10,15 +10,15 @@ import java.util.Set;
 /**
  * Manages qi amounts for biomes.
  * Mod biomes yield qi between 4 and 10.
- * All other biomes yield qi between 1 and 3.
+ * All other biomes (vanilla, third-party mods) yield qi between 1 and 3.
  * Values are deterministic per world seed and chunk position.
  */
 public class QiManager {
 
     private static final int MOD_QI_MIN = 4;
     private static final int MOD_QI_MAX = 10;
-    private static final int VANILLA_QI_MIN = 1;
-    private static final int VANILLA_QI_MAX = 3;
+    private static final int DEFAULT_QI_MIN = 1;
+    private static final int DEFAULT_QI_MAX = 3;
 
     private static final Set<ResourceKey<Biome>> MOD_BIOMES = Set.of(
             SoulLandBiomes.EXTREME_NORTH,
@@ -38,7 +38,7 @@ public class QiManager {
         if (isModBiome(biomeKey)) {
             return MOD_QI_MIN + random.nextInt(MOD_QI_MAX - MOD_QI_MIN + 1);
         }
-        return VANILLA_QI_MIN + random.nextInt(VANILLA_QI_MAX - VANILLA_QI_MIN + 1);
+        return DEFAULT_QI_MIN + random.nextInt(DEFAULT_QI_MAX - DEFAULT_QI_MIN + 1);
     }
 
     public static boolean isModBiome(ResourceKey<Biome> biomeKey) {
