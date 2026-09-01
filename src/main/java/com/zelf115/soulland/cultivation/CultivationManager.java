@@ -102,7 +102,7 @@ public class CultivationManager {
      * <p>Bottleneck gates:
      * <ul>
      *   <li>Level is a multiple of 10, between 10 and 90 (soul-ring + regular breakthrough required)</li>
-     *   <li>Level is 94 (pre-special-breakthrough gate; levels 95-120 each have a lightning breakthrough)</li>
+     *   <li>Level is 94 (start of the special-breakthrough chain needed to reach level 95)</li>
      *   <li>Level is 99 (pre-lvl-100 gate; requires god inheritance or rebirth)</li>
      *   <li>Each level 95–119 (special breakthrough required to advance)</li>
      * </ul>

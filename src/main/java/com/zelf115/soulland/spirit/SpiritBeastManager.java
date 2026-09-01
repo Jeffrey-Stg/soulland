@@ -32,7 +32,7 @@ public final class SpiritBeastManager {
         boolean initializedNow = false;
         if (!data.getBoolean(INITIALIZED_KEY)) {
             final int tier = rollTier(monster.getRandom().nextDouble());
-            final int years = randomYearsForTier(monster.getRandom().nextInt(), tier);
+            final int years = randomYearsForTier(monster, tier);
             final double baseMaxHealth = getBaseValue(monster, Attributes.MAX_HEALTH, 20.0D);
             final double baseDamage = getBaseValue(monster, Attributes.ATTACK_DAMAGE, 2.0D);
             final double baseArmor = getBaseValue(monster, Attributes.ARMOR, 0.0D);
@@ -180,16 +180,15 @@ public final class SpiritBeastManager {
         return 7;
     }
 
-    private static int randomYearsForTier(final int randomSeed, final int tier) {
-        final int positiveSeed = Math.abs(randomSeed == Integer.MIN_VALUE ? 0 : randomSeed);
+    private static int randomYearsForTier(final Monster monster, final int tier) {
         return switch (tier) {
-            case 1 -> 1 + positiveSeed % 99;
-            case 2 -> 100 + positiveSeed % 900;
-            case 3 -> 1_000 + positiveSeed % 9_000;
-            case 4 -> 10_000 + positiveSeed % 90_000;
-            case 5 -> 100_000 + positiveSeed % 100_000;
-            case 6 -> 200_000 + positiveSeed % 800_000;
-            default -> 1_000_000 + positiveSeed % (Integer.MAX_VALUE - 1_000_000);
+            case 1 -> 1 + monster.getRandom().nextInt(99);
+            case 2 -> 100 + monster.getRandom().nextInt(900);
+            case 3 -> 1_000 + monster.getRandom().nextInt(9_000);
+            case 4 -> 10_000 + monster.getRandom().nextInt(90_000);
+            case 5 -> 100_000 + monster.getRandom().nextInt(100_000);
+            case 6 -> 200_000 + monster.getRandom().nextInt(800_000);
+            default -> 1_000_000 + monster.getRandom().nextInt(Integer.MAX_VALUE - 1_000_000);
         };
     }
 

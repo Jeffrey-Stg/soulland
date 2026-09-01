@@ -32,6 +32,7 @@ public final class SpiritBeastEvents {
             return;
         }
 
+        // For now every hostile mob acts as a spirit beast placeholder until dedicated beast entities are added.
         monster.spawnAtLocation(SpiritBeastManager.createSoulRing(monster));
         if (SpiritBeastManager.getTier(monster) >= 4 && monster.getRandom().nextDouble() < 0.02D) {
             monster.spawnAtLocation(SpiritBeastManager.createSpiritBone(monster));

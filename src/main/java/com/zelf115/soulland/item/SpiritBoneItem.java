@@ -7,6 +7,7 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.List;
+import java.util.Locale;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -66,7 +67,7 @@ public final class SpiritBoneItem extends Item {
 
         final String slot = tag.getString("Slot");
         final CompoundTag persistentData = player.getPersistentData();
-        final String slotKey = "soulland_spirit_bone_" + slot.toLowerCase().replace(' ', '_');
+        final String slotKey = "soulland_spirit_bone_" + slot.toLowerCase(Locale.ROOT).replace(' ', '_');
         removeExistingBoneBonuses(player, persistentData, slotKey);
         applyBoneBonuses(player, persistentData, slotKey, tag);
         Stats.syncDerivedPlayerStats(player, data);
