@@ -113,6 +113,7 @@ public final class SoulRingItem extends Item {
         tooltipComponents.add(Component.translatable("soulland.tooltip.defense_bonus", formatBonus(tag.getDouble("DefenseBonus"))));
         tooltipComponents.add(Component.translatable("soulland.tooltip.speed_bonus", formatBonus(tag.getDouble("SpeedBonus"))));
         tooltipComponents.add(Component.translatable("soulland.tooltip.spirit_bonus", formatBonus(tag.getDouble("SpiritBonus"))));
+        tooltipComponents.add(Component.translatable("soulland.tooltip.cultivation_speed_bonus", formatBonus(tag.getDouble("CultivationSpeedBonus"))));
     }
 
     private static String formatBonus(final double value) {

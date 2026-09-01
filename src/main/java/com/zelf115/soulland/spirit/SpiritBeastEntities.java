@@ -2,6 +2,7 @@ package com.zelf115.soulland.spirit;
 
 import com.zelf115.soulland.SoulLand;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
@@ -13,7 +14,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class SpiritBeastEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(Registries.ENTITY_TYPE, SoulLand.MODID);
-    public static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> ALL = new ArrayList<>();
+    private static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> ALL_INTERNAL = new ArrayList<>();
+    public static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> ALL = Collections.unmodifiableList(ALL_INTERNAL);
 
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> WHITE_TIGER = register("white_tiger");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> HELL_SPIRIT_CAT = register("hell_spirit_cat");
@@ -64,7 +66,7 @@ public final class SpiritBeastEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> THREE_EYED_DEMON_APE = register("three_eyed_demon_ape");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GIANT_OCTOPUS = register("giant_octopus");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> TITANOHIPPO = register("titanohippo");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> LAVA_HOUNDS = register("lava_hounds");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> LAVA_HOUND = register("lava_hound");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLD_EYED_LEOPARD = register("gold_eyed_leopard");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLD_SILK_APE = register("gold_silk_ape");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> PURPLE_THUNDER_BEAR = register("purple_thunder_bear");
@@ -86,7 +88,7 @@ public final class SpiritBeastEntities {
                         .sized(0.9F, 1.8F)
                         .clientTrackingRange(8)
                         .build(SoulLand.MODID + ":" + id));
-        ALL.add(holder);
+        ALL_INTERNAL.add(holder);
         return holder;
     }
 }
