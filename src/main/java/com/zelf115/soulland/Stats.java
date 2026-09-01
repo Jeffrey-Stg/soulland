@@ -196,7 +196,7 @@ public class Stats {
         }
 
         final double maxSpiritEnergy = getMaxSpiritEnergy(player);
-        if (data.getSpiritEnergy() <= 0.0 || data.getSpiritEnergy() > maxSpiritEnergy) {
+        if (data.getSpiritEnergy() < 0.0 || data.getSpiritEnergy() > maxSpiritEnergy) {
             data.setSpiritEnergy(maxSpiritEnergy);
         }
     }

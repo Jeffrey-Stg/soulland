@@ -29,6 +29,7 @@ public final class SpiritBeastManager {
 
     public static void ensureSpiritBeast(final Monster monster) {
         final CompoundTag data = monster.getPersistentData();
+        boolean initializedNow = false;
         if (!data.getBoolean(INITIALIZED_KEY)) {
             final int tier = rollTier(monster.getRandom().nextDouble());
             final int years = randomYearsForTier(monster.getRandom().nextInt(), tier);
@@ -49,12 +50,13 @@ public final class SpiritBeastManager {
             data.putDouble(DEFENSE_STAT_KEY, (baseArmor * 50.0D + effectiveLevel) * tier);
             data.putDouble(SPEED_STAT_KEY, (baseSpeed * 2500.0D + effectiveLevel) * tier);
             data.putDouble(SPIRIT_STAT_KEY, (10.0D + effectiveLevel) * tier);
+            initializedNow = true;
         }
 
-        applyStats(monster);
+        applyStats(monster, initializedNow);
     }
 
-    public static void applyStats(final Monster monster) {
+    public static void applyStats(final Monster monster, final boolean healToFull) {
         final CompoundTag data = monster.getPersistentData();
         final double healthStat = data.getDouble(HEALTH_STAT_KEY);
         final double damageStat = data.getDouble(DAMAGE_STAT_KEY);
@@ -67,7 +69,7 @@ public final class SpiritBeastManager {
         setBaseValue(monster, Attributes.MOVEMENT_SPEED, data.getDouble(BASE_SPEED_KEY) * (1.0D + speedStat / 2500.0D));
         if (monster.getHealth() > monster.getMaxHealth()) {
             monster.setHealth(monster.getMaxHealth());
-        } else if (monster.getHealth() < monster.getMaxHealth()) {
+        } else if (healToFull && monster.getHealth() < monster.getMaxHealth()) {
             monster.heal(monster.getMaxHealth() - monster.getHealth());
         }
     }
@@ -140,16 +142,7 @@ public final class SpiritBeastManager {
 
     private static String randomBoneSlot(final double roll, final EntityType<?> entityType) {
         final String entityPath = entityType.getDescriptionId().toLowerCase(Locale.ROOT);
-        if (entityPath.contains("scorpion")) {
-            return "External Bone";
-        }
-        if (entityPath.contains("spider")) {
-            return "External Bone";
-        }
-        if (entityPath.contains("bear")) {
-            return "External Bone";
-        }
-        if (entityPath.contains("eye")) {
+        if (entityPath.contains("scorpion") || entityPath.contains("spider") || entityPath.contains("bear") || entityPath.contains("eye")) {
             return "External Bone";
         }
         if (roll < 0.12D) {

@@ -93,7 +93,6 @@ public class CultivationEvents {
         // Only reward XP for spirit beasts (hostile mobs)
         if (!(victim instanceof Monster)) return;
         final Monster spiritBeast = (Monster) victim;
-        SpiritBeastManager.ensureSpiritBeast(spiritBeast);
 
         // Find the player responsible for the kill
         if (!(event.getSource().getEntity() instanceof Player player)) return;
@@ -161,7 +160,6 @@ public class CultivationEvents {
         if (victim instanceof Player defendingPlayer) {
             updatedAmount = Stats.applyDefenseReduction(updatedAmount, Stats.getDefense(defendingPlayer));
         } else if (victim instanceof Monster spiritBeast) {
-            SpiritBeastManager.ensureSpiritBeast(spiritBeast);
             updatedAmount = Stats.applyDefenseReduction(updatedAmount, SpiritBeastManager.getDefenseStat(spiritBeast));
         }
 

@@ -9,8 +9,6 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.Random;
-
 /**
  * Handles both regular breakthroughs (soul-ring gates at levels 10, 20, … 90)
  * and special lightning breakthroughs (levels 95–120).
@@ -41,8 +39,6 @@ public class BreakthroughManager {
     public static final double FAILURE_BONUS_CHANCE = 0.05;
     /** Cooldown in ticks (5 min) imposed after a failed breakthrough attempt. */
     public static final int FAILURE_COOLDOWN_TICKS = 20 * 60 * 5;
-
-    private static final Random RANDOM = new Random();
 
     // ---- Regular Breakthrough ----
 
@@ -89,7 +85,7 @@ public class BreakthroughManager {
         double successChance = REGULAR_BASE_CHANCE + data.getBreakthroughFailures() * FAILURE_BONUS_CHANCE;
         successChance = Math.min(1.0, successChance);
 
-        if (RANDOM.nextDouble() < successChance) {
+        if (player.getRandom().nextDouble() < successChance) {
             // Success
             final int newLevel = data.getLevel() + 1;
             data.setLevel(newLevel);
