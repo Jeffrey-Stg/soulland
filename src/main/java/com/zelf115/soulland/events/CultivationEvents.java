@@ -7,10 +7,10 @@ import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -83,15 +83,15 @@ public class CultivationEvents {
     }
 
     /**
-     * Awards XP when the player kills a spirit beast (any hostile mob for now).
+     * Awards XP when the player kills a registered spirit beast.
      * The reward scales with the beast's tier relative to the player's tier.
      */
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         final LivingEntity victim = event.getEntity();
 
-        // Only reward XP for spirit beasts (hostile mobs)
-        if (!(victim instanceof Monster spiritBeast)) return;
+        // Only reward XP for registered spirit beasts.
+        if (!(victim instanceof SpiritBeastEntity spiritBeast)) return;
 
         // Find the player responsible for the kill
         if (!(event.getSource().getEntity() instanceof Player player)) return;
@@ -107,11 +107,9 @@ public class CultivationEvents {
         // Apply innate-stat and region-qi multipliers
         final double spiritValue = Stats.getSpirit(player);
         final double innateMultiplier = CultivationManager.innateStatXpMultiplier(spiritValue);
-        final int regionQi = getRegionQi(player);
-        final double qiMultiplier = CultivationManager.regionQiMultiplier(regionQi);
         final double cultivationSpeedMultiplier = getCultivationSpeedMultiplier(player);
 
-        final double finalXp = xpReward * innateMultiplier * qiMultiplier * cultivationSpeedMultiplier;
+        final double finalXp = xpReward * innateMultiplier * cultivationSpeedMultiplier;
         addXpAndCheckLevelUp(player, data, finalXp);
     }
 
@@ -151,14 +149,14 @@ public class CultivationEvents {
 
         if (event.getSource().getEntity() instanceof Player attackingPlayer) {
             updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, Stats.getDamage(attackingPlayer));
-        } else if (event.getSource().getEntity() instanceof Monster spiritBeast) {
+        } else if (event.getSource().getEntity() instanceof SpiritBeastEntity spiritBeast) {
             SpiritBeastManager.ensureSpiritBeast(spiritBeast);
             updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, SpiritBeastManager.getDamageStat(spiritBeast));
         }
 
         if (victim instanceof Player defendingPlayer) {
             updatedAmount = Stats.applyDefenseReduction(updatedAmount, Stats.getDefense(defendingPlayer));
-        } else if (victim instanceof Monster spiritBeast) {
+        } else if (victim instanceof SpiritBeastEntity spiritBeast) {
             updatedAmount = Stats.applyDefenseReduction(updatedAmount, SpiritBeastManager.getDefenseStat(spiritBeast));
         }
 

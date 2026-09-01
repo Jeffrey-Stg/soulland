@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
 
 public final class SpiritBeastManager {
@@ -27,7 +26,7 @@ public final class SpiritBeastManager {
     private SpiritBeastManager() {
     }
 
-    public static void ensureSpiritBeast(final Monster monster) {
+    public static void ensureSpiritBeast(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
         boolean initializedNow = false;
         if (!data.getBoolean(INITIALIZED_KEY)) {
@@ -56,7 +55,7 @@ public final class SpiritBeastManager {
         applyStats(monster, initializedNow);
     }
 
-    public static void applyStats(final Monster monster, final boolean healToFull) {
+    public static void applyStats(final SpiritBeastEntity monster, final boolean healToFull) {
         final CompoundTag data = monster.getPersistentData();
         final double healthStat = data.getDouble(HEALTH_STAT_KEY);
         final double damageStat = data.getDouble(DAMAGE_STAT_KEY);
@@ -74,7 +73,7 @@ public final class SpiritBeastManager {
         }
     }
 
-    public static ItemStack createSoulRing(final Monster monster) {
+    public static ItemStack createSoulRing(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
         return SoulRingItem.create(
                 monster.getType().getDescription().getString(),
@@ -88,7 +87,7 @@ public final class SpiritBeastManager {
         );
     }
 
-    public static ItemStack createSpiritBone(final Monster monster) {
+    public static ItemStack createSpiritBone(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
         final String slot = randomBoneSlot(monster.getRandom().nextDouble(), monster.getType());
         return SpiritBoneItem.create(
@@ -104,15 +103,15 @@ public final class SpiritBeastManager {
         );
     }
 
-    public static int getTier(final Monster monster) {
+    public static int getTier(final SpiritBeastEntity monster) {
         return monster.getPersistentData().getInt(TIER_KEY);
     }
 
-    public static double getDamageStat(final Monster monster) {
+    public static double getDamageStat(final SpiritBeastEntity monster) {
         return monster.getPersistentData().getDouble(DAMAGE_STAT_KEY);
     }
 
-    public static double getDefenseStat(final Monster monster) {
+    public static double getDefenseStat(final SpiritBeastEntity monster) {
         return monster.getPersistentData().getDouble(DEFENSE_STAT_KEY);
     }
 
@@ -180,7 +179,7 @@ public final class SpiritBeastManager {
         return 7;
     }
 
-    private static int randomYearsForTier(final Monster monster, final int tier) {
+    private static int randomYearsForTier(final SpiritBeastEntity monster, final int tier) {
         return switch (tier) {
             case 1 -> 1 + monster.getRandom().nextInt(99);
             case 2 -> 100 + monster.getRandom().nextInt(900);
@@ -192,12 +191,12 @@ public final class SpiritBeastManager {
         };
     }
 
-    private static double getBaseValue(final Monster monster, final net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute, final double fallback) {
+    private static double getBaseValue(final SpiritBeastEntity monster, final net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute, final double fallback) {
         final var instance = monster.getAttribute(attribute);
         return instance != null ? instance.getBaseValue() : fallback;
     }
 
-    private static void setBaseValue(final Monster monster, final net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute, final double value) {
+    private static void setBaseValue(final SpiritBeastEntity monster, final net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute, final double value) {
         final var instance = monster.getAttribute(attribute);
         if (instance != null) {
             instance.setBaseValue(value);

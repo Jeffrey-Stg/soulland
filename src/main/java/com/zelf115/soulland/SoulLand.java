@@ -5,6 +5,7 @@ import com.zelf115.soulland.events.AttributeEvents;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.network.CultivationNetwork;
+import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import org.slf4j.Logger;
 
@@ -89,6 +90,7 @@ public class SoulLand {
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
         MOB_EFFECTS.register(modEventBus);
+        SpiritBeastEntities.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (SoulLand) to respond directly to events.

@@ -1,8 +1,8 @@
 package com.zelf115.soulland.events;
 
 import com.zelf115.soulland.SoulLand;
+import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
-import net.minecraft.world.entity.monster.Monster;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -18,8 +18,8 @@ public final class SpiritBeastEvents {
         if (event.getLevel().isClientSide()) {
             return;
         }
-        if (event.getEntity() instanceof Monster monster) {
-            SpiritBeastManager.ensureSpiritBeast(monster);
+        if (event.getEntity() instanceof SpiritBeastEntity spiritBeast) {
+            SpiritBeastManager.ensureSpiritBeast(spiritBeast);
         }
     }
 
@@ -28,14 +28,13 @@ public final class SpiritBeastEvents {
         if (event.getEntity().level().isClientSide()) {
             return;
         }
-        if (!(event.getEntity() instanceof Monster monster)) {
+        if (!(event.getEntity() instanceof SpiritBeastEntity spiritBeast)) {
             return;
         }
 
-        // For now every hostile mob acts as a spirit beast placeholder until dedicated beast entities are added.
-        monster.spawnAtLocation(SpiritBeastManager.createSoulRing(monster));
-        if (SpiritBeastManager.getTier(monster) >= 4 && monster.getRandom().nextDouble() < 0.02D) {
-            monster.spawnAtLocation(SpiritBeastManager.createSpiritBone(monster));
+        spiritBeast.spawnAtLocation(SpiritBeastManager.createSoulRing(spiritBeast));
+        if (SpiritBeastManager.getTier(spiritBeast) >= 4 && spiritBeast.getRandom().nextDouble() < 0.02D) {
+            spiritBeast.spawnAtLocation(SpiritBeastManager.createSpiritBone(spiritBeast));
         }
     }
 }
