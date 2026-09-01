@@ -148,7 +148,8 @@ public final class SpiritBeastManager {
         if (roll < 0.12D) {
             return "Skull Bone";
         }
-        return switch ((int) (roll * 10.0D) % 5) {
+        final double normalizedRoll = (roll - 0.12D) / 0.88D;
+        return switch (Math.min(4, (int) (normalizedRoll * 5.0D))) {
             case 0 -> "Torso Bone";
             case 1 -> "Left Arm Bone";
             case 2 -> "Right Arm Bone";

@@ -91,8 +91,7 @@ public class CultivationEvents {
         final LivingEntity victim = event.getEntity();
 
         // Only reward XP for spirit beasts (hostile mobs)
-        if (!(victim instanceof Monster)) return;
-        final Monster spiritBeast = (Monster) victim;
+        if (!(victim instanceof Monster spiritBeast)) return;
 
         // Find the player responsible for the kill
         if (!(event.getSource().getEntity() instanceof Player player)) return;

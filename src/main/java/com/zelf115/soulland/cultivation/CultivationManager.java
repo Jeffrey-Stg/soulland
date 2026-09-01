@@ -159,7 +159,7 @@ public class CultivationManager {
             return 4;
         }
         if (spiritValue < 20_000.0D) {
-            return 5;
+            return 6;
         }
         return 7;
     }

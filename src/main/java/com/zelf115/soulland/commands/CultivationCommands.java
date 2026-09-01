@@ -6,6 +6,7 @@ import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -45,24 +46,29 @@ public class CultivationCommands {
         if (player == null) return 0;
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        final String bottleneckStr = data.isInBottleneck()
-                ? " §e(BOTTLENECK)"
-                : "";
         final String titleStr = data.getTitle().isEmpty() ? "none" : data.getTitle();
-
-        player.sendSystemMessage(Component.literal(
-                "§6=== Cultivation Status ===\n" +
-                "§fLevel: §b" + data.getLevel() + bottleneckStr + "\n" +
-                "§fXP: §b" + String.format("%.1f", data.getXp()) + " / " +
-                        String.format("%.1f", CultivationManager.xpRequiredForLevel(data.getLevel())) + "\n" +
-                "§fSoul Rings: §b" + data.getSoulRingCount() + "\n" +
-                "§fTier: §b" + data.getPlayerTier() + "\n" +
-                "§fBreakthrough Failures: §b" + data.getBreakthroughFailures() + "\n" +
-                "§fSpirit Energy: §b" + String.format("%.1f", data.getSpiritEnergy()) + " / " + String.format("%.1f", com.zelf115.soulland.Stats.getMaxSpiritEnergy(player)) + "\n" +
-                "§fMovement Usage: §b" + data.getMovementUsagePercent() + "%\n" +
-                "§fRebirth Count: §b" + data.getRebirthCount() + "\n" +
-                "§fTitle: §b" + titleStr
-        ));
+        final Component statusMessage = Component.empty()
+                .append(Component.literal("=== Cultivation Status ===\n").withStyle(ChatFormatting.GOLD))
+                .append(Component.literal("Level: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(data.getLevel())).withStyle(ChatFormatting.AQUA))
+                .append(data.isInBottleneck() ? Component.literal(" (BOTTLENECK)\n").withStyle(ChatFormatting.YELLOW) : Component.literal("\n"))
+                .append(Component.literal("XP: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("%.1f / %.1f", data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nSoul Rings: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(data.getSoulRingCount())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nTier: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(data.getPlayerTier())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nBreakthrough Failures: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(data.getBreakthroughFailures())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nSpirit Energy: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("%.1f / %.1f", data.getSpiritEnergy(), com.zelf115.soulland.Stats.getMaxSpiritEnergy(player))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nMovement Usage: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(data.getMovementUsagePercent() + "%").withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nRebirth Count: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(data.getRebirthCount())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nTitle: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(titleStr).withStyle(ChatFormatting.AQUA));
+        player.sendSystemMessage(statusMessage);
         return 1;
     }
 
