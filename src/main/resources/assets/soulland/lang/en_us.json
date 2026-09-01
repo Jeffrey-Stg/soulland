@@ -9,5 +9,17 @@
   "soulland.configuration.items": "Item List",
   "soulland.configuration.logDirtBlock": "Log Dirt Block",
   "soulland.configuration.magicNumberIntroduction": "Magic Number Text",
-  "soulland.configuration.magicNumber": "Magic Number"
+  "soulland.configuration.magicNumber": "Magic Number",
+
+  "biome.soulland.extreme_north": "Extreme North",
+  "biome.soulland.sunset_forest": "Sunset Forest",
+  "biome.soulland.island": "Island",
+  "biome.soulland.soul_ocean": "Soul Ocean",
+  "biome.soulland.star_dou_forest": "Star Dou Forest",
+  "biome.soulland.icebound_forest": "Icebound Forest",
+  "biome.soulland.soul_hell": "Soul Hell",
+  "biome.soulland.soul_end": "Soul End",
+
+  "commands.soulland.qi": "%s holds %s qi here",
+  "commands.soulland.qi.unknown_biome": "This biome is not registered, so it has no qi"
 }

@@ -27,6 +27,13 @@ sourceSets.main.resources {
 
 repositories {
     // Add here additional repositories if required by some of the dependencies below.
+    maven {
+        name = 'MinecraftForge'
+        url = 'https://maven.minecraftforge.net'
+        content {
+            includeGroup 'com.github.glitchfiend'
+        }
+    }
 }
 
 base {
@@ -104,6 +111,9 @@ dependencies {
     // For all intends and purposes: You can treat this dependency as if it is a normal library you would use.
     implementation "net.neoforged:neoforge:${neo_version}"
 
+    // Injects this mod's biomes into the vanilla overworld, nether and end biome sources.
+    implementation "com.github.glitchfiend:TerraBlender-neoforge:${terrablender_version}"
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -138,6 +148,7 @@ tasks.withType(ProcessResources).configureEach {
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
+            terrablender_version_range: terrablender_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
