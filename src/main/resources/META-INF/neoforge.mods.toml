@@ -77,6 +77,14 @@ config="${mod_id}.mixins.json"
     # Side this dependency is applied on - BOTH, CLIENT, or SERVER
     side="BOTH"
 
+# TerraBlender places this mod's biomes into the overworld, nether and end.
+[[dependencies.${mod_id}]]
+    modId="terrablender"
+    type="required"
+    versionRange="${terrablender_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
 # Here's another dependency
 [[dependencies.${mod_id}]]
     modId="minecraft"

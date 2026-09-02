@@ -15,15 +15,19 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.food.FoodProperties;
+import com.zelf115.soulland.feature.SoulLandFeatures;
+import com.zelf115.soulland.qi.QiCommand;
+import com.zelf115.soulland.worldgen.SoulLandRegions;
+
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -32,9 +36,9 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -91,6 +95,8 @@ public class SoulLand {
         CREATIVE_MODE_TABS.register(modEventBus);
         MOB_EFFECTS.register(modEventBus);
         SpiritBeastEntities.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so worldgen features get registered
+        SoulLandFeatures.FEATURES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (SoulLand) to respond directly to events.
@@ -109,6 +115,8 @@ public class SoulLand {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(SoulLandRegions::register);
+
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
 
@@ -130,6 +138,11 @@ public class SoulLand {
             event.accept(SOUL_RING_ITEM);
             event.accept(SPIRIT_BONE_ITEM);
         }
+    }
+
+    @SubscribeEvent
+    public void onRegisterCommands(final RegisterCommandsEvent event) {
+        QiCommand.register(event.getDispatcher());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
