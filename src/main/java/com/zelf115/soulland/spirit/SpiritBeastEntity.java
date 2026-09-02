@@ -1,5 +1,9 @@
 package com.zelf115.soulland.spirit;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -15,6 +19,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 public class SpiritBeastEntity extends Monster {
+
+    private static final EntityDataAccessor<Integer> TIER =
+            SynchedEntityData.defineId(SpiritBeastEntity.class, EntityDataSerializers.INT);
+
     public SpiritBeastEntity(final EntityType<? extends Monster> entityType, final Level level) {
         super(entityType, level);
     }
@@ -26,6 +34,27 @@ public class SpiritBeastEntity extends Monster {
                 .add(Attributes.ARMOR, 0.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
+    }
+
+    @Override
+    protected void defineSynchedData(final SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(TIER, 1);
+    }
+
+    /** Publishes the rolled tier so the client can colour the beast by the ring it will drop. */
+    public void syncTier(final int tier) {
+        this.entityData.set(TIER, tier);
+    }
+
+    public int getTier() {
+        return this.entityData.get(TIER);
+    }
+
+    /** Names the beast in the colour of the soul ring it will drop, so players can judge a fight. */
+    @Override
+    public Component getDisplayName() {
+        return super.getDisplayName().copy().withStyle(SpiritBeastManager.tierColor(getTier()));
     }
 
     @Override

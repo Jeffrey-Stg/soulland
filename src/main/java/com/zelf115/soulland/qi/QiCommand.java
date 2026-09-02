@@ -38,8 +38,7 @@ public final class QiCommand {
             return 0;
         }
 
-        final ChunkPos chunk = new ChunkPos(position);
-        final int qi = QiManager.getQiAmount(key, level.getSeed(), chunk.x, chunk.z);
+        final int qi = QiManager.getQiAt(level, position);
         source.sendSuccess(() -> Component.translatable(RESULT_KEY, biomeName(key.location()), qi), false);
         return qi;
     }

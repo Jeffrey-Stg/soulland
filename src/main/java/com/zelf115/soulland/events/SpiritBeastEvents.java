@@ -33,7 +33,8 @@ public final class SpiritBeastEvents {
         }
 
         spiritBeast.spawnAtLocation(SpiritBeastManager.createSoulRing(spiritBeast));
-        if (SpiritBeastManager.getTier(spiritBeast) >= 4 && spiritBeast.getRandom().nextDouble() < 0.02D) {
+        if (SpiritBeastManager.getTier(spiritBeast) >= SpiritBeastManager.SPIRIT_BONE_MIN_TIER
+                && spiritBeast.getRandom().nextDouble() < SpiritBeastManager.SPIRIT_BONE_DROP_CHANCE) {
             spiritBeast.spawnAtLocation(SpiritBeastManager.createSpiritBone(spiritBeast));
         }
     }

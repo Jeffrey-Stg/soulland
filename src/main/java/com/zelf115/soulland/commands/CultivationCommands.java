@@ -1,11 +1,16 @@
 package com.zelf115.soulland.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.spirit.SpiritBeastManager;
+import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -19,11 +24,14 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *
  * <ul>
  *   <li>{@code /cultivation status} — shows current level, XP, bottleneck state</li>
- *   <li>{@code /cultivation breakthrough} — automatically attempts the required breakthrough type</li>
+ *   <li>{@code /cultivation breakthrough} — attempts whichever breakthrough the level calls for</li>
  *   <li>{@code /cultivation settitle <title>} — sets the player's title (requires level ≥ 90)</li>
+ *   <li>{@code /cultivation setinnate <1-20>} — operator stand-in until martial souls (#3) roll it</li>
  * </ul>
  */
 public class CultivationCommands {
+
+    private static final int OPERATOR_PERMISSION_LEVEL = 2;
 
     public static void register(RegisterCommandsEvent event) {
         register(event.getDispatcher());
@@ -36,8 +44,13 @@ public class CultivationCommands {
                 .then(Commands.literal("breakthrough")
                         .executes(CultivationCommands::breakthrough))
                 .then(Commands.literal("settitle")
-                        .then(Commands.argument("title", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                        .then(Commands.argument("title", StringArgumentType.greedyString())
                                 .executes(CultivationCommands::setTitle)))
+                .then(Commands.literal("setinnate")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.argument("value",
+                                        IntegerArgumentType.integer(CultivationData.MIN_INNATE_STAT, CultivationData.MAX_INNATE_STAT))
+                                .executes(CultivationCommands::setInnateStat)))
         );
     }
 
@@ -55,13 +68,19 @@ public class CultivationCommands {
                 .append(Component.literal("XP: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.format("%.1f / %.1f", data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()))).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nSoul Rings: ").withStyle(ChatFormatting.WHITE))
-                .append(Component.literal(String.valueOf(data.getSoulRingCount())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal(data.getSoulRingCount() + " / " + CultivationManager.maxSoulRingCountForLevel(data.getLevel())).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nTier: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.valueOf(data.getPlayerTier())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nInnate Stat: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(data.getEffectiveInnateStat())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nAbsorbable Ring Tier: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.valueOf(CultivationManager.maxAbsorbableTier(Stats.getSpirit(player)))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nSpirit Bones: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(describeBones(data)).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nBreakthrough Failures: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.valueOf(data.getBreakthroughFailures())).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nSpirit Energy: ").withStyle(ChatFormatting.WHITE))
-                .append(Component.literal(String.format("%.1f / %.1f", data.getSpiritEnergy(), com.zelf115.soulland.Stats.getMaxSpiritEnergy(player))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal(String.format("%.1f / %.1f", data.getSpiritEnergy(), Stats.getMaxSpiritEnergy(player))).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nMovement Usage: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(data.getMovementUsagePercent() + "%").withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nRebirth Count: ").withStyle(ChatFormatting.WHITE))
@@ -72,23 +91,33 @@ public class CultivationCommands {
         return 1;
     }
 
+    /** Lists the equipped bones, marking an external one as shown or hidden. */
+    private static String describeBones(final CultivationData data) {
+        if (data.getSpiritBones().isEmpty()) {
+            return "none";
+        }
+
+        return data.getSpiritBones().values().stream()
+                .map(bone -> SpiritBeastManager.isExternalBoneSlot(bone.slot())
+                        ? bone.slot() + (data.isExternalBoneVisible() ? " (shown)" : " (hidden)")
+                        : bone.slot())
+                .collect(Collectors.joining(", "));
+    }
+
     private static int breakthrough(CommandContext<CommandSourceStack> ctx) {
         final ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        final long gameTick = player.level().getGameTime();
         if (CultivationManager.requiresSpecialBreakthrough(data.getLevel())) {
             if (!(player.level() instanceof ServerLevel serverLevel)) {
                 return 0;
             }
-            player.getPersistentData().putLong(com.zelf115.soulland.Cultivation.SPECIAL_BREAKTHROUGH_STRIKE_TICK_KEY, player.level().getGameTime());
-            BreakthroughManager.beginSpecialBreakthrough(player, data, serverLevel);
-            return 1;
+            return BreakthroughManager.attemptSpecialBreakthrough(player, data, serverLevel, gameTick) ? 1 : 0;
         }
 
-        final long gameTick = player.level().getGameTime();
-        BreakthroughManager.attemptRegularBreakthrough(player, data, gameTick);
-        return 1;
+        return BreakthroughManager.attemptRegularBreakthrough(player, data, gameTick) ? 1 : 0;
     }
 
     private static int setTitle(CommandContext<CommandSourceStack> ctx) {
@@ -96,14 +125,24 @@ public class CultivationCommands {
         if (player == null) return 0;
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        if (data.getLevel() < 90) {
+        if (data.getLevel() < CultivationManager.TITLE_LEVEL) {
             player.sendSystemMessage(Component.translatable("soulland.cultivation.title.locked"));
             return 0;
         }
 
-        final String title = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "title");
+        final String title = StringArgumentType.getString(ctx, "title");
         data.setTitle(title);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.title.set", title));
+        return 1;
+    }
+
+    private static int setInnateStat(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        data.setInnateStat(IntegerArgumentType.getInteger(ctx, "value"));
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.innate.set", data.getEffectiveInnateStat()));
         return 1;
     }
 }

@@ -1,6 +1,7 @@
 package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.Stats;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -15,6 +16,8 @@ public class CultivationManager {
     /** Levels that require a soul ring + regular breakthrough to pass (10, 20, …, 90). */
     public static final int SOUL_RING_GATE_INTERVAL = 10;
     public static final int LAST_SOUL_RING_GATE = 90;
+    /** Nine ten-level gates up to 90, so nine rings per martial soul. */
+    public static final int MAX_SOUL_RINGS = LAST_SOUL_RING_GATE / SOUL_RING_GATE_INTERVAL;
     /** Levels that require a special (lightning) breakthrough every single level. */
     public static final int SPECIAL_BREAKTHROUGH_START = 95;
     /** Level 100 also requires god inheritance or at least one rebirth. */
@@ -36,6 +39,25 @@ public class CultivationManager {
     public static final double SPIRIT_BOTTLENECK_INCREASE_PER_MINUTE = 1.0;
     /** Ticks in one minute. */
     public static final int TICKS_PER_MINUTE = TPS * 60;
+    /** XP swing per innate stat point away from neutral. */
+    private static final double INNATE_STAT_XP_STEP = 0.05;
+    /** Level at which elytra-style gliding unlocks. */
+    public static final int GLIDE_LEVEL = 70;
+    /** Level at which creative-style flight unlocks. */
+    public static final int CREATIVE_FLIGHT_LEVEL = 90;
+    /** Level at which a player may name themselves a title. */
+    public static final int TITLE_LEVEL = 90;
+    /** Downward speed past which gliding kicks in, so a small hop does not trigger it. */
+    private static final double GLIDE_START_FALL_SPEED = -0.1;
+    private static final double OVERREACH_BASE_CHANCE = 0.50;
+    private static final double OVERREACH_PENALTY_PER_TIER = 0.05;
+    private static final double OVERREACH_REBIRTH_BONUS = 0.05;
+    /** Overreaching is never certain in either direction, however many rebirths back it. */
+    private static final double OVERREACH_MIN_CHANCE = 0.05;
+    private static final double OVERREACH_MAX_CHANCE = 0.95;
+    /** Percent of the next level a kill awards per beast tier, before the tier ratio. */
+    private static final double KILL_XP_PERCENT_PER_TIER = 5.0;
+    private static final double PERCENT = 100.0;
 
     // ---- XP Calculations ----
 
@@ -54,31 +76,29 @@ public class CultivationManager {
      * <p>Formula: {@code xpRequired(playerLevel) * 5 * beastTier / playerTier / 100}
      */
     public static double spiritBeastXpReward(int playerLevel, int playerTier, int beastTier) {
-        double required = xpRequiredForLevel(playerLevel);
-        return required * 5.0 * beastTier / Math.max(1, playerTier) / 100.0;
+        final double rewardPercent = KILL_XP_PERCENT_PER_TIER * beastTier / Math.max(1, playerTier);
+        return xpRequiredForLevel(playerLevel) * rewardPercent / PERCENT;
     }
 
     // ---- Stat Formulas ----
 
     /**
-     * Regular level-up stat increase.
+     * The stat gain of a regular level-up.
      *
-     * <p>Formula: {@code y + x * level} where y is the current stat value.
-     * Returns the <em>new</em> stat value after the increase.
+     * <p>Formula: {@code y + x * level}, so every stat rises by the same {@code x * level}.
      */
-    public static double regularStatIncrease(double currentStat, int level) {
-        return currentStat + STAT_FLAT_INCREASE_PER_LEVEL * level;
+    public static double regularStatIncrease(int level) {
+        return STAT_FLAT_INCREASE_PER_LEVEL * level;
     }
 
     /**
-     * Breakthrough (milestone) stat multiplier applied on levels 11, 21, 31 … 91.
+     * The stat multiplier of a breakthrough, applied on levels 11, 21, 31 … 91.
      *
-     * <p>Formula: {@code currentStat * 2^round(level / 10)}
-     * Returns the <em>new</em> stat value after the multiplier.
+     * <p>Formula: {@code 2^round(level / 10)}.
      */
-    public static double breakthroughStatValue(double currentStat, int level) {
-        long exponent = Math.round((double) level / 10.0);
-        return currentStat * Math.pow(2.0, exponent);
+    public static double breakthroughStatMultiplier(int level) {
+        final long exponent = Math.round((double) level / SOUL_RING_GATE_INTERVAL);
+        return Math.pow(2.0, exponent);
     }
 
     // ---- Gate / Bottleneck Detection ----
@@ -129,50 +149,44 @@ public class CultivationManager {
         return currentLevel == GOD_INHERITANCE_GATE - 1;
     }
 
+    /**
+     * Rings are absorbed at each ten-level gate up to 90, so a player holds none before level 10
+     * and at most {@link #MAX_SOUL_RINGS} in total.
+     */
     public static int maxSoulRingCountForLevel(final int level) {
-        if (level >= LAST_SOUL_RING_GATE) {
-            return LAST_SOUL_RING_GATE / SOUL_RING_GATE_INTERVAL;
-        }
-        return Math.max(1, level / SOUL_RING_GATE_INTERVAL + 1);
+        return Math.min(MAX_SOUL_RINGS, level / SOUL_RING_GATE_INTERVAL);
     }
 
     public static int maxAbsorbableTier(final double spiritValue) {
-        if (spiritValue < 100.0D) {
-            return 2;
-        }
-        if (spiritValue < 500.0D) {
-            return 3;
-        }
-        if (spiritValue < 5_000.0D) {
-            return 4;
-        }
-        if (spiritValue < 10_000.0D) {
-            return 5;
-        }
-        if (spiritValue < 20_000.0D) {
-            return 6;
-        }
-        return 7;
+        return SoulRingCapacity.maxAbsorbableTier(spiritValue);
     }
 
+    /**
+     * The odds of surviving an overreaching absorption.
+     *
+     * <p>Formula from issue #6: {@code 50% - 5% per tier above the limit + the rebirth bonus}.
+     */
     public static double overreachSuccessChance(final int allowedTier, final int actualTier, final int rebirthCount) {
         final int tiersAboveLimit = Math.max(0, actualTier - allowedTier);
-        return Math.max(0.05D, Math.min(0.95D, 0.50D - tiersAboveLimit * 0.05D + rebirthCount * 0.05D));
+        final double chance = OVERREACH_BASE_CHANCE
+                - tiersAboveLimit * OVERREACH_PENALTY_PER_TIER
+                + rebirthCount * OVERREACH_REBIRTH_BONUS;
+        return Math.max(OVERREACH_MIN_CHANCE, Math.min(OVERREACH_MAX_CHANCE, chance));
     }
 
     // ---- XP Multipliers ----
 
     /**
-     * Returns the XP gain multiplier from innate stats.
+     * Returns the XP gain multiplier from the innate stat rolled with the martial soul (1–20).
      *
-     * <p>Each stat point above 10 adds 5 %; each stat point below 10 removes 5 %.
-     * Capped at a minimum of 0 (can't give negative XP).
+     * <p>Each point above 10 adds 5 %; each point below 10 removes 5 %, so 20 gives +50 % and
+     * 1 gives −45 %.
      *
-     * @param spiritValue the player's current Spirit stat value
+     * @param innateStat the player's innate stat, already including any rebirth bonus
      */
-    public static double innateStatXpMultiplier(double spiritValue) {
-        double delta = spiritValue - 10.0;
-        return Math.max(0.0, 1.0 + delta * 0.05);
+    public static double innateStatXpMultiplier(int innateStat) {
+        final int delta = innateStat - CultivationData.NEUTRAL_INNATE_STAT;
+        return Math.max(0.0, 1.0 + delta * INNATE_STAT_XP_STEP);
     }
 
     /**
@@ -194,17 +208,7 @@ public class CultivationManager {
      * @param newLevel the level just reached
      */
     public static void applyRegularLevelStats(Player player, int newLevel) {
-        double damage  = Stats.getDamage(player);
-        double health  = Stats.getHealth(player);
-        double defense = Stats.getDefense(player);
-        double speed   = Stats.getSpeed(player);
-        double spirit  = Stats.getSpirit(player);
-
-        Stats.addDamage(player,  regularStatIncrease(damage,  newLevel) - damage);
-        Stats.addHealth(player,  regularStatIncrease(health,  newLevel) - health);
-        Stats.addDefense(player, regularStatIncrease(defense, newLevel) - defense);
-        Stats.addSpeed(player,   regularStatIncrease(speed,   newLevel) - speed);
-        Stats.addSpirit(player,  regularStatIncrease(spirit,  newLevel) - spirit);
+        Stats.addToCultivationStats(player, regularStatIncrease(newLevel));
     }
 
     /**
@@ -214,17 +218,49 @@ public class CultivationManager {
      * @param breakthroughLevel the level that triggered the breakthrough (11, 21, …, 91)
      */
     public static void applyBreakthroughStats(Player player, int breakthroughLevel) {
-        double damage  = Stats.getDamage(player);
-        double health  = Stats.getHealth(player);
-        double defense = Stats.getDefense(player);
-        double speed   = Stats.getSpeed(player);
-        double spirit  = Stats.getSpirit(player);
+        Stats.multiplyCultivationStats(player, breakthroughStatMultiplier(breakthroughLevel));
+    }
 
-        Stats.addDamage(player,  breakthroughStatValue(damage,  breakthroughLevel) - damage);
-        Stats.addHealth(player,  breakthroughStatValue(health,  breakthroughLevel) - health);
-        Stats.addDefense(player, breakthroughStatValue(defense, breakthroughLevel) - defense);
-        Stats.addSpeed(player,   breakthroughStatValue(speed,   breakthroughLevel) - speed);
-        Stats.addSpirit(player,  breakthroughStatValue(spirit,  breakthroughLevel) - spirit);
+    /**
+     * Adds XP and resolves every level-up it pays for.
+     *
+     * <p>Stops at a bottleneck without spending the banked XP, so clearing the gate can cascade
+     * through several levels at once. Pass {@code 0} to replay that cascade after a breakthrough.
+     */
+    public static void grantXp(final Player player, final CultivationData data, final double amount) {
+        data.addXp(amount);
+
+        while (data.getLevel() < MAX_LEVEL && !data.isInBottleneck()) {
+            final int level = data.getLevel();
+            if (data.getXp() < xpRequiredForLevel(level)) {
+                return;
+            }
+            if (isBottleneckLevel(level)) {
+                enterBottleneck(player, data, level);
+                return;
+            }
+
+            advanceOneLevel(player, data, level);
+            if (isBottleneckLevel(data.getLevel())) {
+                enterBottleneck(player, data, data.getLevel());
+                return;
+            }
+        }
+    }
+
+    private static void advanceOneLevel(final Player player, final CultivationData data, final int level) {
+        data.setXp(data.getXp() - xpRequiredForLevel(level));
+        final int newLevel = level + 1;
+        data.setLevel(newLevel);
+        applyRegularLevelStats(player, newLevel);
+        Stats.syncDerivedPlayerStats(player, data);
+        applyFlightAbilities(player, newLevel);
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.level_up", newLevel));
+    }
+
+    private static void enterBottleneck(final Player player, final CultivationData data, final int level) {
+        data.setInBottleneck(true);
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.bottleneck", level));
     }
 
     // ---- Flight Abilities ----
@@ -243,12 +279,12 @@ public class CultivationManager {
     public static void applyFlightAbilities(Player player, int level) {
         if (player.level().isClientSide()) return;
         var abilities = player.getAbilities();
-        if (level >= 90) {
+        if (level >= CREATIVE_FLIGHT_LEVEL) {
             if (!abilities.mayfly) {
                 abilities.mayfly = true;
                 player.onUpdateAbilities();
             }
-        } else if (level >= 70) {
+        } else if (level >= GLIDE_LEVEL) {
             // Elytra-like flight: player can initiate glide from the air.
             // We keep mayfly off to prevent hovering, but allow fall-flying.
             if (abilities.mayfly) {
@@ -269,17 +305,15 @@ public class CultivationManager {
     // ---- Elytra Glide Helper ----
 
     /**
-     * At level 70–89, allow the player to start fall-flying (gliding) when they jump
-     * while already airborne and not in water/lava. Called from the player tick.
+     * Between {@link #GLIDE_LEVEL} and {@link #CREATIVE_FLIGHT_LEVEL} the player glides instead of
+     * falling. Sneaking opts out, so a cultivator can still drop straight down when they mean to.
      */
     public static void tickElytraGlide(Player player, int level) {
         if (player.level().isClientSide()) return;
-        if (level < 70 || level >= 90) return;
-        // Only try to start gliding if the player is falling (negative Y velocity)
-        if (!player.onGround() && !player.isInWater() && !player.isFallFlying()) {
-            if (player.getDeltaMovement().y < -0.1) {
-                player.startFallFlying();
-            }
-        }
+        if (level < GLIDE_LEVEL || level >= CREATIVE_FLIGHT_LEVEL) return;
+        if (player.onGround() || player.isInWater() || player.isFallFlying() || player.isCrouching()) return;
+        if (player.getDeltaMovement().y >= GLIDE_START_FALL_SPEED) return;
+
+        player.startFallFlying();
     }
 }

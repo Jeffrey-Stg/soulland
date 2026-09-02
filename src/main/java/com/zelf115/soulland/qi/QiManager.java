@@ -2,8 +2,11 @@ package com.zelf115.soulland.qi;
 
 import com.zelf115.soulland.biome.SoulLandBiomes;
 import java.util.Set;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 
 /**
@@ -19,6 +22,9 @@ public class QiManager {
     private static final int DEFAULT_QI_MIN = 1;
     private static final int DEFAULT_QI_MAX = 3;
 
+    /** The qi a location yields when its biome cannot be identified. */
+    public static final int MIN_QI = DEFAULT_QI_MIN;
+
     private static final long CHUNK_X_SCRAMBLE = 341873128712L;
     private static final long CHUNK_Z_SCRAMBLE = 132897987541L;
 
@@ -32,6 +38,17 @@ public class QiManager {
             SoulLandBiomes.SOUL_HELL,
             SoulLandBiomes.SOUL_END
     );
+
+    /** The qi held by the chunk containing {@code position}. */
+    public static int getQiAt(final ServerLevel level, final BlockPos position) {
+        final ResourceKey<Biome> biomeKey = level.getBiome(position).unwrapKey().orElse(null);
+        if (biomeKey == null) {
+            return MIN_QI;
+        }
+
+        final ChunkPos chunk = new ChunkPos(position);
+        return getQiAmount(biomeKey, level.getSeed(), chunk.x, chunk.z);
+    }
 
     public static int getQiAmount(final ResourceKey<Biome> biomeKey, final long worldSeed, final int chunkX, final int chunkZ) {
         final long seed = worldSeed ^ ((long) chunkX * CHUNK_X_SCRAMBLE) ^ ((long) chunkZ * CHUNK_Z_SCRAMBLE)

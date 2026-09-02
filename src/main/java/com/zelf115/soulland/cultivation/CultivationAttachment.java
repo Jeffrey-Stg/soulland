@@ -17,11 +17,12 @@ public class CultivationAttachment {
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, SoulLand.MODID);
 
     /**
-     * The per-player cultivation data attachment. Serialized to NBT so it survives logout/login.
+     * The per-player cultivation data attachment. Serialized to NBT so it survives logout/login,
+     * and copied on death so dying costs a respawn rather than a whole cultivation.
      */
     public static final Supplier<AttachmentType<CultivationData>> CULTIVATION_DATA =
             ATTACHMENT_TYPES.register("cultivation_data",
-                    () -> AttachmentType.serializable(CultivationData::new).build());
+                    () -> AttachmentType.serializable(CultivationData::new).copyOnDeath().build());
 
     public static void register(IEventBus modEventBus) {
         ATTACHMENT_TYPES.register(modEventBus);
