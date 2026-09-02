@@ -1,8 +1,13 @@
 package com.zelf115.soulland.cultivation;
 
+import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.NeoForgeMod;
 
 /**
  * Core cultivation logic: XP requirements, stat formulas, level-up processing,
@@ -49,6 +54,11 @@ public class CultivationManager {
     public static final int TITLE_LEVEL = 90;
     /** Downward speed past which gliding kicks in, so a small hop does not trigger it. */
     private static final double GLIDE_START_FALL_SPEED = -0.1;
+    /** Identifies this mod's flight grant, so revoking it never touches another source of flight. */
+    private static final ResourceLocation CULTIVATION_FLIGHT_ID =
+            ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "cultivation_flight");
+    /** CREATIVE_FLIGHT is a boolean attribute: any value above zero grants flight. */
+    private static final double FLIGHT_GRANTED = 1.0;
     private static final double OVERREACH_BASE_CHANCE = 0.50;
     private static final double OVERREACH_PENALTY_PER_TIER = 0.05;
     private static final double OVERREACH_REBIRTH_BONUS = 0.05;
@@ -278,27 +288,20 @@ public class CultivationManager {
      */
     public static void applyFlightAbilities(Player player, int level) {
         if (player.level().isClientSide()) return;
-        var abilities = player.getAbilities();
+
+        final AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
+        if (flight == null) {
+            return;
+        }
+
+        final boolean granted = flight.hasModifier(CULTIVATION_FLIGHT_ID);
         if (level >= CREATIVE_FLIGHT_LEVEL) {
-            if (!abilities.mayfly) {
-                abilities.mayfly = true;
-                player.onUpdateAbilities();
+            if (!granted) {
+                flight.addOrReplacePermanentModifier(
+                        new AttributeModifier(CULTIVATION_FLIGHT_ID, FLIGHT_GRANTED, AttributeModifier.Operation.ADD_VALUE));
             }
-        } else if (level >= GLIDE_LEVEL) {
-            // Elytra-like flight: player can initiate glide from the air.
-            // We keep mayfly off to prevent hovering, but allow fall-flying.
-            if (abilities.mayfly) {
-                abilities.mayfly = false;
-                abilities.flying = false;
-                player.onUpdateAbilities();
-            }
-        } else {
-            // Remove cultivation-granted flight if the player somehow lost levels
-            if (abilities.mayfly && !player.isCreative() && !player.isSpectator()) {
-                abilities.mayfly = false;
-                abilities.flying = false;
-                player.onUpdateAbilities();
-            }
+        } else if (granted) {
+            flight.removeModifier(CULTIVATION_FLIGHT_ID);
         }
     }
 

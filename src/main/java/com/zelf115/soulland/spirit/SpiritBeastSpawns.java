@@ -14,7 +14,7 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  * <p>Which biome holds which beast is issue #25; every beast uses the standard monster rules here
  * so that the biome modifier can place them at all.
  */
-@EventBusSubscriber(modid = SoulLand.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = SoulLand.MODID)
 public final class SpiritBeastSpawns {
 
     private SpiritBeastSpawns() {

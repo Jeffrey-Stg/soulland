@@ -92,24 +92,14 @@ public final class SpiritBoneItem extends Item {
             return;
         }
 
-        final StatBonus bonus = StatBonus.readFrom(tag);
-        tooltipComponents.add(Component.literal(tag.getString("SourceName")).withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.slot", tag.getString("Slot")));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.tier", SpiritBeastManager.describeTier(tag.getInt("Tier"))));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.years", tag.getInt("Years")));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.damage_bonus", formatBonus(bonus.damage())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.health_bonus", formatBonus(bonus.health())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.defense_bonus", formatBonus(bonus.defense())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.speed_bonus", formatBonus(bonus.speed())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.spirit_bonus", formatBonus(bonus.spirit())));
+        StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString("SourceName"), tag.getInt("Years"));
+        tooltipComponents.add(Component.translatable("soulland.tooltip.slot", tag.getString("Slot"))
+                .withStyle(ChatFormatting.DARK_GRAY));
+        StatBonusTooltip.appendStats(tooltipComponents, StatBonus.readFrom(tag));
     }
 
     private static CompoundTag boneData(final ItemStack stack) {
         final CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData == null ? null : customData.getUnsafe();
-    }
-
-    private static String formatBonus(final double value) {
-        return String.format("%.1f", value);
+        return customData == null ? null : customData.copyTag();
     }
 }

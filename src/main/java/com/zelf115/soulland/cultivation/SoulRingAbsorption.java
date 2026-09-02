@@ -82,8 +82,8 @@ public final class SoulRingAbsorption {
 
         final double chance = CultivationManager.overreachSuccessChance(allowedTier, tier, data.getRebirthCount());
         if (player.getRandom().nextDouble() >= chance) {
-            // Destroy the ring first: once the player dies their inventory is already on the ground.
-            consume(player, stack);
+            // Destroy before the kill: once the player dies their inventory is already on the ground.
+            destroy(stack);
             player.kill();
             return Result.OVERREACH_FAILED;
         }
@@ -101,7 +101,7 @@ public final class SoulRingAbsorption {
 
     public static CompoundTag ringData(final ItemStack stack) {
         final CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData == null ? null : customData.getUnsafe();
+        return customData == null ? null : customData.copyTag();
     }
 
     public static int tierOf(final CompoundTag tag) {
@@ -115,12 +115,16 @@ public final class SoulRingAbsorption {
         data.addRing(ring);
         Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1), ring.bonus());
         Stats.syncDerivedPlayerStats(player, data);
-        consume(player, stack);
+        destroy(stack);
     }
 
-    private static void consume(final Player player, final ItemStack stack) {
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-        }
+    /**
+     * Destroys the ring an absorption used up, whether it fused or shattered.
+     *
+     * <p>This ignores creative mode on purpose: a ring is not spent like an ingredient, it is
+     * consumed into the cultivator, and a player who keeps holding it could absorb it again.
+     */
+    private static void destroy(final ItemStack stack) {
+        stack.shrink(1);
     }
 }

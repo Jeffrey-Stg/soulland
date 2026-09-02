@@ -28,7 +28,6 @@ public final class SpiritBeastManager {
     public static final String BASE_MAX_HEALTH_KEY = "soulland_spirit_beast_base_max_health";
     public static final String BASE_DAMAGE_KEY = "soulland_spirit_beast_base_damage";
     public static final String BASE_ARMOR_KEY = "soulland_spirit_beast_base_armor";
-    public static final String BASE_SPEED_KEY = "soulland_spirit_beast_base_speed";
 
     /** Share of a beast's strength carried by the soul ring it drops (issue #6). */
     private static final double SOUL_RING_STRENGTH_SHARE = 0.25;
@@ -94,7 +93,6 @@ public final class SpiritBeastManager {
         data.putDouble(BASE_MAX_HEALTH_KEY, baseMaxHealth);
         data.putDouble(BASE_DAMAGE_KEY, baseDamage);
         data.putDouble(BASE_ARMOR_KEY, baseArmor);
-        data.putDouble(BASE_SPEED_KEY, baseSpeed);
         data.putDouble(HEALTH_STAT_KEY, grownStat(DerivedStats.healthStatFor(baseMaxHealth), level, tier));
         data.putDouble(DAMAGE_STAT_KEY, grownStat(DerivedStats.damageStatFor(baseDamage), level, tier));
         data.putDouble(DEFENSE_STAT_KEY, grownStat(DerivedStats.defenseStatFor(baseArmor), level, tier));
@@ -125,8 +123,6 @@ public final class SpiritBeastManager {
                 DerivedStats.attackDamage(data.getDouble(BASE_DAMAGE_KEY), data.getDouble(DAMAGE_STAT_KEY)));
         setBaseValue(monster, Attributes.ARMOR,
                 DerivedStats.armor(data.getDouble(BASE_ARMOR_KEY), data.getDouble(DEFENSE_STAT_KEY)));
-        setBaseValue(monster, Attributes.MOVEMENT_SPEED,
-                DerivedStats.movementSpeed(data.getDouble(BASE_SPEED_KEY), data.getDouble(SPEED_STAT_KEY)));
         clampHealthToMaximum(monster);
     }
 

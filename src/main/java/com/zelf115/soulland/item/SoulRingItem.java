@@ -10,7 +10,6 @@ import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.network.OverreachPromptPayload;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.List;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -74,8 +73,8 @@ public final class SoulRingItem extends Item {
                     CultivationManager.maxSoulRingCountForLevel(data.getLevel())));
             case SPIRIT_CAPACITY -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.no_capacity"));
             case OVERREACH_FAILED -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.overreach_failed"));
-            default -> {
-        // NOT_A_RING and OVERREACH_REQUIRED never reach a message.
+            case NOT_A_RING, OVERREACH_REQUIRED -> {
+                // One is not a soul ring at all, the other has the confirmation screen to answer first.
             }
         }
     }
@@ -104,19 +103,7 @@ public final class SoulRingItem extends Item {
             return;
         }
 
-        final StatBonus bonus = StatBonus.readFrom(tag);
-        tooltipComponents.add(Component.literal(tag.getString("SourceName")).withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.tier", SpiritBeastManager.describeTier(tag.getInt("Tier"))));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.years", tag.getInt("Years")));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.damage_bonus", formatBonus(bonus.damage())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.health_bonus", formatBonus(bonus.health())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.defense_bonus", formatBonus(bonus.defense())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.speed_bonus", formatBonus(bonus.speed())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.spirit_bonus", formatBonus(bonus.spirit())));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.cultivation_speed_bonus", formatBonus(bonus.cultivationSpeed())));
-    }
-
-    private static String formatBonus(final double value) {
-        return String.format("%.1f", value);
+        StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString("SourceName"), tag.getInt("Years"));
+        StatBonusTooltip.appendStats(tooltipComponents, StatBonus.readFrom(tag));
     }
 }
