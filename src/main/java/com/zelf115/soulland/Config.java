@@ -28,6 +28,15 @@ public class Config {
             .comment("A list of items to log on common setup.")
             .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
 
+    public static final ModConfigSpec.IntValue SPIRIT_BEAST_MAX_EFFECTIVE_LEVEL = BUILDER
+            .comment("Highest level a spirit beast derives from its age. Its stats scale with this,",
+                    "so raising it makes ancient beasts sharply deadlier. Issue #7 calls for tuning by play-testing.")
+            .defineInRange("spiritBeast.maxEffectiveLevel", 1000, 1, 100_000);
+
+    public static final ModConfigSpec.IntValue SPIRIT_BEAST_YEARS_PER_LEVEL = BUILDER
+            .comment("Years of age worth one level of spirit beast stats.")
+            .defineInRange("spiritBeast.yearsPerLevel", 100, 1, 100_000);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {

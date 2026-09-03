@@ -10,7 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 
 /** Reports the qi held by the chunk the command source stands in. */
@@ -38,8 +37,7 @@ public final class QiCommand {
             return 0;
         }
 
-        final ChunkPos chunk = new ChunkPos(position);
-        final int qi = QiManager.getQiAmount(key, level.getSeed(), chunk.x, chunk.z);
+        final int qi = QiManager.getQiAt(level, position);
         source.sendSuccess(() -> Component.translatable(RESULT_KEY, biomeName(key.location()), qi), false);
         return qi;
     }
