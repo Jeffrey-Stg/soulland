@@ -15,7 +15,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
@@ -109,15 +108,7 @@ public class CultivationCommands {
         if (player == null) return 0;
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        final long gameTick = player.level().getGameTime();
-        if (CultivationManager.requiresSpecialBreakthrough(data.getLevel())) {
-            if (!(player.level() instanceof ServerLevel serverLevel)) {
-                return 0;
-            }
-            return BreakthroughManager.attemptSpecialBreakthrough(player, data, serverLevel, gameTick) ? 1 : 0;
-        }
-
-        return BreakthroughManager.attemptRegularBreakthrough(player, data, gameTick) ? 1 : 0;
+        return BreakthroughManager.attemptBreakthrough(player, data, player.level().getGameTime()) ? 1 : 0;
     }
 
     private static int setTitle(CommandContext<CommandSourceStack> ctx) {

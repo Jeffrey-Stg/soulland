@@ -87,6 +87,21 @@ public class BreakthroughManager {
         return data.hasGodInheritance() || data.getRebirthCount() >= 1;
     }
 
+    /**
+     * Attempts whichever breakthrough the player's level calls for.
+     *
+     * @return {@code true} if the player advanced
+     */
+    public static boolean attemptBreakthrough(final Player player, final CultivationData data, final long gameTick) {
+        if (!CultivationManager.requiresSpecialBreakthrough(data.getLevel())) {
+            return attemptRegularBreakthrough(player, data, gameTick);
+        }
+        if (!(player.level() instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+        return attemptSpecialBreakthrough(player, data, serverLevel, gameTick);
+    }
+
     // ---- Regular Breakthrough ----
 
     /**

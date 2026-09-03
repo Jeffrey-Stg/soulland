@@ -16,6 +16,7 @@ public final class CultivationKeyMappings {
     public static final KeyMapping DECREASE_SPEED = new KeyMapping("key.soulland.decrease_speed_usage", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, KeyMapping.CATEGORY_MISC);
     public static final KeyMapping CYCLE_RING_DISPLAY = new KeyMapping("key.soulland.cycle_ring_display", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, KeyMapping.CATEGORY_MISC);
     public static final KeyMapping TOGGLE_EXTERNAL_BONE = new KeyMapping("key.soulland.toggle_external_bone", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, KeyMapping.CATEGORY_MISC);
+    public static final KeyMapping ATTEMPT_BREAKTHROUGH = new KeyMapping("key.soulland.breakthrough", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, KeyMapping.CATEGORY_MISC);
 
     private CultivationKeyMappings() {
     }
@@ -27,5 +28,6 @@ public final class CultivationKeyMappings {
         event.register(DECREASE_SPEED);
         event.register(CYCLE_RING_DISPLAY);
         event.register(TOGGLE_EXTERNAL_BONE);
+        event.register(ATTEMPT_BREAKTHROUGH);
     }
 }

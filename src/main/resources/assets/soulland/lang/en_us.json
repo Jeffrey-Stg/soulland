@@ -129,5 +129,6 @@
   "soulland.tooltip.stat.defense": "Defense",
   "soulland.tooltip.stat.speed": "Speed",
   "soulland.tooltip.stat.spirit": "Spirit",
-  "soulland.tooltip.stat.cultivation_speed": "Cultivation Speed"
+  "soulland.tooltip.stat.cultivation_speed": "Cultivation Speed",
+  "key.soulland.breakthrough": "Attempt Breakthrough"
 }

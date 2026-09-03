@@ -3,6 +3,7 @@ package com.zelf115.soulland.network;
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.client.OverreachConfirmScreen;
+import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
@@ -48,6 +49,7 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.DECREASE_SPEED -> adjustSpeed(player, data, -SPEED_STEP_PERCENT);
                 case CultivationActionPayload.CYCLE_RING_DISPLAY -> cycleRingDisplay(player, data);
                 case CultivationActionPayload.TOGGLE_EXTERNAL_BONE -> toggleExternalBone(player, data);
+                case CultivationActionPayload.ATTEMPT_BREAKTHROUGH -> BreakthroughManager.attemptBreakthrough(player, data, player.level().getGameTime());
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });

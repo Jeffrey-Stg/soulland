@@ -21,6 +21,7 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.DECREASE_SPEED, CultivationActionPayload.DECREASE_SPEED);
         sendOnPress(CultivationKeyMappings.CYCLE_RING_DISPLAY, CultivationActionPayload.CYCLE_RING_DISPLAY);
         sendOnPress(CultivationKeyMappings.TOGGLE_EXTERNAL_BONE, CultivationActionPayload.TOGGLE_EXTERNAL_BONE);
+        sendOnPress(CultivationKeyMappings.ATTEMPT_BREAKTHROUGH, CultivationActionPayload.ATTEMPT_BREAKTHROUGH);
     }
 
     private static void sendOnPress(final KeyMapping mapping, final int action) {
