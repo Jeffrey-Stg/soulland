@@ -11,12 +11,14 @@ import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = SoulLand.MODID, value = Dist.CLIENT)
 public final class CultivationKeyMappings {
-    public static final KeyMapping START_MEDITATION = new KeyMapping("key.soulland.start_meditation", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, KeyMapping.CATEGORY_MISC);
-    public static final KeyMapping INCREASE_SPEED = new KeyMapping("key.soulland.increase_speed_usage", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, KeyMapping.CATEGORY_MISC);
-    public static final KeyMapping DECREASE_SPEED = new KeyMapping("key.soulland.decrease_speed_usage", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, KeyMapping.CATEGORY_MISC);
-    public static final KeyMapping CYCLE_RING_DISPLAY = new KeyMapping("key.soulland.cycle_ring_display", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, KeyMapping.CATEGORY_MISC);
-    public static final KeyMapping TOGGLE_EXTERNAL_BONE = new KeyMapping("key.soulland.toggle_external_bone", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, KeyMapping.CATEGORY_MISC);
-    public static final KeyMapping ATTEMPT_BREAKTHROUGH = new KeyMapping("key.soulland.breakthrough", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, KeyMapping.CATEGORY_MISC);
+    private static final String CATEGORY = "key.categories.soulland";
+
+    public static final KeyMapping START_MEDITATION = new KeyMapping("key.soulland.start_meditation", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, CATEGORY);
+    public static final KeyMapping INCREASE_SPEED = new KeyMapping("key.soulland.increase_speed_usage", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, CATEGORY);
+    public static final KeyMapping DECREASE_SPEED = new KeyMapping("key.soulland.decrease_speed_usage", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, CATEGORY);
+    public static final KeyMapping CYCLE_RING_DISPLAY = new KeyMapping("key.soulland.cycle_ring_display", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY);
+    public static final KeyMapping TOGGLE_EXTERNAL_BONE = new KeyMapping("key.soulland.toggle_external_bone", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, CATEGORY);
+    public static final KeyMapping ATTEMPT_BREAKTHROUGH = new KeyMapping("key.soulland.breakthrough", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, CATEGORY);
 
     private CultivationKeyMappings() {
     }

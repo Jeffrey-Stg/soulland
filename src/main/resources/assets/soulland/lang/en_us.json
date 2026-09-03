@@ -34,6 +34,7 @@
   "soulland.spirit_bone.tier_locked": "Your spirit is only strong enough to absorb up to tier %s spirit bones.",
   "soulland.spirit_bone.absorbed": "You absorbed the %s from %s.",
   "soulland.tooltip.slot": "Slot: %s",
+  "key.categories.soulland": "Soulland",
   "key.soulland.start_meditation": "Start Meditation",
   "key.soulland.increase_speed_usage": "Increase Speed Usage",
   "key.soulland.decrease_speed_usage": "Decrease Speed Usage",
