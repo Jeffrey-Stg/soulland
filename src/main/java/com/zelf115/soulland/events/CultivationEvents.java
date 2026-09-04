@@ -2,13 +2,17 @@ package com.zelf115.soulland.events;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.network.HudSyncPayload;
 import com.zelf115.soulland.qi.QiManager;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import java.util.List;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -17,6 +21,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Handles all cultivation-related game events:
@@ -51,6 +56,22 @@ public class CultivationEvents {
         if (player.hasEffect(SoulLand.MEDITATION_EFFECT)) {
             tickMeditation(player, data, gameTick);
         }
+
+        if (player instanceof ServerPlayer serverPlayer && gameTick % CultivationManager.HUD_SYNC_INTERVAL_TICKS == 0) {
+            syncHud(serverPlayer, data);
+        }
+    }
+
+    private static void syncHud(final ServerPlayer player, final CultivationData data) {
+        final List<AbsorbedRing> rings = data.getAbsorbedRings();
+        final AbsorbedRing currentRing = rings.isEmpty() ? null : rings.get(rings.size() - 1);
+        final List<Integer> ringTiers = rings.stream().map(AbsorbedRing::tier).toList();
+        final HudSyncPayload.Gauge xp = new HudSyncPayload.Gauge(data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()));
+        final HudSyncPayload.Gauge spiritEnergy = new HudSyncPayload.Gauge(data.getSpiritEnergy(), Stats.getMaxSpiritEnergy(player));
+        final HudSyncPayload.SoulBeast soulBeast = new HudSyncPayload.SoulBeast(
+                currentRing == null ? "" : currentRing.sourceName(), currentRing == null ? 0 : currentRing.tier());
+        PacketDistributor.sendToPlayer(player, new HudSyncPayload(
+                data.getLevel(), xp, data.isInBottleneck(), spiritEnergy, getRegionQi(player), soulBeast, ringTiers));
     }
 
     /**
@@ -142,7 +163,7 @@ public class CultivationEvents {
 
         // During a bottleneck XP still banks for the post-breakthrough cascade, but of the stats
         // only Spirit grows, and only once a minute.
-        data.addXp(xpGain);
+        CultivationManager.grantXp(player, data, xpGain);
         if (gameTick - data.getLastSpiritTick() >= CultivationManager.TICKS_PER_MINUTE) {
             data.setLastSpiritTick(gameTick);
             Stats.addSpirit(player, CultivationManager.SPIRIT_BOTTLENECK_INCREASE_PER_MINUTE);

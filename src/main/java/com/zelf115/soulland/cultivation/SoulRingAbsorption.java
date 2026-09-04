@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 /**
- * The rules a soul ring must satisfy before a player can take it in, from issue #6.
+ * The rules a soul ring must satisfy before a player can take it in.
  *
  * <p>Shared by the item itself and by the network handler that answers the overreach confirmation,
  * so the server validates the same way whichever path the player took.
@@ -59,7 +59,7 @@ public final class SoulRingAbsorption {
     }
 
     /**
-     * Takes the gamble described in issue #6: the ring outranks the player, and failing kills them.
+     * Takes the gamble: the ring outranks the player, and failing kills them.
      *
      * <p>Succeeding bypasses the spirit capacity check — overreaching is already the price paid.
      */
@@ -105,13 +105,13 @@ public final class SoulRingAbsorption {
     }
 
     public static int tierOf(final CompoundTag tag) {
-        return tag.getInt("Tier");
+        return tag.getInt(AbsorbedRing.TIER_KEY);
     }
 
     private static void grant(final Player player, final CultivationData data, final ItemStack stack,
                               final CompoundTag tag) {
         final AbsorbedRing ring = new AbsorbedRing(
-                tag.getString("SourceName"), tierOf(tag), tag.getInt("Years"), StatBonus.readFrom(tag));
+                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag));
         data.addRing(ring);
         Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1), ring.bonus());
         Stats.syncDerivedPlayerStats(player, data);

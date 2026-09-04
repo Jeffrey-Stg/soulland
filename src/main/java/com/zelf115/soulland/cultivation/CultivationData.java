@@ -21,7 +21,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public static final int MIN_INNATE_STAT = 1;
     public static final int MAX_INNATE_STAT = 20;
     public static final int NEUTRAL_INNATE_STAT = 10;
-    private static final int MIN_MOVEMENT_USAGE_PERCENT = 25;
+    private static final int MIN_MOVEMENT_USAGE_PERCENT = 30;
     private static final int MAX_MOVEMENT_USAGE_PERCENT = 200;
 
     // Current cultivation level (1–120)
@@ -124,7 +124,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     }
 
     /**
-     * The innate stat as it counts for the XP bonus, including the +1 per rebirth from issue #23.
+     * The innate stat as it counts for the XP bonus, including the +1 per rebirth.
      */
     public int getEffectiveInnateStat() {
         return Math.min(MAX_INNATE_STAT, innateStat + rebirthCount);

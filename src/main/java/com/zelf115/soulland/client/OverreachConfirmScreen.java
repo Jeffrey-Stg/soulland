@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * Confirmation for absorbing a soul ring above the player's spirit limit (issue #6): it shows the
+ * Confirmation for absorbing a soul ring above the player's spirit limit: it shows the
  * success chance and spells out that failing kills them.
  */
 public final class OverreachConfirmScreen extends Screen {

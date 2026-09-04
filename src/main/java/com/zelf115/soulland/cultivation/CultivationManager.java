@@ -37,6 +37,7 @@ public class CultivationManager {
     public static final int TPS = 20;
     /** Ticks between passive meditation XP ticks (1 second). */
     public static final int MEDITATION_TICK_INTERVAL = TPS;
+    public static final int HUD_SYNC_INTERVAL_TICKS = TPS / 2;
     public static final int MEDITATION_DURATION_TICKS = TPS * 60 * 5;
     /** Passive XP awarded per meditation tick (before multipliers). */
     public static final double MEDITATION_XP_PER_TICK = 2.0;
@@ -140,7 +141,7 @@ public class CultivationManager {
      * (Soul ring gates occur at multiples of 10 up to 90.)
      */
     public static boolean requiresSoulRing(int currentLevel) {
-        return currentLevel >= 10 && currentLevel <= LAST_SOUL_RING_GATE && currentLevel % SOUL_RING_GATE_INTERVAL == 0;
+        return currentLevel >= SOUL_RING_GATE_INTERVAL && currentLevel <= LAST_SOUL_RING_GATE && currentLevel % SOUL_RING_GATE_INTERVAL == 0;
     }
 
     /**
@@ -174,7 +175,7 @@ public class CultivationManager {
     /**
      * The odds of surviving an overreaching absorption.
      *
-     * <p>Formula from issue #6: {@code 50% - 5% per tier above the limit + the rebirth bonus}.
+     * <p>Formula: {@code 50% - 5% per tier above the limit + the rebirth bonus}.
      */
     public static double overreachSuccessChance(final int allowedTier, final int actualTier, final int rebirthCount) {
         final int tiersAboveLimit = Math.max(0, actualTier - allowedTier);

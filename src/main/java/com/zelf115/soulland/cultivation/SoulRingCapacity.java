@@ -3,16 +3,16 @@ package com.zelf115.soulland.cultivation;
 import java.util.List;
 
 /**
- * The spirit-stat gate on soul ring absorption from issue #6.
+ * The spirit-stat gate on soul ring absorption.
  *
- * <p>The issue states the limit as combinations rather than a single number:
+ * <p>The design states the limit as combinations rather than a single number:
  * one yellow below 100 spirit; two yellow or one purple to 499; five yellow, three purple or one
  * black to 4 999; one red plus one black (or three purple, or five yellow), or five of anything
  * but red, to 19 999; anything at all from 20 000.
  *
  * <p>Every one of those reads as a budget: each ring costs a weight, each spirit band affords a
  * total. Weights are scaled by three so that "three purple equals five yellow" stays exact in
- * integer maths. Red and orange are the same colour per the issue, so they share a weight.
+ * integer maths. Red and orange are treated as the same colour, so they share a weight.
  */
 public final class SoulRingCapacity {
 

@@ -142,7 +142,7 @@ public class Stats {
     public static final List<Holder<Attribute>> ALL =
             List.of(DAMAGE, HEALTH, DEFENSE, SPEED, SPIRIT, CULTIVATION_SPEED);
 
-    /** The five stats cultivation levels raise, per issue #2. */
+    /** The five stats cultivation levels raise. */
     public static final List<Holder<Attribute>> CULTIVATION_STATS =
             List.of(DAMAGE, HEALTH, DEFENSE, SPEED, SPIRIT);
 

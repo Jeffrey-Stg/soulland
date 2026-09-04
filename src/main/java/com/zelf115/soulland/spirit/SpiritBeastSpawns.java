@@ -11,8 +11,8 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 /**
  * Lets spirit beasts appear in the world on their own.
  *
- * <p>Which biome holds which beast is issue #25; every beast uses the standard monster rules here
- * so that the biome modifier can place them at all.
+ * <p>Which biome holds which beast is handled elsewhere; every beast uses the standard monster rules
+ * here so that the biome modifier can place them at all.
  */
 @EventBusSubscriber(modid = SoulLand.MODID)
 public final class SpiritBeastSpawns {
