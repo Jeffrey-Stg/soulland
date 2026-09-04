@@ -25,7 +25,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation status} — shows current level, XP, bottleneck state</li>
  *   <li>{@code /cultivation breakthrough} — attempts whichever breakthrough the level calls for</li>
  *   <li>{@code /cultivation settitle <title>} — sets the player's title (requires level ≥ 90)</li>
- *   <li>{@code /cultivation setinnate <1-20>} — operator stand-in until martial souls (#3) roll it</li>
+ *   <li>{@code /cultivation setinnate <1-20>} — operator stand-in until martial souls roll it</li>
  * </ul>
  */
 public class CultivationCommands {

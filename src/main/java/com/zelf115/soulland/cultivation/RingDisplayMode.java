@@ -1,6 +1,6 @@
 package com.zelf115.soulland.cultivation;
 
-/** How a player wants their absorbed soul rings shown (issue #6). */
+/** How a player wants their absorbed soul rings shown. */
 public enum RingDisplayMode {
     NONE,
     CURRENT_MARTIAL_SOUL,

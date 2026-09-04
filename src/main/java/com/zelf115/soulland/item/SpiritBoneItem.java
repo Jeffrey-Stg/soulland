@@ -31,10 +31,10 @@ public final class SpiritBoneItem extends Item {
                                    final StatBonus bonus) {
         final ItemStack stack = new ItemStack(SoulLand.SPIRIT_BONE_ITEM.get());
         final CompoundTag tag = new CompoundTag();
-        tag.putString("SourceName", sourceName);
-        tag.putString("Slot", slot);
-        tag.putInt("Tier", tier);
-        tag.putInt("Years", years);
+        tag.putString(AbsorbedBone.SOURCE_NAME_KEY, sourceName);
+        tag.putString(AbsorbedBone.SLOT_KEY, slot);
+        tag.putInt(AbsorbedBone.TIER_KEY, tier);
+        tag.putInt(AbsorbedBone.YEARS_KEY, years);
         bonus.writeTo(tag);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         stack.set(DataComponents.CUSTOM_NAME, Component.literal(SpiritBeastManager.describeTier(tier) + " " + slot)
@@ -55,15 +55,15 @@ public final class SpiritBoneItem extends Item {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        final int boneTier = tag.getInt("Tier");
+        final int boneTier = tag.getInt(AbsorbedBone.TIER_KEY);
         final int allowedTier = CultivationManager.maxAbsorbableTier(Stats.getSpirit(player));
         if (boneTier > allowedTier) {
             player.sendSystemMessage(Component.translatable("soulland.spirit_bone.tier_locked", allowedTier));
             return InteractionResultHolder.fail(stack);
         }
 
-        final AbsorbedBone bone = new AbsorbedBone(tag.getString("Slot"), tag.getString("SourceName"),
-                boneTier, tag.getInt("Years"), StatBonus.readFrom(tag));
+        final AbsorbedBone bone = new AbsorbedBone(tag.getString(AbsorbedBone.SLOT_KEY), tag.getString(AbsorbedBone.SOURCE_NAME_KEY),
+                boneTier, tag.getInt(AbsorbedBone.YEARS_KEY), StatBonus.readFrom(tag));
         replaceBone(player, data, bone);
         player.sendSystemMessage(Component.translatable("soulland.spirit_bone.absorbed", bone.slot(), bone.sourceName()));
 
@@ -92,8 +92,8 @@ public final class SpiritBoneItem extends Item {
             return;
         }
 
-        StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString("SourceName"), tag.getInt("Years"));
-        tooltipComponents.add(Component.translatable("soulland.tooltip.slot", tag.getString("Slot"))
+        StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString(AbsorbedBone.SOURCE_NAME_KEY), tag.getInt(AbsorbedBone.YEARS_KEY));
+        tooltipComponents.add(Component.translatable("soulland.tooltip.slot", tag.getString(AbsorbedBone.SLOT_KEY))
                 .withStyle(ChatFormatting.DARK_GRAY));
         StatBonusTooltip.appendStats(tooltipComponents, StatBonus.readFrom(tag));
     }

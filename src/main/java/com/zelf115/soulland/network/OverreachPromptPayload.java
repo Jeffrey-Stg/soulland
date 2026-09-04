@@ -7,7 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-/** Asks the client to confirm an overreaching soul ring absorption (issue #6). */
+/** Asks the client to confirm an overreaching soul ring absorption. */
 public record OverreachPromptPayload(int hand, int ringTier, int allowedTier, int successChancePercent)
         implements CustomPacketPayload {
 
