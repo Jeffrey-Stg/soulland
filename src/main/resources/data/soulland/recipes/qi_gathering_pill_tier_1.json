@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["HHH", "HPH", "HHH"],
+  "key": {
+    "H": {"item": "soulland:common_spirit_herb"},
+    "P": {"item": "minecraft:paper"}
+  },
+  "result": {"id": "soulland:qi_gathering_pill_tier_1", "count": 1}
+}

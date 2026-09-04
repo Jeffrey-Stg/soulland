@@ -2,12 +2,15 @@ package com.zelf115.soulland;
 
 import com.zelf115.soulland.effect.MeditationEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
+import com.zelf115.soulland.block.PillFurnaceBlock;
 import com.zelf115.soulland.events.AttributeEvents;
 import com.zelf115.soulland.fluid.SoulLandFluids;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.item.HerbItem;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
+import com.zelf115.soulland.item.AlchemyItem;
+import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.network.CultivationNetwork;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import org.slf4j.Logger;
@@ -26,6 +29,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -108,6 +112,24 @@ public class SoulLand {
     public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.registerSimpleItem("nine_heart_begonia");
     public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.registerSimpleItem("seven_treasure_glazed_tile_pagoda");
+        public static final DeferredBlock<Block> PILL_FURNACE_BLOCK = BLOCKS.register("pill_furnace",
+            () -> new FurnaceBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE)));
+        public static final DeferredItem<BlockItem> PILL_FURNACE = ITEMS.registerSimpleBlockItem("pill_furnace", PILL_FURNACE_BLOCK);
+    public static final DeferredBlock<Block> ENCHANTED_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("enchanted_pill_furnace", PillFurnaceItem.Tier.ENCHANTED);
+    public static final DeferredItem<BlockItem> ENCHANTED_PILL_FURNACE = ITEMS.registerSimpleBlockItem("enchanted_pill_furnace", ENCHANTED_PILL_FURNACE_BLOCK);
+    public static final DeferredBlock<Block> NETHER_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("nether_pill_furnace", PillFurnaceItem.Tier.NETHER);
+    public static final DeferredItem<BlockItem> NETHER_PILL_FURNACE = ITEMS.registerSimpleBlockItem("nether_pill_furnace", NETHER_PILL_FURNACE_BLOCK);
+    public static final DeferredBlock<Block> STAR_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("star_pill_furnace", PillFurnaceItem.Tier.STAR);
+    public static final DeferredItem<BlockItem> STAR_PILL_FURNACE = ITEMS.registerSimpleBlockItem("star_pill_furnace", STAR_PILL_FURNACE_BLOCK);
+    public static final DeferredBlock<Block> DIVINE_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("divine_pill_furnace", PillFurnaceItem.Tier.DIVINE);
+    public static final DeferredItem<BlockItem> DIVINE_PILL_FURNACE = ITEMS.registerSimpleBlockItem("divine_pill_furnace", DIVINE_PILL_FURNACE_BLOCK);
+    public static final DeferredItem<Item> MYSTERIOUS_WATER_PILL = registerPill("mysterious_water_pill", AlchemyItem.Effect.MYSTERIOUS_WATER, 0);
+    public static final DeferredItem<Item> SPIRIT_ASCENSION_PILL = registerPill("spirit_ascension_pill", AlchemyItem.Effect.SPIRIT_ASCENSION, 0);
+    public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_1 = registerPill("qi_gathering_pill_tier_1", AlchemyItem.Effect.QI_GATHERING, 1);
+    public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_2 = registerPill("qi_gathering_pill_tier_2", AlchemyItem.Effect.QI_GATHERING, 2);
+    public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_3 = registerPill("qi_gathering_pill_tier_3", AlchemyItem.Effect.QI_GATHERING, 3);
+    public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_4 = registerPill("qi_gathering_pill_tier_4", AlchemyItem.Effect.QI_GATHERING, 4);
+    public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_5 = registerPill("qi_gathering_pill_tier_5", AlchemyItem.Effect.QI_GATHERING, 5);
     public static final DeferredItem<Item> BEAUTIFUL_SILK_TULIP = registerHerb("beautiful_silk_tulip", HerbItem.Effect.EVOLVE_PAGODA);
     public static final DeferredItem<Item> BLACK_JADE_DIVINE_BAMBOO = registerHerb("black_jade_divine_bamboo", HerbItem.Effect.SPIRIT_HUNDRED);
     public static final DeferredItem<Item> COMMON_SPIRIT_HERB = registerHerb("common_spirit_herb", HerbItem.Effect.COMMON_SPIRIT);
@@ -128,6 +150,15 @@ public class SoulLand {
     private static DeferredItem<Item> registerHerb(String name, HerbItem.Effect effect) {
         return ITEMS.register(name, () -> new HerbItem(effect,
                 new Item.Properties().food(HerbItem.foodProperties(effect))));
+    }
+
+    private static DeferredBlock<Block> registerPillFurnaceBlock(final String name, final PillFurnaceItem.Tier tier) {
+        return BLOCKS.register(name, () -> new PillFurnaceBlock(tier,
+                BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE)));
+    }
+
+    private static DeferredItem<Item> registerPill(final String name, final AlchemyItem.Effect effect, final int qiLevel) {
+        return ITEMS.register(name, () -> new AlchemyItem(effect, qiLevel, AlchemyItem.pillProperties()));
     }
 
     private static DeferredBlock<AmethystClusterBlock> registerCrystalBud(String name, float height, float width, MapColor color) {
@@ -243,6 +274,18 @@ public class SoulLand {
             event.accept(SINGULAR_VELVET_SKY_CHRYSANTHEMUM);
             event.accept(WATER_CRYSTAL_PEACH);
             event.accept(YEARNING_HEARTBROKEN_RED);
+            event.accept(PILL_FURNACE);
+            event.accept(ENCHANTED_PILL_FURNACE);
+            event.accept(NETHER_PILL_FURNACE);
+            event.accept(STAR_PILL_FURNACE);
+            event.accept(DIVINE_PILL_FURNACE);
+            event.accept(MYSTERIOUS_WATER_PILL);
+            event.accept(SPIRIT_ASCENSION_PILL);
+            event.accept(QI_GATHERING_PILL_TIER_1);
+            event.accept(QI_GATHERING_PILL_TIER_2);
+            event.accept(QI_GATHERING_PILL_TIER_3);
+            event.accept(QI_GATHERING_PILL_TIER_4);
+            event.accept(QI_GATHERING_PILL_TIER_5);
         }
     }
 

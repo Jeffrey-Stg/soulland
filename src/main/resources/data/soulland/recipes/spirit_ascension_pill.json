@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["ICI", "HGH", "ICI"],
+  "key": {
+    "I": {"item": "soulland:ice_crystal_fruit"},
+    "C": {"item": "soulland:scarlet_flame_fruit"},
+    "H": {"item": "soulland:common_spirit_herb"},
+    "G": {"item": "minecraft:golden_apple"}
+  },
+  "result": {"id": "soulland:spirit_ascension_pill", "count": 1}
+}

@@ -1,0 +1,1 @@
+{"variants":{"facing=north":{"model":"soulland:block/enchanted_pill_furnace"},"facing=east":{"model":"soulland:block/enchanted_pill_furnace","y":90},"facing=south":{"model":"soulland:block/enchanted_pill_furnace","y":180},"facing=west":{"model":"soulland:block/enchanted_pill_furnace","y":270}}}

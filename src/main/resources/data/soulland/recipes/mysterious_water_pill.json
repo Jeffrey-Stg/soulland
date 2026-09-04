@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["HHH", "HWH", "HHH"],
+  "key": {
+    "H": {"item": "soulland:common_spirit_herb"},
+    "W": {"item": "minecraft:water_bucket"}
+  },
+  "result": {"id": "soulland:mysterious_water_pill", "count": 1}
+}
