@@ -1,8 +1,11 @@
 package com.zelf115.soulland;
 
 import com.zelf115.soulland.fluid.SoulLandFluids;
+import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -31,6 +34,13 @@ public class SoulLandClient {
         // Some client setup code
         SoulLand.LOGGER.info("HELLO FROM CLIENT SETUP");
         SoulLand.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+        event.enqueueWork(() -> ItemProperties.register(SoulLand.SOUL_RING_ITEM.get(),
+                ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "soul_ring_years"),
+                (ItemStack stack, net.minecraft.client.multiplayer.ClientLevel level,
+                 net.minecraft.world.entity.LivingEntity entity, int seed) -> {
+                    final var tag = SoulRingAbsorption.ringData(stack);
+                    return tag == null ? 0.0F : tag.getInt("Years");
+                }));
     }
 
     @SubscribeEvent
