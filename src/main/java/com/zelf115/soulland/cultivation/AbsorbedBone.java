@@ -9,10 +9,10 @@ import net.minecraft.resources.ResourceLocation;
 /** A spirit bone the player has absorbed into one body slot. */
 public record AbsorbedBone(String slot, String sourceName, int tier, int years, StatBonus bonus) {
 
-    private static final String SLOT_KEY = "Slot";
-    private static final String SOURCE_NAME_KEY = "SourceName";
-    private static final String TIER_KEY = "Tier";
-    private static final String YEARS_KEY = "Years";
+    public static final String SLOT_KEY = "Slot";
+    public static final String SOURCE_NAME_KEY = "SourceName";
+    public static final String TIER_KEY = "Tier";
+    public static final String YEARS_KEY = "Years";
 
     public static AbsorbedBone readFrom(final CompoundTag tag) {
         return new AbsorbedBone(

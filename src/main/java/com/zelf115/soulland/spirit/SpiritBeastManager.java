@@ -29,9 +29,9 @@ public final class SpiritBeastManager {
     public static final String BASE_DAMAGE_KEY = "soulland_spirit_beast_base_damage";
     public static final String BASE_ARMOR_KEY = "soulland_spirit_beast_base_armor";
 
-    /** Share of a beast's strength carried by the soul ring it drops (issue #6). */
+    /** Share of a beast's strength carried by the soul ring it drops. */
     private static final double SOUL_RING_STRENGTH_SHARE = 0.25;
-    /** Share carried by a spirit bone, which issue #8 calls a minor boost. */
+    /** Share of a beast's strength carried by a spirit bone: a minor boost, not a major one. */
     private static final double SPIRIT_BONE_STRENGTH_SHARE = 0.10;
     /** Soul rings quicken cultivation in proportion to their colour. */
     private static final double CULTIVATION_SPEED_PER_TIER = 5.0;
@@ -54,7 +54,7 @@ public final class SpiritBeastManager {
     private static final List<String> BODY_BONE_SLOTS = List.of(
             "Torso Bone", "Left Arm Bone", "Right Arm Bone", "Left Leg Bone", "Right Leg Bone");
     private static final String SKULL_BONE_SLOT = "Skull Bone";
-    /** The external spirit bone each beast in issue #8 carries, keyed by entity path. */
+    /** The external spirit bone each of these named beasts carries, keyed by entity path. */
     private static final Map<String, String> EXTERNAL_BONE_BY_BEAST = Map.of(
             "ice_jade_scorpion", "Ice Jade Tail",
             "manfaced_demon_spider", "Spider Lance",
@@ -100,7 +100,7 @@ public final class SpiritBeastManager {
         data.putDouble(SPIRIT_STAT_KEY, grownStat(BASE_SPIRIT_STAT, level, tier));
     }
 
-    /** The stat growth issue #4 asks for: {@code (base stat + level) * tier}. */
+    /** Stat growth formula: {@code (base stat + level) * tier}. */
     private static double grownStat(final double baseStat, final int level, final int tier) {
         return (baseStat + level) * tier;
     }

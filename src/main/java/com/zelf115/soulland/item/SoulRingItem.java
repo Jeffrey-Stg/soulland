@@ -3,6 +3,7 @@ package com.zelf115.soulland.item;
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
@@ -112,7 +113,7 @@ public final class SoulRingItem extends Item {
             return;
         }
 
-        StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString("SourceName"), tag.getInt("Years"));
+        StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tag.getInt(AbsorbedRing.YEARS_KEY));
         StatBonusTooltip.appendStats(tooltipComponents, StatBonus.readFrom(tag));
     }
 }

@@ -2,6 +2,7 @@ package com.zelf115.soulland.network;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.client.HudClientData;
 import com.zelf115.soulland.client.OverreachConfirmScreen;
 import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
@@ -30,7 +31,13 @@ public final class CultivationNetwork {
         event.registrar("1")
                 .playToServer(CultivationActionPayload.TYPE, CultivationActionPayload.STREAM_CODEC, CultivationNetwork::handleAction)
                 .playToServer(OverreachConfirmPayload.TYPE, OverreachConfirmPayload.STREAM_CODEC, CultivationNetwork::handleOverreachConfirm)
-                .playToClient(OverreachPromptPayload.TYPE, OverreachPromptPayload.STREAM_CODEC, CultivationNetwork::handleOverreachPrompt);
+                .playToClient(OverreachPromptPayload.TYPE, OverreachPromptPayload.STREAM_CODEC, CultivationNetwork::handleOverreachPrompt)
+                .playToClient(HudSyncPayload.TYPE, HudSyncPayload.STREAM_CODEC, CultivationNetwork::handleHudSync);
+    }
+
+    private static void handleHudSync(final HudSyncPayload payload, final IPayloadContext context) {
+        // Resolved inside the lambda so the dedicated server never loads the client holder class.
+        context.enqueueWork(() -> HudClientData.update(payload));
     }
 
     private static void handleOverreachPrompt(final OverreachPromptPayload payload, final IPayloadContext context) {
@@ -101,8 +108,8 @@ public final class CultivationNetwork {
     }
 
     private static void cycleRingDisplay(final ServerPlayer player, final CultivationData data) {
-        // The "all rings" mode belongs to players with a second martial soul, which issue #3 owns;
-        // until then it stays out of the rotation.
+        // The "all rings" mode belongs to players with a second martial soul, which isn't
+        // implemented yet; until then it stays out of the rotation.
         final RingDisplayMode next = data.getRingDisplayMode().next(false);
         data.setRingDisplayMode(next);
         player.sendSystemMessage(Component.translatable("soulland.soul_ring.display.set",

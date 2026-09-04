@@ -3,7 +3,7 @@ package com.zelf115.soulland;
 /**
  * Converts the five cultivation stats into the vanilla attribute values they drive.
  *
- * <p>This is the conversion table from issue #7, kept in one place so players, spirit beasts
+ * <p>This is the conversion table, kept in one place so players, spirit beasts
  * and anything else that gains stats stay on identical maths.
  */
 public final class DerivedStats {

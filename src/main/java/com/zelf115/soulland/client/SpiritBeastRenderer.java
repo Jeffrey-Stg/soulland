@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 
-/** Placeholder look for every spirit beast until issue #28 supplies models and skins. */
+/** Placeholder look for every spirit beast until real models and skins are supplied. */
 public final class SpiritBeastRenderer extends MobRenderer<SpiritBeastEntity, HumanoidModel<SpiritBeastEntity>> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath("minecraft", "textures/entity/zombie/zombie.png");
