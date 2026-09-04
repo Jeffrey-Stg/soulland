@@ -1,7 +1,9 @@
 package com.zelf115.soulland;
 
 import com.zelf115.soulland.effect.MeditationEffect;
+import com.zelf115.soulland.block.CrystalBuddingBlock;
 import com.zelf115.soulland.events.AttributeEvents;
+import com.zelf115.soulland.fluid.SoulLandFluids;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.network.CultivationNetwork;
@@ -22,6 +24,8 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.AmethystClusterBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
@@ -58,9 +62,53 @@ public class SoulLand {
     public static final DeferredBlock<Block> EXAMPLE_BLOCK = BLOCKS.registerSimpleBlock("example_block", BlockBehaviour.Properties.of().mapColor(MapColor.STONE));
     // Creates a new BlockItem with the id "soulland:example_block", combining the namespace and path
     public static final DeferredItem<BlockItem> EXAMPLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", EXAMPLE_BLOCK);
+    public static final DeferredBlock<Block> FIRE_CRYSTAL = BLOCKS.registerSimpleBlock("fire_crystal",
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F).sound(SoundType.AMETHYST));
+        public static final DeferredItem<BlockItem> FIRE_CRYSTAL_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal", FIRE_CRYSTAL);
+    public static final DeferredBlock<Block> ICE_CRYSTAL = BLOCKS.registerSimpleBlock("ice_crystal",
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_CYAN).strength(1.5F).sound(SoundType.AMETHYST));
+        public static final DeferredItem<BlockItem> ICE_CRYSTAL_ITEM = ITEMS.registerSimpleBlockItem("ice_crystal", ICE_CRYSTAL);
+            public static final DeferredBlock<AmethystClusterBlock> FIRE_CRYSTAL_CLUSTER = BLOCKS.register("fire_crystal_cluster",
+                () -> new AmethystClusterBlock(7.0F, 3.0F, BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_CLUSTER)
+                    .mapColor(MapColor.COLOR_RED).sound(SoundType.AMETHYST_CLUSTER)));
+            public static final DeferredItem<BlockItem> FIRE_CRYSTAL_CLUSTER_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal_cluster", FIRE_CRYSTAL_CLUSTER);
+            public static final DeferredBlock<AmethystClusterBlock> FIRE_CRYSTAL_SMALL_BUD = registerCrystalBud("fire_crystal_small_bud", 3.0F, 4.0F, MapColor.COLOR_RED);
+            public static final DeferredBlock<AmethystClusterBlock> FIRE_CRYSTAL_MEDIUM_BUD = registerCrystalBud("fire_crystal_medium_bud", 4.0F, 3.0F, MapColor.COLOR_RED);
+            public static final DeferredBlock<AmethystClusterBlock> FIRE_CRYSTAL_LARGE_BUD = registerCrystalBud("fire_crystal_large_bud", 5.0F, 3.0F, MapColor.COLOR_RED);
+            public static final DeferredBlock<CrystalBuddingBlock> BUDDING_FIRE_CRYSTAL = BLOCKS.register("budding_fire_crystal",
+                () -> new CrystalBuddingBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.BUDDING_AMETHYST)
+                    .mapColor(MapColor.COLOR_RED).sound(SoundType.AMETHYST_CLUSTER),
+                    FIRE_CRYSTAL_SMALL_BUD, FIRE_CRYSTAL_MEDIUM_BUD, FIRE_CRYSTAL_LARGE_BUD, FIRE_CRYSTAL_CLUSTER));
+            public static final DeferredItem<BlockItem> BUDDING_FIRE_CRYSTAL_ITEM = ITEMS.registerSimpleBlockItem("budding_fire_crystal", BUDDING_FIRE_CRYSTAL);
+            public static final DeferredItem<BlockItem> FIRE_CRYSTAL_SMALL_BUD_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal_small_bud", FIRE_CRYSTAL_SMALL_BUD);
+            public static final DeferredItem<BlockItem> FIRE_CRYSTAL_MEDIUM_BUD_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal_medium_bud", FIRE_CRYSTAL_MEDIUM_BUD);
+            public static final DeferredItem<BlockItem> FIRE_CRYSTAL_LARGE_BUD_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal_large_bud", FIRE_CRYSTAL_LARGE_BUD);
+            public static final DeferredBlock<AmethystClusterBlock> ICE_CRYSTAL_CLUSTER = BLOCKS.register("ice_crystal_cluster",
+                () -> new AmethystClusterBlock(7.0F, 3.0F, BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_CLUSTER)
+                    .mapColor(MapColor.COLOR_CYAN).sound(SoundType.AMETHYST_CLUSTER)));
+            public static final DeferredItem<BlockItem> ICE_CRYSTAL_CLUSTER_ITEM = ITEMS.registerSimpleBlockItem("ice_crystal_cluster", ICE_CRYSTAL_CLUSTER);
+            public static final DeferredBlock<AmethystClusterBlock> ICE_CRYSTAL_SMALL_BUD = registerCrystalBud("ice_crystal_small_bud", 3.0F, 4.0F, MapColor.COLOR_CYAN);
+            public static final DeferredBlock<AmethystClusterBlock> ICE_CRYSTAL_MEDIUM_BUD = registerCrystalBud("ice_crystal_medium_bud", 4.0F, 3.0F, MapColor.COLOR_CYAN);
+            public static final DeferredBlock<AmethystClusterBlock> ICE_CRYSTAL_LARGE_BUD = registerCrystalBud("ice_crystal_large_bud", 5.0F, 3.0F, MapColor.COLOR_CYAN);
+            public static final DeferredBlock<CrystalBuddingBlock> BUDDING_ICE_CRYSTAL = BLOCKS.register("budding_ice_crystal",
+                () -> new CrystalBuddingBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.BUDDING_AMETHYST)
+                    .mapColor(MapColor.COLOR_CYAN).sound(SoundType.AMETHYST_CLUSTER),
+                    ICE_CRYSTAL_SMALL_BUD, ICE_CRYSTAL_MEDIUM_BUD, ICE_CRYSTAL_LARGE_BUD, ICE_CRYSTAL_CLUSTER));
+            public static final DeferredItem<BlockItem> BUDDING_ICE_CRYSTAL_ITEM = ITEMS.registerSimpleBlockItem("budding_ice_crystal", BUDDING_ICE_CRYSTAL);
+            public static final DeferredItem<BlockItem> ICE_CRYSTAL_SMALL_BUD_ITEM = ITEMS.registerSimpleBlockItem("ice_crystal_small_bud", ICE_CRYSTAL_SMALL_BUD);
+            public static final DeferredItem<BlockItem> ICE_CRYSTAL_MEDIUM_BUD_ITEM = ITEMS.registerSimpleBlockItem("ice_crystal_medium_bud", ICE_CRYSTAL_MEDIUM_BUD);
+            public static final DeferredItem<BlockItem> ICE_CRYSTAL_LARGE_BUD_ITEM = ITEMS.registerSimpleBlockItem("ice_crystal_large_bud", ICE_CRYSTAL_LARGE_BUD);
+            public static final DeferredItem<Item> FIRE_CRYSTAL_SHARD = ITEMS.registerSimpleItem("fire_crystal_shard");
+            public static final DeferredItem<Item> ICE_CRYSTAL_SHARD = ITEMS.registerSimpleItem("ice_crystal_shard");
     public static final DeferredItem<Item> SOUL_RING_ITEM = ITEMS.register("soul_ring", () -> new SoulRingItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<MobEffect, MobEffect> MEDITATION_EFFECT = MOB_EFFECTS.register("meditation", MeditationEffect::new);
+
+    private static DeferredBlock<AmethystClusterBlock> registerCrystalBud(String name, float height, float width, MapColor color) {
+        return BLOCKS.register(name, () -> new AmethystClusterBlock(height, width,
+                BlockBehaviour.Properties.ofFullCopy(Blocks.SMALL_AMETHYST_BUD).mapColor(color)
+                        .sound(SoundType.AMETHYST_CLUSTER)));
+    }
 
     /*
      Creates a new food item with the id "soulland:example_id", nutrition 1 and saturation 2
@@ -86,6 +134,8 @@ public class SoulLand {
 
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
+        SoulLandFluids.FLUID_TYPES.register(modEventBus);
+        SoulLandFluids.FLUIDS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
@@ -130,10 +180,26 @@ public class SoulLand {
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(EXAMPLE_BLOCK_ITEM);
+            event.accept(FIRE_CRYSTAL_ITEM);
+            event.accept(ICE_CRYSTAL_ITEM);
+            event.accept(FIRE_CRYSTAL_CLUSTER_ITEM);
+            event.accept(BUDDING_FIRE_CRYSTAL_ITEM);
+            event.accept(FIRE_CRYSTAL_SMALL_BUD_ITEM);
+            event.accept(FIRE_CRYSTAL_MEDIUM_BUD_ITEM);
+            event.accept(FIRE_CRYSTAL_LARGE_BUD_ITEM);
+            event.accept(ICE_CRYSTAL_CLUSTER_ITEM);
+            event.accept(BUDDING_ICE_CRYSTAL_ITEM);
+            event.accept(ICE_CRYSTAL_SMALL_BUD_ITEM);
+            event.accept(ICE_CRYSTAL_MEDIUM_BUD_ITEM);
+            event.accept(ICE_CRYSTAL_LARGE_BUD_ITEM);
         }
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SOUL_RING_ITEM);
             event.accept(SPIRIT_BONE_ITEM);
+            event.accept(FIRE_CRYSTAL_SHARD);
+            event.accept(ICE_CRYSTAL_SHARD);
+            event.accept(SoulLandFluids.RED_WATER_BUCKET);
+            event.accept(SoulLandFluids.CYAN_WATER_BUCKET);
         }
     }
 
