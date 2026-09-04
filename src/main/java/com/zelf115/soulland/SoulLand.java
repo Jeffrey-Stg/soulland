@@ -6,6 +6,8 @@ import com.zelf115.soulland.events.AttributeEvents;
 import com.zelf115.soulland.fluid.SoulLandFluids;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
+import com.zelf115.soulland.item.HerbItem;
+import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.CultivationNetwork;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import org.slf4j.Logger;
@@ -102,7 +104,31 @@ public class SoulLand {
             public static final DeferredItem<Item> ICE_CRYSTAL_SHARD = ITEMS.registerSimpleItem("ice_crystal_shard");
     public static final DeferredItem<Item> SOUL_RING_ITEM = ITEMS.register("soul_ring", () -> new SoulRingItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> CLEAR_SKY_HAMMER = ITEMS.register("clear_sky_hammer", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.registerSimpleItem("nine_heart_begonia");
+    public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.registerSimpleItem("seven_treasure_glazed_tile_pagoda");
+    public static final DeferredItem<Item> BEAUTIFUL_SILK_TULIP = registerHerb("beautiful_silk_tulip", HerbItem.Effect.EVOLVE_PAGODA);
+    public static final DeferredItem<Item> BLACK_JADE_DIVINE_BAMBOO = registerHerb("black_jade_divine_bamboo", HerbItem.Effect.SPIRIT_HUNDRED);
+    public static final DeferredItem<Item> COMMON_SPIRIT_HERB = registerHerb("common_spirit_herb", HerbItem.Effect.COMMON_SPIRIT);
+    public static final DeferredItem<Item> DRAGONSCALE_FRUIT = registerHerb("dragonscale_fruit", HerbItem.Effect.ALL_BUT_SPIRIT_AND_INNATE_ONE_SOUL_END);
+    public static final DeferredItem<Item> EIGHT_PETAL_IMMORTAL_ORCHID = registerHerb("eight_petal_immortal_orchid", HerbItem.Effect.CULTIVATION_LEVEL_ONE);
+    public static final DeferredItem<Item> FULL_MOON_WEARING_AUTUMN_DEW = registerHerb("full_moon_wearing_autumn_dew", HerbItem.Effect.SPIRIT_FIFTY);
+    public static final DeferredItem<Item> ICE_CRYSTAL_FRUIT = registerHerb("ice_crystal_fruit", HerbItem.Effect.ICE_SPIRIT_TEN);
+    public static final DeferredItem<Item> INFERNAL_DELICATE_APRICOT = registerHerb("infernal_delicate_apricot", HerbItem.Effect.FIRE_CULTIVATION_SPEED_TWO);
+    public static final DeferredItem<Item> OCTAGONAL_MYSTERIOUS_ICE_GRASS = registerHerb("octagonal_mysterious_ice_grass", HerbItem.Effect.ICE_CULTIVATION_SPEED_TWO);
+    public static final DeferredItem<Item> ORIGIN_ENERGY_IMMORTAL_GRASS = registerHerb("origin_energy_immortal_grass", HerbItem.Effect.CULTIVATION_LEVEL_ONE);
+    public static final DeferredItem<Item> SACRED_SOUL_GRASS = registerHerb("sacred_soul_grass", HerbItem.Effect.CULTIVATION_LEVEL_HALF);
+    public static final DeferredItem<Item> SCARLET_FLAME_FRUIT = registerHerb("scarlet_flame_fruit", HerbItem.Effect.FIRE_SPIRIT_TEN);
+    public static final DeferredItem<Item> SINGULAR_VELVET_SKY_CHRYSANTHEMUM = registerHerb("singular_velvet_sky_chrysanthemum", HerbItem.Effect.INNATE_ONE);
+    public static final DeferredItem<Item> WATER_CRYSTAL_PEACH = registerHerb("water_crystal_peach", HerbItem.Effect.ALL_BUT_SPIRIT_ONE);
+    public static final DeferredItem<Item> YEARNING_HEARTBROKEN_RED = registerHerb("yearning_heartbroken_red", HerbItem.Effect.INNATE_TWO);
     public static final DeferredHolder<MobEffect, MobEffect> MEDITATION_EFFECT = MOB_EFFECTS.register("meditation", MeditationEffect::new);
+
+    private static DeferredItem<Item> registerHerb(String name, HerbItem.Effect effect) {
+        return ITEMS.register(name, () -> new HerbItem(effect,
+                new Item.Properties().food(HerbItem.foodProperties(effect))));
+    }
 
     private static DeferredBlock<AmethystClusterBlock> registerCrystalBud(String name, float height, float width, MapColor color) {
         return BLOCKS.register(name, () -> new AmethystClusterBlock(height, width,
@@ -200,6 +226,23 @@ public class SoulLand {
             event.accept(ICE_CRYSTAL_SHARD);
             event.accept(SoulLandFluids.RED_WATER_BUCKET);
             event.accept(SoulLandFluids.CYAN_WATER_BUCKET);
+            event.accept(NINE_HEART_BEGONIA);
+            event.accept(SEVEN_TREASURE_GLAZED_TILE_PAGODA);
+            event.accept(BEAUTIFUL_SILK_TULIP);
+            event.accept(BLACK_JADE_DIVINE_BAMBOO);
+            event.accept(COMMON_SPIRIT_HERB);
+            event.accept(DRAGONSCALE_FRUIT);
+            event.accept(EIGHT_PETAL_IMMORTAL_ORCHID);
+            event.accept(FULL_MOON_WEARING_AUTUMN_DEW);
+            event.accept(ICE_CRYSTAL_FRUIT);
+            event.accept(INFERNAL_DELICATE_APRICOT);
+            event.accept(OCTAGONAL_MYSTERIOUS_ICE_GRASS);
+            event.accept(ORIGIN_ENERGY_IMMORTAL_GRASS);
+            event.accept(SACRED_SOUL_GRASS);
+            event.accept(SCARLET_FLAME_FRUIT);
+            event.accept(SINGULAR_VELVET_SKY_CHRYSANTHEMUM);
+            event.accept(WATER_CRYSTAL_PEACH);
+            event.accept(YEARNING_HEARTBROKEN_RED);
         }
     }
 

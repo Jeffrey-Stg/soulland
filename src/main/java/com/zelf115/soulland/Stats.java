@@ -236,6 +236,39 @@ public class Stats {
         putModifier(player, CULTIVATION_SPEED, id, bonus.cultivationSpeed());
     }
 
+    public static void applyTemporaryPercentBonus(final Player player, final String id, final double percent) {
+        final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
+        for (final Holder<Attribute> attribute : List.of(DAMAGE, DEFENSE)) {
+            final AttributeInstance instance = player.getAttribute(attribute);
+            if (instance != null) {
+                instance.addOrReplacePermanentModifier(new AttributeModifier(modifierId, percent,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+        }
+        syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
+    }
+
+    public static void applyTemporaryStatPercentBonus(final Player player, final String id, final double percent) {
+        final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
+        for (final Holder<Attribute> attribute : CULTIVATION_STATS) {
+            final AttributeInstance instance = player.getAttribute(attribute);
+            if (instance != null) {
+                instance.addOrReplacePermanentModifier(new AttributeModifier(modifierId, percent,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+        }
+        syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
+    }
+
+    public static void removeTemporaryBonus(final Player player, final String id) {
+        final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
+        for (final Holder<Attribute> attribute : ALL) {
+            final AttributeInstance instance = player.getAttribute(attribute);
+            if (instance != null) instance.removeModifier(modifierId);
+        }
+        syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
+    }
+
     /**
      * Carries every mod attribute, base values and bonus modifiers alike, onto a freshly created
      * player entity. Vanilla hands the respawned player a blank attribute map.

@@ -10,6 +10,8 @@ import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.RingDisplayMode;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.item.SoulRingItem;
+import com.zelf115.soulland.cultivation.MartialSoul;
+import com.zelf115.soulland.cultivation.MartialSoulAbility;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -50,6 +52,8 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.CYCLE_RING_DISPLAY -> cycleRingDisplay(player, data);
                 case CultivationActionPayload.TOGGLE_EXTERNAL_BONE -> toggleExternalBone(player, data);
                 case CultivationActionPayload.ATTEMPT_BREAKTHROUGH -> BreakthroughManager.attemptBreakthrough(player, data, player.level().getGameTime());
+                case CultivationActionPayload.USE_MARTIAL_SOUL -> MartialSoulAbility.toggle(player, data);
+                case CultivationActionPayload.CAST_MARTIAL_SOUL -> MartialSoulAbility.cast(player, data);
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });

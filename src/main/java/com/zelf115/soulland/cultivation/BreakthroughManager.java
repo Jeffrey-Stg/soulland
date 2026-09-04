@@ -84,7 +84,7 @@ public class BreakthroughManager {
 
     /** Level 100 opens to a god inheritance or to anyone who has reborn at least once. */
     private static boolean hasLevel100Path(final CultivationData data) {
-        return data.hasGodInheritance() || data.getRebirthCount() >= 1;
+        return data.hasGodInheritance() || data.getRebirthCount() >= 1 || data.canMartialSoulReachLevel100();
     }
 
     /**

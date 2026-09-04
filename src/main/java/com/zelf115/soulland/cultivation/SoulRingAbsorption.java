@@ -2,6 +2,7 @@ package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.spirit.AffinitySystem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
@@ -113,7 +114,9 @@ public final class SoulRingAbsorption {
         final AbsorbedRing ring = new AbsorbedRing(
                 tag.getString("SourceName"), tierOf(tag), tag.getInt("Years"), StatBonus.readFrom(tag));
         data.addRing(ring);
-        Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1), ring.bonus());
+        Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1),
+            ring.bonus().scaled(AffinitySystem.ringMultiplier(player, tag)));
+        MartialSoulEvolution.tryEvolve(player, data);
         Stats.syncDerivedPlayerStats(player, data);
         destroy(stack);
     }

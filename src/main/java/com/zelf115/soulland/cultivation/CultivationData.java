@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.zelf115.soulland.spirit.Affinity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -32,6 +33,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private final List<AbsorbedRing> absorbedRings = new ArrayList<>();
     // Spirit bones absorbed, keyed by normalized slot name; one per slot
     private final Map<String, AbsorbedBone> spiritBones = new LinkedHashMap<>();
+    private final Map<Affinity, Double> affinityMultipliers = new LinkedHashMap<>();
+    private MartialSoul martialSoul;
     // Whether the player is at a bottleneck (XP-capped until breakthrough)
     private boolean inBottleneck = false;
     // Number of consecutive breakthrough failures (resets on success)
@@ -42,6 +45,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private String title = "";
     // Whether the player has completed a god inheritance quest (gate for level 100)
     private boolean hasGodInheritance = false;
+    private boolean martialSoulCanReachLevel100 = false;
     // Number of times the player has reborn (gate for level 100 as an alternative)
     private int rebirthCount = 0;
     // Permanent flat bonus applied to all stats, accumulated across rebirths
@@ -60,6 +64,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private long lastMeditationTick = 0L;
     // Server tick of the last bottleneck spirit grant
     private long lastSpiritTick = 0L;
+    private boolean martialSoulActive = false;
+    private long martialSoulBuffUntil = 0L;
 
     // ---- Getters ----
 
@@ -68,11 +74,14 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public int getSoulRingCount() { return absorbedRings.size(); }
     public List<AbsorbedRing> getAbsorbedRings() { return Collections.unmodifiableList(absorbedRings); }
     public Map<String, AbsorbedBone> getSpiritBones() { return Collections.unmodifiableMap(spiritBones); }
+    public double getAffinityMultiplier(final Affinity affinity) { return affinityMultipliers.getOrDefault(affinity, 1.0); }
+    public MartialSoul getMartialSoul() { return martialSoul; }
     public boolean isInBottleneck() { return inBottleneck; }
     public int getBreakthroughFailures() { return breakthroughFailures; }
     public long getBreakthroughCooldownUntil() { return breakthroughCooldownUntil; }
     public String getTitle() { return title; }
     public boolean hasGodInheritance() { return hasGodInheritance; }
+    public boolean canMartialSoulReachLevel100() { return martialSoulCanReachLevel100; }
     public int getRebirthCount() { return rebirthCount; }
     public double getPermanentBonusStats() { return permanentBonusStats; }
     public double getSpiritEnergy() { return spiritEnergy; }
@@ -82,6 +91,10 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public boolean isExternalBoneVisible() { return externalBoneVisible; }
     public long getLastMeditationTick() { return lastMeditationTick; }
     public long getLastSpiritTick() { return lastSpiritTick; }
+    public boolean isMartialSoulActive() { return martialSoulActive; }
+    public void setMartialSoulActive(final boolean active) { martialSoulActive = active; }
+    public long getMartialSoulBuffUntil() { return martialSoulBuffUntil; }
+    public void setMartialSoulBuffUntil(final long tick) { martialSoulBuffUntil = tick; }
 
     // ---- Setters ----
 
@@ -92,6 +105,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setBreakthroughCooldownUntil(long tick) { this.breakthroughCooldownUntil = tick; }
     public void setTitle(String title) { this.title = title == null ? "" : title; }
     public void setHasGodInheritance(boolean value) { this.hasGodInheritance = value; }
+    public void setMartialSoulCanReachLevel100(final boolean value) { martialSoulCanReachLevel100 = value; }
     public void setRebirthCount(int count) { this.rebirthCount = Math.max(0, count); }
     public void setPermanentBonusStats(double bonus) { this.permanentBonusStats = bonus; }
     public void setSpiritEnergy(double spiritEnergy) { this.spiritEnergy = Math.max(0.0, spiritEnergy); }
@@ -99,6 +113,14 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setExternalBoneVisible(boolean visible) { this.externalBoneVisible = visible; }
     public void setLastMeditationTick(long tick) { this.lastMeditationTick = tick; }
     public void setLastSpiritTick(long tick) { this.lastSpiritTick = tick; }
+
+    public void setAffinityMultiplier(final Affinity affinity, final double multiplier) {
+        affinityMultipliers.put(affinity, Math.max(0.0, multiplier));
+    }
+
+    public void setMartialSoul(final MartialSoul martialSoul) { this.martialSoul = martialSoul; }
+
+    public void clearAffinityMultipliers() { affinityMultipliers.clear(); }
 
     public void setMovementUsagePercent(int movementUsagePercent) {
         this.movementUsagePercent =
@@ -139,11 +161,18 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putDouble("xp", xp);
         tag.put("absorbedRings", writeRings());
         tag.put("spiritBones", writeBones());
+        CompoundTag affinities = new CompoundTag();
+        affinityMultipliers.forEach((affinity, multiplier) -> affinities.putDouble(affinity.name(), multiplier));
+        tag.put("affinityMultipliers", affinities);
+        if (martialSoul != null) {
+            tag.putString("martialSoul", martialSoul.name());
+        }
         tag.putBoolean("inBottleneck", inBottleneck);
         tag.putInt("breakthroughFailures", breakthroughFailures);
         tag.putLong("breakthroughCooldownUntil", breakthroughCooldownUntil);
         tag.putString("title", title);
         tag.putBoolean("hasGodInheritance", hasGodInheritance);
+        tag.putBoolean("martialSoulCanReachLevel100", martialSoulCanReachLevel100);
         tag.putInt("rebirthCount", rebirthCount);
         tag.putDouble("permanentBonusStats", permanentBonusStats);
         tag.putDouble("spiritEnergy", spiritEnergy);
@@ -153,6 +182,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putBoolean("externalBoneVisible", externalBoneVisible);
         tag.putLong("lastMeditationTick", lastMeditationTick);
         tag.putLong("lastSpiritTick", lastSpiritTick);
+        tag.putBoolean("martialSoulActive", martialSoulActive);
+        tag.putLong("martialSoulBuffUntil", martialSoulBuffUntil);
         return tag;
     }
 
@@ -162,11 +193,20 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         xp = tag.getDouble("xp");
         readRings(tag.getList("absorbedRings", Tag.TAG_COMPOUND));
         readBones(tag.getCompound("spiritBones"));
+        readAffinities(tag.getCompound("affinityMultipliers"));
+        if (tag.contains("martialSoul")) {
+            try {
+                martialSoul = MartialSoul.valueOf(tag.getString("martialSoul"));
+            } catch (IllegalArgumentException ignored) {
+                martialSoul = null;
+            }
+        }
         inBottleneck = tag.getBoolean("inBottleneck");
         breakthroughFailures = tag.getInt("breakthroughFailures");
         breakthroughCooldownUntil = tag.getLong("breakthroughCooldownUntil");
         title = tag.getString("title");
         hasGodInheritance = tag.getBoolean("hasGodInheritance");
+        martialSoulCanReachLevel100 = tag.getBoolean("martialSoulCanReachLevel100");
         rebirthCount = tag.getInt("rebirthCount");
         permanentBonusStats = tag.getDouble("permanentBonusStats");
         spiritEnergy = Math.max(0.0, tag.getDouble("spiritEnergy"));
@@ -176,6 +216,12 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         externalBoneVisible = !tag.contains("externalBoneVisible") || tag.getBoolean("externalBoneVisible");
         lastMeditationTick = tag.getLong("lastMeditationTick");
         lastSpiritTick = tag.getLong("lastSpiritTick");
+        martialSoulActive = tag.getBoolean("martialSoulActive");
+        martialSoulBuffUntil = tag.getLong("martialSoulBuffUntil");
+        if (martialSoul != null && !martialSoul.isEvolution()) {
+            affinityMultipliers.clear();
+            martialSoul.affinityMultipliers().forEach(this::setAffinityMultiplier);
+        }
     }
 
     private ListTag writeRings() {
@@ -203,6 +249,17 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         spiritBones.clear();
         for (final String slotKey : tag.getAllKeys()) {
             spiritBones.put(slotKey, AbsorbedBone.readFrom(tag.getCompound(slotKey)));
+        }
+    }
+
+    private void readAffinities(final CompoundTag tag) {
+        affinityMultipliers.clear();
+        for (final String name : tag.getAllKeys()) {
+            try {
+                affinityMultipliers.put(Affinity.valueOf(name), Math.max(0.0, tag.getDouble(name)));
+            } catch (IllegalArgumentException ignored) {
+                // Ignore affinity names removed or added by another version.
+            }
         }
     }
 }

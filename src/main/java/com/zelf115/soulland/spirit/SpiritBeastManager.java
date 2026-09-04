@@ -145,7 +145,8 @@ public final class SpiritBeastManager {
         final int tier = data.getInt(TIER_KEY);
         final StatBonus bonus = statsOf(data).scaled(SOUL_RING_STRENGTH_SHARE)
                 .withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
-        return SoulRingItem.create(beastName(monster), tier, data.getInt(YEARS_KEY), bonus);
+        return SoulRingItem.create(beastName(monster), tier, data.getInt(YEARS_KEY), bonus,
+            AffinitySystem.affinitiesOf(monster));
     }
 
     public static ItemStack createSpiritBone(final SpiritBeastEntity monster) {

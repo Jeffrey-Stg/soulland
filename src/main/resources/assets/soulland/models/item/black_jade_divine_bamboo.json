@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "soulland:item/black_jade_divine_bamboo" }
+}

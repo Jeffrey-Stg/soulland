@@ -19,6 +19,8 @@ public final class CultivationKeyMappings {
     public static final KeyMapping CYCLE_RING_DISPLAY = new KeyMapping("key.soulland.cycle_ring_display", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY);
     public static final KeyMapping TOGGLE_EXTERNAL_BONE = new KeyMapping("key.soulland.toggle_external_bone", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, CATEGORY);
     public static final KeyMapping ATTEMPT_BREAKTHROUGH = new KeyMapping("key.soulland.breakthrough", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, CATEGORY);
+    public static final KeyMapping USE_MARTIAL_SOUL = new KeyMapping("key.soulland.use_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY);
+    public static final KeyMapping CAST_MARTIAL_SOUL = new KeyMapping("key.soulland.cast_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY);
 
     private CultivationKeyMappings() {
     }
@@ -31,5 +33,7 @@ public final class CultivationKeyMappings {
         event.register(CYCLE_RING_DISPLAY);
         event.register(TOGGLE_EXTERNAL_BONE);
         event.register(ATTEMPT_BREAKTHROUGH);
+        event.register(USE_MARTIAL_SOUL);
+        event.register(CAST_MARTIAL_SOUL);
     }
 }
