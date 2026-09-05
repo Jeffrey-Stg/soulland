@@ -1,1 +1,1 @@
-{"parent":"soulland:block/pill_furnace"}
+{"parent":"minecraft:item/generated","textures":{"layer0":"soulland:item/pill_furnace"}}

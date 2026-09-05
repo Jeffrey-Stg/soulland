@@ -12,6 +12,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.food.FoodProperties;
 
 public final class AlchemyItem extends Item {
+    private static final int LEVELS_PER_QI_GATHERING_TIER = 20;
+
     public enum Effect {
         MYSTERIOUS_WATER,
         SPIRIT_ASCENSION,
@@ -49,8 +51,21 @@ public final class AlchemyItem extends Item {
                 data.setInnateStat(data.getInnateStat() + 1);
                 Stats.addSpirit(player, 110.0);
             }
-            case QI_GATHERING -> Stats.addSpirit(player, qiLevel * 10.0);
+            case QI_GATHERING -> {
+                if (!isQiGatheringTierUsableAt(data.getLevel())) {
+                    return;
+                }
+                Stats.addSpirit(player, qiLevel * 10.0);
+            }
         }
         Stats.syncDerivedPlayerStats(player, data);
+    }
+
+    // Tier N is meant for the 20-level band it was brewed for: tier 1 for levels 1-20,
+    // tier 2 for 21-40, and so on - a tier 5 pill isn't a shortcut for a level 1 player.
+    private boolean isQiGatheringTierUsableAt(final int playerLevel) {
+        final int tierMinLevel = (qiLevel - 1) * LEVELS_PER_QI_GATHERING_TIER + 1;
+        final int tierMaxLevel = qiLevel * LEVELS_PER_QI_GATHERING_TIER;
+        return playerLevel >= tierMinLevel && playerLevel <= tierMaxLevel;
     }
 }

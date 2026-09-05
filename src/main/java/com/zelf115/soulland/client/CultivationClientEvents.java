@@ -24,6 +24,7 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.ATTEMPT_BREAKTHROUGH, CultivationActionPayload.ATTEMPT_BREAKTHROUGH);
         sendOnPress(CultivationKeyMappings.USE_MARTIAL_SOUL, CultivationActionPayload.USE_MARTIAL_SOUL);
         sendOnPress(CultivationKeyMappings.CAST_MARTIAL_SOUL, CultivationActionPayload.CAST_MARTIAL_SOUL);
+        sendOnPress(CultivationKeyMappings.OPEN_ALCHEMY_MENU, CultivationActionPayload.OPEN_ALCHEMY_MENU);
     }
 
     private static void sendOnPress(final KeyMapping mapping, final int action) {

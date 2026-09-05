@@ -21,6 +21,7 @@ public record CultivationActionPayload(int action) implements CustomPacketPayloa
     public static final int ATTEMPT_BREAKTHROUGH = 5;
     public static final int USE_MARTIAL_SOUL = 6;
     public static final int CAST_MARTIAL_SOUL = 7;
+    public static final int OPEN_ALCHEMY_MENU = 8;
 
     @Override
     public Type<CultivationActionPayload> type() {

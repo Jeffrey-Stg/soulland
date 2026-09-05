@@ -2,7 +2,7 @@ package com.zelf115.soulland;
 
 import com.zelf115.soulland.effect.MeditationEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
-import com.zelf115.soulland.block.PillFurnaceBlock;
+import com.zelf115.soulland.compat.CuriosCompat;
 import com.zelf115.soulland.events.AttributeEvents;
 import com.zelf115.soulland.fluid.SoulLandFluids;
 import com.zelf115.soulland.item.SoulRingItem;
@@ -11,7 +11,9 @@ import com.zelf115.soulland.item.HerbItem;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.item.AlchemyItem;
 import com.zelf115.soulland.item.PillFurnaceItem;
+import com.zelf115.soulland.menu.SoulLandMenus;
 import com.zelf115.soulland.network.CultivationNetwork;
+import com.zelf115.soulland.recipe.SoulLandRecipes;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import org.slf4j.Logger;
 
@@ -29,7 +31,6 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -40,6 +41,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -104,17 +106,11 @@ public class SoulLand {
     public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.registerSimpleItem("nine_heart_begonia");
     public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.registerSimpleItem("seven_treasure_glazed_tile_pagoda");
-        public static final DeferredBlock<Block> PILL_FURNACE_BLOCK = BLOCKS.register("pill_furnace",
-            () -> new FurnaceBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE)));
-        public static final DeferredItem<BlockItem> PILL_FURNACE = ITEMS.registerSimpleBlockItem("pill_furnace", PILL_FURNACE_BLOCK);
-    public static final DeferredBlock<Block> ENCHANTED_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("enchanted_pill_furnace", PillFurnaceItem.Tier.ENCHANTED);
-    public static final DeferredItem<BlockItem> ENCHANTED_PILL_FURNACE = ITEMS.registerSimpleBlockItem("enchanted_pill_furnace", ENCHANTED_PILL_FURNACE_BLOCK);
-    public static final DeferredBlock<Block> NETHER_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("nether_pill_furnace", PillFurnaceItem.Tier.NETHER);
-    public static final DeferredItem<BlockItem> NETHER_PILL_FURNACE = ITEMS.registerSimpleBlockItem("nether_pill_furnace", NETHER_PILL_FURNACE_BLOCK);
-    public static final DeferredBlock<Block> STAR_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("star_pill_furnace", PillFurnaceItem.Tier.STAR);
-    public static final DeferredItem<BlockItem> STAR_PILL_FURNACE = ITEMS.registerSimpleBlockItem("star_pill_furnace", STAR_PILL_FURNACE_BLOCK);
-    public static final DeferredBlock<Block> DIVINE_PILL_FURNACE_BLOCK = registerPillFurnaceBlock("divine_pill_furnace", PillFurnaceItem.Tier.DIVINE);
-    public static final DeferredItem<BlockItem> DIVINE_PILL_FURNACE = ITEMS.registerSimpleBlockItem("divine_pill_furnace", DIVINE_PILL_FURNACE_BLOCK);
+    public static final DeferredItem<Item> PILL_FURNACE = registerPillFurnace("pill_furnace", PillFurnaceItem.Tier.REGULAR);
+    public static final DeferredItem<Item> ENCHANTED_PILL_FURNACE = registerPillFurnace("enchanted_pill_furnace", PillFurnaceItem.Tier.ENCHANTED);
+    public static final DeferredItem<Item> NETHER_PILL_FURNACE = registerPillFurnace("nether_pill_furnace", PillFurnaceItem.Tier.NETHER);
+    public static final DeferredItem<Item> STAR_PILL_FURNACE = registerPillFurnace("star_pill_furnace", PillFurnaceItem.Tier.STAR);
+    public static final DeferredItem<Item> DIVINE_PILL_FURNACE = registerPillFurnace("divine_pill_furnace", PillFurnaceItem.Tier.DIVINE);
     public static final DeferredItem<Item> MYSTERIOUS_WATER_PILL = registerPill("mysterious_water_pill", AlchemyItem.Effect.MYSTERIOUS_WATER, 0);
     public static final DeferredItem<Item> SPIRIT_ASCENSION_PILL = registerPill("spirit_ascension_pill", AlchemyItem.Effect.SPIRIT_ASCENSION, 0);
     public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_1 = registerPill("qi_gathering_pill_tier_1", AlchemyItem.Effect.QI_GATHERING, 1);
@@ -144,9 +140,8 @@ public class SoulLand {
                 new Item.Properties().food(HerbItem.foodProperties(effect))));
     }
 
-    private static DeferredBlock<Block> registerPillFurnaceBlock(final String name, final PillFurnaceItem.Tier tier) {
-        return BLOCKS.register(name, () -> new PillFurnaceBlock(tier,
-                BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE)));
+    private static DeferredItem<Item> registerPillFurnace(final String name, final PillFurnaceItem.Tier tier) {
+        return ITEMS.register(name, () -> new PillFurnaceItem(tier, new Item.Properties().stacksTo(1)));
     }
 
     private static DeferredItem<Item> registerPill(final String name, final AlchemyItem.Effect effect, final int qiLevel) {
@@ -174,10 +169,13 @@ public class SoulLand {
         MOB_EFFECTS.register(modEventBus);
         SpiritBeastEntities.register(modEventBus);
         SoulLandFeatures.FEATURES.register(modEventBus);
+        SoulLandRecipes.register(modEventBus);
+        SoulLandMenus.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
 
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(AttributeEvents::modifyPlayerAttributes);
         modEventBus.addListener(CultivationNetwork::register);
         Stats.register(modEventBus);
@@ -251,6 +249,12 @@ public class SoulLand {
             event.accept(QI_GATHERING_PILL_TIER_3);
             event.accept(QI_GATHERING_PILL_TIER_4);
             event.accept(QI_GATHERING_PILL_TIER_5);
+        }
+    }
+
+    private void registerCapabilities(final RegisterCapabilitiesEvent event) {
+        if (CuriosCompat.isLoaded()) {
+            CuriosCompat.registerCurios(event);
         }
     }
 

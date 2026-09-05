@@ -1,9 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": ["HHH", "HPH", "HHH"],
-  "key": {
-    "H": {"item": "soulland:common_spirit_herb"},
-    "P": {"item": "minecraft:paper"}
-  },
-  "result": {"id": "soulland:qi_gathering_pill_tier_1", "count": 1}
+  "type": "soulland:alchemy_pill",
+  "ingredients": [
+    {"item": "soulland:common_spirit_herb", "count": 64}
+  ],
+  "result": {"id": "soulland:qi_gathering_pill_tier_1", "count": 1},
+  "min_level": 1,
+  "max_level": 20
 }

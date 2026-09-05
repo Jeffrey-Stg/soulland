@@ -34,6 +34,13 @@ repositories {
             includeGroup 'com.github.glitchfiend'
         }
     }
+    maven {
+        name = 'TheIllusiveC4'
+        url = 'https://maven.theillusivec4.top/'
+        content {
+            includeGroup 'top.theillusivec4.curios'
+        }
+    }
 }
 
 base {
@@ -114,6 +121,11 @@ dependencies {
     // Injects this mod's biomes into the vanilla overworld, nether and end biome sources.
     implementation "com.github.glitchfiend:TerraBlender-neoforge:${terrablender_version}"
 
+    // Curios is an optional dependency: the pill furnace works via right-click without it,
+    // and only gains an equippable Curios slot when the player has it installed.
+    compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+    localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -149,6 +161,7 @@ tasks.withType(ProcessResources).configureEach {
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
             terrablender_version_range: terrablender_version_range,
+            curios_version_range   : curios_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

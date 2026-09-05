@@ -187,5 +187,10 @@
   "item.soulland.qi_gathering_pill_tier_2": "Qi Gathering Pill Tier 2",
   "item.soulland.qi_gathering_pill_tier_3": "Qi Gathering Pill Tier 3",
   "item.soulland.qi_gathering_pill_tier_4": "Qi Gathering Pill Tier 4",
-  "item.soulland.qi_gathering_pill_tier_5": "Qi Gathering Pill Tier 5"
+  "item.soulland.qi_gathering_pill_tier_5": "Qi Gathering Pill Tier 5",
+  "key.soulland.open_alchemy_menu": "Open Alchemy Menu",
+  "container.soulland.alchemy": "Alchemy Furnace",
+  "soulland.alchemy.craft": "Craft",
+  "soulland.alchemy.curios_not_loaded": "This hotkey needs a pill furnace worn in a Curios slot; right-click one instead.",
+  "soulland.alchemy.no_furnace_equipped": "You have no pill furnace equipped in a Curios slot."
 }

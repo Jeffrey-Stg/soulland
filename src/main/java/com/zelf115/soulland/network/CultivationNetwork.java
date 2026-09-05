@@ -4,15 +4,18 @@ import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.client.HudClientData;
 import com.zelf115.soulland.client.OverreachConfirmScreen;
+import com.zelf115.soulland.compat.CuriosCompat;
 import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.RingDisplayMode;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
+import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.cultivation.MartialSoul;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
+import com.zelf115.soulland.menu.AlchemyMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -61,6 +64,7 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.ATTEMPT_BREAKTHROUGH -> BreakthroughManager.attemptBreakthrough(player, data, player.level().getGameTime());
                 case CultivationActionPayload.USE_MARTIAL_SOUL -> MartialSoulAbility.toggle(player, data);
                 case CultivationActionPayload.CAST_MARTIAL_SOUL -> MartialSoulAbility.cast(player, data);
+                case CultivationActionPayload.OPEN_ALCHEMY_MENU -> openAlchemyMenu(player);
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });
@@ -121,5 +125,20 @@ public final class CultivationNetwork {
         player.sendSystemMessage(Component.translatable(data.isExternalBoneVisible()
                 ? "soulland.spirit_bone.external.shown"
                 : "soulland.spirit_bone.external.hidden"));
+    }
+
+    private static void openAlchemyMenu(final ServerPlayer player) {
+        // The hotkey only works from a worn Curios slot; right-clicking a furnace item always
+        // works and doesn't go through this payload at all.
+        if (!CuriosCompat.isLoaded()) {
+            player.sendSystemMessage(Component.translatable("soulland.alchemy.curios_not_loaded"));
+            return;
+        }
+
+        CuriosCompat.findEquippedPillFurnace(player)
+                .map(stack -> (PillFurnaceItem) stack.getItem())
+                .ifPresentOrElse(
+                        furnace -> AlchemyMenu.open(player, furnace.tier()),
+                        () -> player.sendSystemMessage(Component.translatable("soulland.alchemy.no_furnace_equipped")));
     }
 }

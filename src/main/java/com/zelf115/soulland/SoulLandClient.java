@@ -1,7 +1,9 @@
 package com.zelf115.soulland;
 
+import com.zelf115.soulland.client.AlchemyScreen;
 import com.zelf115.soulland.fluid.SoulLandFluids;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
+import com.zelf115.soulland.menu.SoulLandMenus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
@@ -12,6 +14,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -35,6 +38,11 @@ public class SoulLandClient {
                     final var tag = SoulRingAbsorption.ringData(stack);
                     return tag == null ? 0.0F : tag.getInt("Years");
                 }));
+    }
+
+    @SubscribeEvent
+    static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(SoulLandMenus.ALCHEMY.get(), AlchemyScreen::new);
     }
 
     @SubscribeEvent
