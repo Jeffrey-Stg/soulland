@@ -1,9 +1,10 @@
 package com.zelf115.soulland.cultivation;
 
-/** How a player wants their absorbed soul rings shown. */
+/** How a player wants their absorbed soul rings shown: hidden, one soul's track, or both. */
 public enum RingDisplayMode {
     NONE,
-    CURRENT_MARTIAL_SOUL,
+    PRIMARY,
+    SECONDARY,
     ALL;
 
     private static final RingDisplayMode[] VALUES = values();
@@ -15,10 +16,10 @@ public enum RingDisplayMode {
         return VALUES[ordinal];
     }
 
-    /** The mode after this one, skipping {@link #ALL} for players without a second martial soul. */
+    /** The mode after this one, skipping {@link #SECONDARY} and {@link #ALL} without a second soul. */
     public RingDisplayMode next(final boolean hasSecondMartialSoul) {
         final RingDisplayMode candidate = VALUES[(ordinal() + 1) % VALUES.length];
-        if (candidate == ALL && !hasSecondMartialSoul) {
+        if (!hasSecondMartialSoul && (candidate == SECONDARY || candidate == ALL)) {
             return NONE;
         }
         return candidate;

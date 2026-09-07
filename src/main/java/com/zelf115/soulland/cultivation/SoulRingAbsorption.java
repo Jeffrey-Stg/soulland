@@ -42,7 +42,8 @@ public final class SoulRingAbsorption {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        if (data.getSoulRingCount() >= CultivationManager.maxSoulRingCountForLevel(data.getLevel())) {
+        final SoulSlot slot = resolveSlotForNewRing(data);
+        if (slot == null) {
             return Result.LEVEL_LIMIT;
         }
 
@@ -55,8 +56,30 @@ public final class SoulRingAbsorption {
             return Result.SPIRIT_CAPACITY;
         }
 
-        grant(player, data, stack, tag);
+        grant(player, data, stack, tag, slot);
         return Result.ABSORBED;
+    }
+
+    /** Rings fill the primary track first, then the secondary one, each up to its own cap. */
+    private static SoulSlot resolveSlotForNewRing(final CultivationData data) {
+        if (data.getRingCount(SoulSlot.PRIMARY) < capFor(data.getMartialSoul(), data.getLevel())) {
+            return SoulSlot.PRIMARY;
+        }
+        if (data.getSecondaryMartialSoul() != null
+                && data.getRingCount(SoulSlot.SECONDARY) < capFor(data.getSecondaryMartialSoul(), data.getLevel())) {
+            return SoulSlot.SECONDARY;
+        }
+        return null;
+    }
+
+    private static int capFor(final MartialSoul soul, final int level) {
+        if (soul != null) {
+            final java.util.OptionalInt override = soul.ringCapOverride();
+            if (override.isPresent()) {
+                return override.getAsInt();
+            }
+        }
+        return CultivationManager.maxSoulRingCountForLevel(level);
     }
 
     /**
@@ -71,7 +94,8 @@ public final class SoulRingAbsorption {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        if (data.getSoulRingCount() >= CultivationManager.maxSoulRingCountForLevel(data.getLevel())) {
+        final SoulSlot slot = resolveSlotForNewRing(data);
+        if (slot == null) {
             return Result.LEVEL_LIMIT;
         }
 
@@ -89,7 +113,7 @@ public final class SoulRingAbsorption {
             return Result.OVERREACH_FAILED;
         }
 
-        grant(player, data, stack, tag);
+        grant(player, data, stack, tag, slot);
         return Result.ABSORBED;
     }
 
@@ -110,9 +134,9 @@ public final class SoulRingAbsorption {
     }
 
     private static void grant(final Player player, final CultivationData data, final ItemStack stack,
-                              final CompoundTag tag) {
+                              final CompoundTag tag, final SoulSlot slot) {
         final AbsorbedRing ring = new AbsorbedRing(
-                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag));
+                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag), slot);
         data.addRing(ring);
         Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1),
             ring.bonus().scaled(AffinitySystem.ringMultiplier(player, tag)));

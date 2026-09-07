@@ -29,6 +29,9 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.AmethystClusterBlock;
@@ -104,8 +107,12 @@ public class SoulLand {
     public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> CLEAR_SKY_HAMMER = ITEMS.register("clear_sky_hammer", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.registerSimpleItem("nine_heart_begonia");
-    public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.registerSimpleItem("seven_treasure_glazed_tile_pagoda");
+    public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.register("nine_heart_begonia", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.register("seven_treasure_glazed_tile_pagoda", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> ANGEL_GOD_SWORD = ITEMS.register("angel_god_sword", () -> new SwordItem(Tiers.DIAMOND, new Item.Properties()));
+    public static final DeferredItem<Item> ASURA_SWORD = ITEMS.register("asura_sword", () -> new SwordItem(Tiers.DIAMOND, new Item.Properties()));
+    public static final DeferredItem<Item> RAKSHASA_DAGGER = ITEMS.register("rakshasa_dagger", () -> new SwordItem(Tiers.IRON, new Item.Properties()));
+    public static final DeferredItem<Item> SEA_GOD_TRIDENT = ITEMS.register("sea_god_trident", () -> new TridentItem(new Item.Properties()));
     public static final DeferredItem<Item> PILL_FURNACE = registerPillFurnace("pill_furnace", PillFurnaceItem.Tier.REGULAR);
     public static final DeferredItem<Item> ENCHANTED_PILL_FURNACE = registerPillFurnace("enchanted_pill_furnace", PillFurnaceItem.Tier.ENCHANTED);
     public static final DeferredItem<Item> NETHER_PILL_FURNACE = registerPillFurnace("nether_pill_furnace", PillFurnaceItem.Tier.NETHER);
@@ -249,6 +256,12 @@ public class SoulLand {
             event.accept(QI_GATHERING_PILL_TIER_3);
             event.accept(QI_GATHERING_PILL_TIER_4);
             event.accept(QI_GATHERING_PILL_TIER_5);
+        }
+        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+            event.accept(ANGEL_GOD_SWORD);
+            event.accept(ASURA_SWORD);
+            event.accept(RAKSHASA_DAGGER);
+            event.accept(SEA_GOD_TRIDENT);
         }
     }
 

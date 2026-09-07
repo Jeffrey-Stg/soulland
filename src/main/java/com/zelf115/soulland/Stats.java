@@ -106,7 +106,7 @@ public class Stats {
             "spirit",
             () -> new RangedAttribute(
                     String.format("attribute.%s.spirit",SoulLand.MODID), // Translation key
-                    0.0,                          // Default value
+                    100.0,                          // Default value
                     0.0,                          // Minimum value
                     Integer.MAX_VALUE             // Maximum value
             ).setSyncable(true)                   // Sync to client if needed

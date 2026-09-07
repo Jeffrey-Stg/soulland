@@ -22,6 +22,7 @@ public final class CultivationKeyMappings {
     public static final KeyMapping USE_MARTIAL_SOUL = new KeyMapping("key.soulland.use_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY);
     public static final KeyMapping CAST_MARTIAL_SOUL = new KeyMapping("key.soulland.cast_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY);
     public static final KeyMapping OPEN_ALCHEMY_MENU = new KeyMapping("key.soulland.open_alchemy_menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, CATEGORY);
+    public static final KeyMapping OPEN_MARTIAL_SOUL_MENU = new KeyMapping("key.soulland.open_martial_soul_menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, CATEGORY);
 
     private CultivationKeyMappings() {
     }
@@ -37,5 +38,6 @@ public final class CultivationKeyMappings {
         event.register(USE_MARTIAL_SOUL);
         event.register(CAST_MARTIAL_SOUL);
         event.register(OPEN_ALCHEMY_MENU);
+        event.register(OPEN_MARTIAL_SOUL_MENU);
     }
 }

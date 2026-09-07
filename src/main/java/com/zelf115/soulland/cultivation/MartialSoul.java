@@ -60,6 +60,15 @@ public enum MartialSoul {
         };
     }
 
+    /** Seven/Nine Treasure Glazed Tile Pagoda cap their own ring track below the normal level formula. */
+    public java.util.OptionalInt ringCapOverride() {
+        return switch (this) {
+            case SEVEN_TREASURE_GLAZED_TILE_PAGODA -> java.util.OptionalInt.of(7);
+            case NINE_TREASURE_GLAZED_TILE_PAGODA -> java.util.OptionalInt.of(9);
+            default -> java.util.OptionalInt.empty();
+        };
+    }
+
     MartialSoul(final Category category, final String displayName,
                 final Map<Affinity, Double> affinityMultipliers) {
         this.category = category;

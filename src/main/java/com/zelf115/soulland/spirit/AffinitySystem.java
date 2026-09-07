@@ -120,10 +120,69 @@ public final class AffinitySystem {
             return;
         }
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (data.getMartialSoul() != null) {
+            return;
+        }
         data.setMartialSoul(martialSoul);
+        recomputeAffinities(data);
+        data.setInnateStat(1 + player.getRandom().nextInt(CultivationData.MAX_INNATE_STAT));
+        rollTwinSoulChance(player, data);
+    }
+
+    /** Applies the twin-soul bonus pick once a chance roll has flagged one as pending. */
+    public static void chooseSecondMartialSoul(final Player player, final MartialSoul martialSoul) {
+        if (player.level().isClientSide() || martialSoul == null || martialSoul.isEvolution()) {
+            return;
+        }
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (!data.isSecondMartialSoulPending() || data.getSecondaryMartialSoul() != null) {
+            return;
+        }
+        data.setSecondaryMartialSoul(martialSoul);
+        recomputeAffinities(data);
+        data.setSecondMartialSoulPending(false);
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "soulland.cultivation.martial_soul.second_chosen", martialSoul.displayName()));
+    }
+
+    /**
+     * Rolls the twin-soul chance. Called once right after the first pick, and again after each of
+     * the first two successful breakthroughs (see {@link com.zelf115.soulland.cultivation.BreakthroughManager}).
+     */
+    public static void rollTwinSoulChance(final Player player, final CultivationData data) {
+        if (data.getSecondaryMartialSoul() != null || data.isSecondMartialSoulPending()) {
+            return;
+        }
+        final int chancePercent = com.zelf115.soulland.cultivation.CultivationManager.twinMartialSoulChancePercent(data.getInnateStat());
+        if (chancePercent <= 0 || player.getRandom().nextInt(100) >= chancePercent) {
+            return;
+        }
+        data.setSecondMartialSoulPending(true);
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("soulland.cultivation.martial_soul.twin_soul_available"));
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+                    serverPlayer, new com.zelf115.soulland.network.OpenMartialSoulPickerPayload());
+        }
+    }
+
+    /** Clears both souls so a future rebirth feature can send the player back through the picker. */
+    public static void clearMartialSoulForRebirth(final CultivationData data) {
+        data.setMartialSoul(null);
+        data.setSecondaryMartialSoul(null);
+        data.setSecondMartialSoulPending(false);
         data.clearAffinityMultipliers();
-        martialSoul.affinityMultipliers().forEach((affinity, multiplier) ->
-                data.setAffinityMultiplier(affinity, multiplier));
-        data.setInnateStat(1 + player.getRandom().nextInt(20));
+    }
+
+    /** Recomputes the affinity map from scratch: both souls' multipliers stack (multiply) together. */
+    public static void recomputeAffinities(final CultivationData data) {
+        data.clearAffinityMultipliers();
+        stackSoulAffinities(data, data.getMartialSoul());
+        stackSoulAffinities(data, data.getSecondaryMartialSoul());
+    }
+
+    private static void stackSoulAffinities(final CultivationData data, final MartialSoul soul) {
+        if (soul == null) return;
+        soul.affinityMultipliers().forEach((affinity, multiplier) ->
+                data.setAffinityMultiplier(affinity, data.getAffinityMultiplier(affinity) * multiplier));
     }
 }

@@ -8,6 +8,7 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
 import com.zelf115.soulland.cultivation.MartialSoulEvolution;
+import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.HudSyncPayload;
 import com.zelf115.soulland.qi.QiManager;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -68,7 +70,7 @@ public class CultivationEvents {
     }
 
     private static void syncHud(final ServerPlayer player, final CultivationData data) {
-        final List<AbsorbedRing> rings = data.getAbsorbedRings();
+        final List<AbsorbedRing> rings = visibleRings(data);
         final AbsorbedRing currentRing = rings.isEmpty() ? null : rings.get(rings.size() - 1);
         final List<Integer> ringTiers = rings.stream().map(AbsorbedRing::tier).toList();
         final HudSyncPayload.Gauge xp = new HudSyncPayload.Gauge(data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()));
@@ -77,6 +79,20 @@ public class CultivationEvents {
                 currentRing == null ? "" : currentRing.sourceName(), currentRing == null ? 0 : currentRing.tier());
         PacketDistributor.sendToPlayer(player, new HudSyncPayload(
                 data.getLevel(), xp, data.isInBottleneck(), spiritEnergy, getRegionQi(player), soulBeast, ringTiers));
+    }
+
+    /** The rings the HUD shows, per the player's {@link com.zelf115.soulland.cultivation.RingDisplayMode} choice. */
+    private static List<AbsorbedRing> visibleRings(final CultivationData data) {
+        return switch (data.getRingDisplayMode()) {
+            case NONE -> List.of();
+            case PRIMARY -> ringsOfSlot(data, com.zelf115.soulland.cultivation.SoulSlot.PRIMARY);
+            case SECONDARY -> ringsOfSlot(data, com.zelf115.soulland.cultivation.SoulSlot.SECONDARY);
+            case ALL -> data.getAbsorbedRings();
+        };
+    }
+
+    private static List<AbsorbedRing> ringsOfSlot(final CultivationData data, final com.zelf115.soulland.cultivation.SoulSlot slot) {
+        return data.getAbsorbedRings().stream().filter(ring -> ring.slot() == slot).toList();
     }
 
     /**
@@ -102,6 +118,19 @@ public class CultivationEvents {
     }
 
     /**
+     * A martial soul's tool isn't loot: dying deactivates the ability instead of dropping it.
+     */
+    @SubscribeEvent
+    public static void onLivingDrops(final LivingDropsEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (!data.isMartialSoulActive()) return;
+
+        event.getDrops().removeIf(itemEntity -> itemEntity.getItem().getItem() instanceof MartialSoulSwordItem);
+        MartialSoulAbility.forceDeactivate(player, data);
+    }
+
+    /**
      * Re-applies flight abilities when a player logs in.
      */
     @SubscribeEvent
@@ -111,6 +140,11 @@ public class CultivationEvents {
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
         Stats.syncDerivedPlayerStats(player, data);
+
+        if (!data.isSpiritEnergySeeded()) {
+            data.setSpiritEnergy(Stats.getMaxSpiritEnergy(player));
+            data.markSpiritEnergySeeded();
+        }
     }
 
     /**

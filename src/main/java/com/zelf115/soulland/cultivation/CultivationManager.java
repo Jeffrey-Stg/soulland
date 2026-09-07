@@ -66,6 +66,8 @@ public class CultivationManager {
     /** Overreaching is never certain in either direction, however many rebirths back it. */
     private static final double OVERREACH_MIN_CHANCE = 0.05;
     private static final double OVERREACH_MAX_CHANCE = 0.95;
+    private static final int TWIN_SOUL_BASE_CHANCE_PERCENT = 20;
+    private static final int TWIN_SOUL_CHANCE_PER_INNATE_POINT = 2;
     /** Percent of the next level a kill awards per beast tier, before the tier ratio. */
     private static final double KILL_XP_PERCENT_PER_TIER = 5.0;
     private static final double PERCENT = 100.0;
@@ -183,6 +185,20 @@ public class CultivationManager {
                 - tiersAboveLimit * OVERREACH_PENALTY_PER_TIER
                 + rebirthCount * OVERREACH_REBIRTH_BONUS;
         return Math.max(OVERREACH_MIN_CHANCE, Math.min(OVERREACH_MAX_CHANCE, chance));
+    }
+
+    /**
+     * The odds (0-100) of rolling a second martial soul, checked at the first pick and after each
+     * of the first two breakthroughs. Only innate stats of 10 or higher get a chance at all.
+     *
+     * <p>Formula: {@code 20% + 2% per innate stat point above 10}.
+     */
+    public static int twinMartialSoulChancePercent(final int innateStat) {
+        if (innateStat < CultivationData.NEUTRAL_INNATE_STAT) {
+            return 0;
+        }
+        final int aboveNeutral = innateStat - CultivationData.NEUTRAL_INNATE_STAT;
+        return Math.min(100, TWIN_SOUL_BASE_CHANCE_PERCENT + TWIN_SOUL_CHANCE_PER_INNATE_POINT * aboveNeutral);
     }
 
     // ---- XP Multipliers ----

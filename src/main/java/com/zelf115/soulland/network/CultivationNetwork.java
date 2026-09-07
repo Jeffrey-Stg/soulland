@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -35,7 +36,9 @@ public final class CultivationNetwork {
                 .playToServer(CultivationActionPayload.TYPE, CultivationActionPayload.STREAM_CODEC, CultivationNetwork::handleAction)
                 .playToServer(OverreachConfirmPayload.TYPE, OverreachConfirmPayload.STREAM_CODEC, CultivationNetwork::handleOverreachConfirm)
                 .playToClient(OverreachPromptPayload.TYPE, OverreachPromptPayload.STREAM_CODEC, CultivationNetwork::handleOverreachPrompt)
-                .playToClient(HudSyncPayload.TYPE, HudSyncPayload.STREAM_CODEC, CultivationNetwork::handleHudSync);
+                .playToClient(HudSyncPayload.TYPE, HudSyncPayload.STREAM_CODEC, CultivationNetwork::handleHudSync)
+                .playToServer(ChooseMartialSoulPayload.TYPE, ChooseMartialSoulPayload.STREAM_CODEC, CultivationNetwork::handleChooseMartialSoul)
+                .playToClient(OpenMartialSoulPickerPayload.TYPE, OpenMartialSoulPickerPayload.STREAM_CODEC, CultivationNetwork::handleOpenMartialSoulPicker);
     }
 
     private static void handleHudSync(final HudSyncPayload payload, final IPayloadContext context) {
@@ -46,6 +49,39 @@ public final class CultivationNetwork {
     private static void handleOverreachPrompt(final OverreachPromptPayload payload, final IPayloadContext context) {
         // Resolved inside the lambda so the dedicated server never loads the client screen class.
         context.enqueueWork(() -> OverreachConfirmScreen.open(payload));
+    }
+
+    private static void handleOpenMartialSoulPicker(final OpenMartialSoulPickerPayload payload, final IPayloadContext context) {
+        // Resolved inside the lambda so the dedicated server never loads the client screen class.
+        context.enqueueWork(com.zelf115.soulland.client.MartialSoulSelectScreen::open);
+    }
+
+    private static void openMartialSoulMenu(final ServerPlayer player) {
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (data.getMartialSoul() != null && !data.isSecondMartialSoulPending()) {
+            player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.already_chosen"));
+            return;
+        }
+        PacketDistributor.sendToPlayer(player, new OpenMartialSoulPickerPayload());
+    }
+
+    private static void handleChooseMartialSoul(final ChooseMartialSoulPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            final MartialSoul[] souls = MartialSoul.values();
+            if (payload.martialSoulOrdinal() < 0 || payload.martialSoulOrdinal() >= souls.length) {
+                return;
+            }
+            final MartialSoul chosen = souls[payload.martialSoulOrdinal()];
+            final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+            if (data.getMartialSoul() == null) {
+                com.zelf115.soulland.spirit.AffinitySystem.chooseMartialSoul(player, chosen);
+            } else if (data.isSecondMartialSoulPending()) {
+                com.zelf115.soulland.spirit.AffinitySystem.chooseSecondMartialSoul(player, chosen);
+            }
+        });
     }
 
     private static void handleAction(final CultivationActionPayload payload, final IPayloadContext context) {
@@ -65,6 +101,7 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.USE_MARTIAL_SOUL -> MartialSoulAbility.toggle(player, data);
                 case CultivationActionPayload.CAST_MARTIAL_SOUL -> MartialSoulAbility.cast(player, data);
                 case CultivationActionPayload.OPEN_ALCHEMY_MENU -> openAlchemyMenu(player);
+                case CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU -> openMartialSoulMenu(player);
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });
@@ -112,9 +149,7 @@ public final class CultivationNetwork {
     }
 
     private static void cycleRingDisplay(final ServerPlayer player, final CultivationData data) {
-        // The "all rings" mode belongs to players with a second martial soul, which isn't
-        // implemented yet; until then it stays out of the rotation.
-        final RingDisplayMode next = data.getRingDisplayMode().next(false);
+        final RingDisplayMode next = data.getRingDisplayMode().next(data.getSecondaryMartialSoul() != null);
         data.setRingDisplayMode(next);
         player.sendSystemMessage(Component.translatable("soulland.soul_ring.display.set",
                 Component.translatable(next.translationKey())));
