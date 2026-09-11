@@ -1,7 +1,4 @@
 {
-  "itemGroup.soulland": "Example Mod Tab",
-  "block.soulland.example_block": "Example Block",
-  "item.soulland.example_item": "Example Item",
   "soulland.configuration.title": "SoulLand Configs",
   "soulland.configuration.section.soulland.common.toml": "SoulLand Configs",
   "soulland.configuration.section.soulland.common.toml.title": "SoulLand Configs",
@@ -163,6 +160,8 @@
   "block.soulland.ice_crystal_small_bud": "Small Ice Crystal Bud",
   "block.soulland.ice_crystal_medium_bud": "Medium Ice Crystal Bud",
   "block.soulland.ice_crystal_large_bud": "Large Ice Crystal Bud",
+  "item.soulland.soul_ring": "Soul Ring",
+  "item.soulland.spirit_bone": "Spirit Bone",
   "item.soulland.fire_crystal_shard": "Fire Crystal Shard",
   "item.soulland.ice_crystal_shard": "Ice Crystal Shard",
   "item.soulland.red_water_bucket": "Fire Water Bucket",

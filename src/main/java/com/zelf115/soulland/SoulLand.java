@@ -63,8 +63,6 @@ public class SoulLand {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, MODID);
 
-    public static final DeferredBlock<Block> EXAMPLE_BLOCK = BLOCKS.registerSimpleBlock("example_block", BlockBehaviour.Properties.of().mapColor(MapColor.STONE));
-    public static final DeferredItem<BlockItem> EXAMPLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", EXAMPLE_BLOCK);
     public static final DeferredBlock<Block> FIRE_CRYSTAL = BLOCKS.registerSimpleBlock("fire_crystal",
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F).sound(SoundType.AMETHYST));
         public static final DeferredItem<BlockItem> FIRE_CRYSTAL_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal", FIRE_CRYSTAL);
@@ -206,7 +204,6 @@ public class SoulLand {
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(EXAMPLE_BLOCK_ITEM);
             event.accept(FIRE_CRYSTAL_ITEM);
             event.accept(ICE_CRYSTAL_ITEM);
             event.accept(FIRE_CRYSTAL_CLUSTER_ITEM);
