@@ -74,6 +74,10 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private long lastSpiritTick = 0L;
     private boolean martialSoulActive = false;
     private long martialSoulBuffUntil = 0L;
+    // Which of the two souls the activation key summons, and whose ring track the skills come from
+    private SoulSlot activeSoulSlot = SoulSlot.PRIMARY;
+    // Index of the ring, inside the active soul's own track, whose skill the cast key uses
+    private int selectedRingIndex = 0;
 
     // ---- Getters ----
 
@@ -107,6 +111,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setMartialSoulActive(final boolean active) { martialSoulActive = active; }
     public long getMartialSoulBuffUntil() { return martialSoulBuffUntil; }
     public void setMartialSoulBuffUntil(final long tick) { martialSoulBuffUntil = tick; }
+    public SoulSlot getActiveSoulSlot() { return activeSoulSlot; }
+    public int getSelectedRingIndex() { return selectedRingIndex; }
 
     // ---- Setters ----
 
@@ -132,6 +138,9 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         affinityMultipliers.put(affinity, Math.max(0.0, multiplier));
     }
 
+    public void setActiveSoulSlot(final SoulSlot slot) { this.activeSoulSlot = slot == null ? SoulSlot.PRIMARY : slot; }
+    public void setSelectedRingIndex(final int index) { this.selectedRingIndex = Math.max(0, index); }
+
     public void setMartialSoul(final MartialSoul martialSoul) { this.martialSoul = martialSoul; }
     public void setSecondaryMartialSoul(final MartialSoul soul) { this.secondaryMartialSoul = soul; }
     public void setSecondMartialSoulPending(final boolean pending) { this.secondMartialSoulPending = pending; }
@@ -149,6 +158,21 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
 
     // ---- Convenience ----
 
+    /** The soul held in the given slot, or null when that slot is empty. */
+    public MartialSoul getMartialSoul(final SoulSlot slot) {
+        return slot == SoulSlot.SECONDARY ? secondaryMartialSoul : martialSoul;
+    }
+
+    /** The soul the activation and cast keys act on. */
+    public MartialSoul getActiveMartialSoul() {
+        return getMartialSoul(activeSoulSlot);
+    }
+
+    /** The rings of one soul's own track, in absorption order. */
+    public List<AbsorbedRing> getRings(final SoulSlot slot) {
+        return absorbedRings.stream().filter(ring -> ring.slot() == slot).toList();
+    }
+
     /** Player tier is soul-ring count + 1, minimum 1. */
     public int getPlayerTier() { return Math.max(1, getSoulRingCount() + 1); }
 
@@ -161,6 +185,10 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void addXp(double amount) { this.xp += amount; }
 
     public void addRing(final AbsorbedRing ring) { absorbedRings.add(ring); }
+
+    public void clearAbsorbedRings() { absorbedRings.clear(); }
+
+    public void clearSpiritBones() { spiritBones.clear(); }
 
     public AbsorbedBone putBone(final AbsorbedBone bone) {
         return spiritBones.put(AbsorbedBone.slotKey(bone.slot()), bone);
@@ -211,6 +239,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putLong("lastSpiritTick", lastSpiritTick);
         tag.putBoolean("martialSoulActive", martialSoulActive);
         tag.putLong("martialSoulBuffUntil", martialSoulBuffUntil);
+        tag.putString("activeSoulSlot", activeSoulSlot.name());
+        tag.putInt("selectedRingIndex", selectedRingIndex);
         return tag;
     }
 
@@ -255,6 +285,16 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         lastSpiritTick = tag.getLong("lastSpiritTick");
         martialSoulActive = tag.getBoolean("martialSoulActive");
         martialSoulBuffUntil = tag.getLong("martialSoulBuffUntil");
+        activeSoulSlot = readSoulSlot(tag.getString("activeSoulSlot"));
+        selectedRingIndex = Math.max(0, tag.getInt("selectedRingIndex"));
+    }
+
+    private static SoulSlot readSoulSlot(final String name) {
+        try {
+            return SoulSlot.valueOf(name);
+        } catch (IllegalArgumentException ignored) {
+            return SoulSlot.PRIMARY;
+        }
     }
 
     private ListTag writeRings() {

@@ -7,7 +7,6 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
-import com.zelf115.soulland.cultivation.MartialSoulEvolution;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.HudSyncPayload;
 import com.zelf115.soulland.qi.QiManager;
@@ -53,8 +52,6 @@ public class CultivationEvents {
         Stats.syncDerivedPlayerStats(player, data);
         regenerateSpiritEnergy(player, data);
         MartialSoulAbility.tick(player, data, gameTick);
-        MartialSoulEvolution.tryEvolve(player, data);
-        MartialSoulEvolution.tryEvolvePolycoria(player, data);
 
         final int level = data.getLevel();
         CultivationManager.applyFlightAbilities(player, level);

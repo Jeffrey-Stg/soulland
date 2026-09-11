@@ -102,6 +102,8 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.CAST_MARTIAL_SOUL -> MartialSoulAbility.cast(player, data);
                 case CultivationActionPayload.OPEN_ALCHEMY_MENU -> openAlchemyMenu(player);
                 case CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU -> openMartialSoulMenu(player);
+                case CultivationActionPayload.SWITCH_MARTIAL_SOUL -> MartialSoulAbility.switchActiveSoul(player, data);
+                case CultivationActionPayload.SELECT_NEXT_RING -> MartialSoulAbility.selectNextRing(player, data);
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });

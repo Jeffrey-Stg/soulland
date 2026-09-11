@@ -26,6 +26,8 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.CAST_MARTIAL_SOUL, CultivationActionPayload.CAST_MARTIAL_SOUL);
         sendOnPress(CultivationKeyMappings.OPEN_ALCHEMY_MENU, CultivationActionPayload.OPEN_ALCHEMY_MENU);
         sendOnPress(CultivationKeyMappings.OPEN_MARTIAL_SOUL_MENU, CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU);
+        sendOnPress(CultivationKeyMappings.SWITCH_MARTIAL_SOUL, CultivationActionPayload.SWITCH_MARTIAL_SOUL);
+        sendOnPress(CultivationKeyMappings.SELECT_NEXT_RING, CultivationActionPayload.SELECT_NEXT_RING);
     }
 
     private static void sendOnPress(final KeyMapping mapping, final int action) {

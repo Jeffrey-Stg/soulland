@@ -14,7 +14,7 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
 
-public final class MartialSoulSwordItem extends SwordItem {
+public class MartialSoulSwordItem extends SwordItem {
     private static final double BONUS_DAMAGE_PERCENT_OF_STAT = 0.10;
     private static final double PERCENT = 100.0;
     private static final float BASE_ATTACK_DAMAGE_BONUS = 3.0F;

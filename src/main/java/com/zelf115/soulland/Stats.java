@@ -248,6 +248,18 @@ public class Stats {
         syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
     }
 
+    /** Raises a single attribute by a percentage, under an id the caller can take back later. */
+    public static void applyTemporaryPercentBonus(final Player player, final String id,
+                                                  final Holder<Attribute> attribute, final double percent) {
+        final AttributeInstance instance = player.getAttribute(attribute);
+        if (instance != null) {
+            instance.addOrReplacePermanentModifier(new AttributeModifier(
+                    ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id), percent,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
+        syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
+    }
+
     public static void applyTemporaryStatPercentBonus(final Player player, final String id, final double percent) {
         final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
         for (final Holder<Attribute> attribute : CULTIVATION_STATS) {
@@ -261,10 +273,14 @@ public class Stats {
     }
 
     public static void removeTemporaryBonus(final Player player, final String id) {
-        final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
+        removeBonus(player, ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id));
+    }
+
+    /** Takes back every modifier registered under the given id, whatever attributes it touched. */
+    public static void removeBonus(final Player player, final ResourceLocation id) {
         for (final Holder<Attribute> attribute : ALL) {
             final AttributeInstance instance = player.getAttribute(attribute);
-            if (instance != null) instance.removeModifier(modifierId);
+            if (instance != null) instance.removeModifier(id);
         }
         syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
     }

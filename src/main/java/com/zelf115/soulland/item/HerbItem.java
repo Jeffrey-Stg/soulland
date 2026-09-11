@@ -97,7 +97,7 @@ public final class HerbItem extends Item {
             case CULTIVATION_LEVEL_HALF -> grantLevelFraction(player, data, 0.5);
             case SPIRIT_FIFTY -> {
                 Stats.addSpirit(player, 50.0);
-                MartialSoulEvolution.evolveFromHerb(player, data, true);
+                MartialSoulEvolution.evolveFromFullMoonDew(player, data);
             }
             case SPIRIT_HUNDRED -> Stats.addSpirit(player, 100.0);
             case COMMON_SPIRIT, CULTIVATION_SPEED_TWO, ICE_CULTIVATION_SPEED_TWO, FIRE_CULTIVATION_SPEED_TWO ->
@@ -123,7 +123,7 @@ public final class HerbItem extends Item {
                 data.setInnateStat(data.getInnateStat() + 1);
             }
             case ICE_SPIRIT_TEN, FIRE_SPIRIT_TEN -> Stats.addSpirit(player, 10.0);
-            case EVOLVE_PAGODA -> MartialSoulEvolution.evolveFromHerb(player, data, false);
+            case EVOLVE_PAGODA -> MartialSoulEvolution.evolveFromSilkTulip(player, data);
         }
         Stats.syncDerivedPlayerStats(player, data);
     }

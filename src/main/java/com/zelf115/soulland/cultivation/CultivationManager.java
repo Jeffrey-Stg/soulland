@@ -282,6 +282,7 @@ public class CultivationManager {
         applyRegularLevelStats(player, newLevel);
         Stats.syncDerivedPlayerStats(player, data);
         applyFlightAbilities(player, newLevel);
+        MartialSoulEvolution.tryEvolve(player, data);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.level_up", newLevel));
     }
 

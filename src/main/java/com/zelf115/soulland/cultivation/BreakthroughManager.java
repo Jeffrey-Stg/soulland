@@ -203,6 +203,7 @@ public class BreakthroughManager {
         }
         CultivationManager.applyBreakthroughStats(player, newLevel);
         CultivationManager.applyFlightAbilities(player, newLevel);
+        MartialSoulEvolution.tryEvolve(player, data);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.breakthrough.success", newLevel));
         CultivationManager.grantXp(player, data, 0.0);
     }

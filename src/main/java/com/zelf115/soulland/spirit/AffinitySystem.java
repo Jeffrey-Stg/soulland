@@ -138,6 +138,11 @@ public final class AffinitySystem {
         if (!data.isSecondMartialSoulPending() || data.getSecondaryMartialSoul() != null) {
             return;
         }
+        if (martialSoul == data.getMartialSoul()) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                    "soulland.cultivation.martial_soul.second_must_differ"));
+            return;
+        }
         data.setSecondaryMartialSoul(martialSoul);
         recomputeAffinities(data);
         data.setSecondMartialSoulPending(false);
@@ -153,7 +158,7 @@ public final class AffinitySystem {
         if (data.getSecondaryMartialSoul() != null || data.isSecondMartialSoulPending()) {
             return;
         }
-        final int chancePercent = com.zelf115.soulland.cultivation.CultivationManager.twinMartialSoulChancePercent(data.getInnateStat());
+        final int chancePercent = com.zelf115.soulland.cultivation.CultivationManager.twinMartialSoulChancePercent(data.getEffectiveInnateStat());
         if (chancePercent <= 0 || player.getRandom().nextInt(100) >= chancePercent) {
             return;
         }

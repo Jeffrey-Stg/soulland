@@ -2,28 +2,24 @@ package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
-import java.util.Comparator;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+/** Summons, puts away and switches the martial soul the player currently has selected. */
 public final class MartialSoulAbility {
     private static final int TICKS_PER_SECOND = 20;
-    private static final int TICKS_PER_MINUTE = 1200;
     private static final double ENERGY_COST_PER_SECOND = 0.5;
-    private static final String TEMPORARY_BONUS_ID = "soulland_martial_soul_buff";
+    private static final String ACTIVATION_BONUS_ID = "soulland_martial_soul_activation";
     private static final double NON_TOOL_ACTIVATION_BONUS_PERCENT = 0.10;
-    private static final double NINE_HEART_BEGONIA_HEAL_PERCENT_PER_TEN_LEVELS = 0.10;
-    private static final double PAGODA_BUFF_PERCENT_PER_TEN_LEVELS = 0.02;
-    private static final int PAGODA_BUFF_DURATION_TICKS = 5 * TICKS_PER_MINUTE;
-    private static final double CAST_TARGET_SEARCH_RADIUS = 15.0;
 
     private MartialSoulAbility() {
     }
 
     public static void toggle(final Player player, final CultivationData data) {
-        if (data.getMartialSoul() == null) return;
+        if (data.getActiveMartialSoul() == null) return;
         if (data.isMartialSoulActive()) {
             deactivate(player, data);
             return;
@@ -38,28 +34,39 @@ public final class MartialSoulAbility {
         }
     }
 
-    private static void deactivate(final Player player, final CultivationData data) {
-        if (hasNonToolSoul(data)) {
-            Stats.removeTemporaryBonus(player, TEMPORARY_BONUS_ID);
+    /** Moves the keys over to the player's other martial soul, putting the current one away first. */
+    public static void switchActiveSoul(final Player player, final CultivationData data) {
+        if (data.getSecondaryMartialSoul() == null) {
+            player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.no_second_soul"));
+            return;
         }
-        removeToolItem(player, data.getMartialSoul());
-        removeToolItem(player, data.getSecondaryMartialSoul());
+
+        forceDeactivate(player, data);
+        final SoulSlot next = data.getActiveSoulSlot() == SoulSlot.PRIMARY ? SoulSlot.SECONDARY : SoulSlot.PRIMARY;
+        data.setActiveSoulSlot(next);
+        data.setSelectedRingIndex(0);
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.switched",
+                data.getActiveMartialSoul().displayName()));
+    }
+
+    private static void deactivate(final Player player, final CultivationData data) {
+        final MartialSoul soul = data.getActiveMartialSoul();
+        if (isNonToolCategory(soul)) {
+            Stats.removeTemporaryBonus(player, ACTIVATION_BONUS_ID);
+        }
+        removeToolItem(player, soul);
         data.setMartialSoulActive(false);
     }
 
     private static void activate(final Player player, final CultivationData data) {
         if (data.getSpiritEnergy() < ENERGY_COST_PER_SECOND) return;
 
+        final MartialSoul soul = data.getActiveMartialSoul();
         data.setMartialSoulActive(true);
-        grantToolItem(player, data.getMartialSoul());
-        grantToolItem(player, data.getSecondaryMartialSoul());
-        if (hasNonToolSoul(data)) {
-            Stats.applyTemporaryStatPercentBonus(player, TEMPORARY_BONUS_ID, NON_TOOL_ACTIVATION_BONUS_PERCENT);
+        grantToolItem(player, soul);
+        if (isNonToolCategory(soul)) {
+            Stats.applyTemporaryStatPercentBonus(player, ACTIVATION_BONUS_ID, NON_TOOL_ACTIVATION_BONUS_PERCENT);
         }
-    }
-
-    private static boolean hasNonToolSoul(final CultivationData data) {
-        return isNonToolCategory(data.getMartialSoul()) || isNonToolCategory(data.getSecondaryMartialSoul());
     }
 
     private static boolean isNonToolCategory(final MartialSoul soul) {
@@ -103,38 +110,14 @@ public final class MartialSoulAbility {
             data.setSpiritEnergy(data.getSpiritEnergy() - ENERGY_COST_PER_SECOND);
             if (data.getSpiritEnergy() <= 0.0) deactivate(player, data);
         }
-        if (data.getMartialSoulBuffUntil() > 0 && gameTick >= data.getMartialSoulBuffUntil()) {
-            Stats.removeTemporaryBonus(player, TEMPORARY_BONUS_ID);
-            data.setMartialSoulBuffUntil(0L);
-        }
+        SoulRingSkills.expireBuff(player, data, gameTick);
     }
 
     public static void cast(final Player player, final CultivationData data) {
-        if (!data.isMartialSoulActive()) return;
-        castSoul(player, data, data.getMartialSoul());
-        castSoul(player, data, data.getSecondaryMartialSoul());
+        SoulRingSkills.useSelectedRingSkill(player, data);
     }
 
-    private static void castSoul(final Player player, final CultivationData data, final MartialSoul soul) {
-        if (soul == null) return;
-        final int levelTens = data.getLevel() / 10;
-        if (soul == MartialSoul.NINE_HEART_BEGONIA) {
-            final Player target = nearestOtherPlayer(player);
-            final float healAmount = (float) (target.getMaxHealth() * NINE_HEART_BEGONIA_HEAL_PERCENT_PER_TEN_LEVELS * levelTens);
-            target.heal(healAmount);
-            player.heal(healAmount);
-        } else if (soul == MartialSoul.SEVEN_TREASURE_GLAZED_TILE_PAGODA) {
-            final Player target = nearestOtherPlayer(player);
-            final CultivationData targetData = target.getData(CultivationAttachment.CULTIVATION_DATA.get());
-            Stats.applyTemporaryPercentBonus(target, TEMPORARY_BONUS_ID, PAGODA_BUFF_PERCENT_PER_TEN_LEVELS * levelTens);
-            targetData.setMartialSoulBuffUntil(player.level().getGameTime() + PAGODA_BUFF_DURATION_TICKS);
-        }
-    }
-
-    private static Player nearestOtherPlayer(final Player player) {
-        return player.level().getEntitiesOfClass(Player.class,
-                player.getBoundingBox().inflate(CAST_TARGET_SEARCH_RADIUS), candidate -> candidate != player
-                    && player.hasLineOfSight(candidate)).stream()
-            .min(Comparator.comparingDouble(player::distanceToSqr)).orElse(player);
+    public static void selectNextRing(final Player player, final CultivationData data) {
+        SoulRingSkills.selectNextRing(player, data);
     }
 }

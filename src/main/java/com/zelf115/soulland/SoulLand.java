@@ -9,6 +9,7 @@ import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.item.HerbItem;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
+import com.zelf115.soulland.item.NineHeartBegoniaItem;
 import com.zelf115.soulland.item.AlchemyItem;
 import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.menu.SoulLandMenus;
@@ -105,7 +106,7 @@ public class SoulLand {
     public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> CLEAR_SKY_HAMMER = ITEMS.register("clear_sky_hammer", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.register("nine_heart_begonia", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.register("nine_heart_begonia", () -> new NineHeartBegoniaItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.register("seven_treasure_glazed_tile_pagoda", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> ANGEL_GOD_SWORD = ITEMS.register("angel_god_sword", () -> new SwordItem(Tiers.DIAMOND, new Item.Properties()));
     public static final DeferredItem<Item> ASURA_SWORD = ITEMS.register("asura_sword", () -> new SwordItem(Tiers.DIAMOND, new Item.Properties()));

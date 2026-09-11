@@ -9,6 +9,7 @@ import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.Rebirth;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
@@ -26,6 +27,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation breakthrough} — attempts whichever breakthrough the level calls for</li>
  *   <li>{@code /cultivation settitle <title>} — sets the player's title (requires level ≥ 90)</li>
  *   <li>{@code /cultivation setinnate <1-20>} — operator stand-in until martial souls roll it</li>
+ *   <li>{@code /cultivation rebirth} — restarts cultivation at level 1 and re-opens the soul picker</li>
  * </ul>
  */
 public class CultivationCommands {
@@ -45,6 +47,8 @@ public class CultivationCommands {
                 .then(Commands.literal("settitle")
                         .then(Commands.argument("title", StringArgumentType.greedyString())
                                 .executes(CultivationCommands::setTitle)))
+                .then(Commands.literal("rebirth")
+                        .executes(CultivationCommands::rebirth))
                 .then(Commands.literal("setinnate")
                         .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
                         .then(Commands.argument("value",
@@ -109,6 +113,14 @@ public class CultivationCommands {
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         return BreakthroughManager.attemptBreakthrough(player, data, player.level().getGameTime()) ? 1 : 0;
+    }
+
+    private static int rebirth(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        return Rebirth.perform(player, data) ? 1 : 0;
     }
 
     private static int setTitle(CommandContext<CommandSourceStack> ctx) {

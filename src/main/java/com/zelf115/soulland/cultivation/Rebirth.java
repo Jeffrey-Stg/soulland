@@ -1,0 +1,59 @@
+package com.zelf115.soulland.cultivation;
+
+import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.network.OpenMartialSoulPickerPayload;
+import com.zelf115.soulland.spirit.AffinitySystem;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+/**
+ * Sends a cultivator back to level one, keeping only what a rebirth is meant to carry: the count
+ * itself, which raises the innate stat and opens the level 100 gate.
+ *
+ * <p>The martial souls go with the rest, so every rebirth puts the player through the picker again.
+ */
+public final class Rebirth {
+
+    private static final int REBIRTH_LEVEL = CultivationManager.MAX_LEVEL;
+
+    private Rebirth() {
+    }
+
+    public static boolean perform(final ServerPlayer player, final CultivationData data) {
+        if (data.getLevel() < REBIRTH_LEVEL) {
+            player.sendSystemMessage(Component.translatable("soulland.cultivation.rebirth.locked", REBIRTH_LEVEL));
+            return false;
+        }
+
+        MartialSoulAbility.forceDeactivate(player, data);
+        removeRingBonuses(player, data);
+        data.clearAbsorbedRings();
+        resetProgress(data);
+        data.setRebirthCount(data.getRebirthCount() + 1);
+        AffinitySystem.clearMartialSoulForRebirth(data);
+        data.setActiveSoulSlot(SoulSlot.PRIMARY);
+        data.setSelectedRingIndex(0);
+        data.setMartialSoulCanReachLevel100(false);
+        Stats.syncDerivedPlayerStats(player, data);
+
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.rebirth.done", data.getRebirthCount()));
+        PacketDistributor.sendToPlayer(player, new OpenMartialSoulPickerPayload());
+        return true;
+    }
+
+    private static void removeRingBonuses(final ServerPlayer player, final CultivationData data) {
+        for (int index = 0; index < data.getSoulRingCount(); index++) {
+            Stats.removeBonus(player, AbsorbedRing.modifierId(index));
+        }
+    }
+
+    private static void resetProgress(final CultivationData data) {
+        data.setLevel(1);
+        data.setXp(0.0);
+        data.setInBottleneck(false);
+        data.setBreakthroughFailures(0);
+        data.setSuccessfulBreakthroughCount(0);
+        data.setBreakthroughCooldownUntil(0L);
+    }
+}
