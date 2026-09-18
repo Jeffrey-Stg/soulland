@@ -3,15 +3,20 @@ package com.zelf115.soulland.cultivation;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.network.OpenMartialSoulPickerPayload;
 import com.zelf115.soulland.spirit.AffinitySystem;
+import com.zelf115.soulland.trial.GodTrialManager;
+import com.zelf115.soulland.trial.GodTrialReward;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Sends a cultivator back to level one, keeping only what a rebirth is meant to carry: the count
- * itself, which raises the innate stat and opens the level 100 gate.
+ * itself, which raises the innate stat and opens the level 100 gate, and the god relics already won.
  *
  * <p>The martial souls go with the rest, so every rebirth puts the player through the picker again.
+ *
+ * <p>A relic stays wieldable forever once its trial is passed, but the stat rewards that trial paid
+ * out do not: a rebirth strips them along with every other stat the cultivator built up.
  */
 public final class Rebirth {
 
@@ -29,6 +34,8 @@ public final class Rebirth {
         MartialSoulAbility.forceDeactivate(player, data);
         removeRingBonuses(player, data);
         data.clearAbsorbedRings();
+        removeGodTrialBonuses(player, data);
+        GodTrialManager.clearTrial(data);
         resetProgress(data);
         data.setRebirthCount(data.getRebirthCount() + 1);
         AffinitySystem.clearMartialSoulForRebirth(data);
@@ -46,6 +53,13 @@ public final class Rebirth {
         for (int index = 0; index < data.getSoulRingCount(); index++) {
             Stats.removeBonus(player, AbsorbedRing.modifierId(index));
         }
+    }
+
+    private static void removeGodTrialBonuses(final ServerPlayer player, final CultivationData data) {
+        for (int index = 0; index < data.getGodTrialRewards().size(); index++) {
+            Stats.removeBonus(player, GodTrialReward.modifierId(index));
+        }
+        data.clearGodTrialRewards();
     }
 
     private static void resetProgress(final CultivationData data) {

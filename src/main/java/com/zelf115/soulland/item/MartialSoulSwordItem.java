@@ -6,6 +6,7 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
 import java.util.List;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.component.Unbreakable;
 
 public class MartialSoulSwordItem extends SwordItem {
     private static final double BONUS_DAMAGE_PERCENT_OF_STAT = 0.10;
@@ -21,8 +23,9 @@ public class MartialSoulSwordItem extends SwordItem {
     private static final float BASE_ATTACK_SPEED_MODIFIER = -2.4F;
 
     public MartialSoulSwordItem(final Properties properties) {
-        super(Tiers.IRON, properties.attributes(
-                SwordItem.createAttributes(Tiers.IRON, BASE_ATTACK_DAMAGE_BONUS, BASE_ATTACK_SPEED_MODIFIER)));
+        super(Tiers.IRON, properties
+                .attributes(SwordItem.createAttributes(Tiers.IRON, BASE_ATTACK_DAMAGE_BONUS, BASE_ATTACK_SPEED_MODIFIER))
+                .component(DataComponents.UNBREAKABLE, new Unbreakable(true)));
     }
 
     @Override

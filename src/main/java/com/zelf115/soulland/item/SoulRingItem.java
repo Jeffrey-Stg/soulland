@@ -50,7 +50,7 @@ public final class SoulRingItem extends Item {
         bonus.writeTo(tag);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         stack.set(DataComponents.CUSTOM_NAME, Component.literal(SpiritBeastManager.describeTier(tier) + " Soul Ring")
-                .withStyle(SpiritBeastManager.tierColor(tier)));
+                .withStyle(style -> style.withColor(SpiritBeastManager.tierTextColor(tier))));
         return stack;
     }
 

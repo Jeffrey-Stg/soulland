@@ -2,12 +2,19 @@ package com.zelf115.soulland.cultivation;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.zelf115.soulland.spirit.Affinity;
+import com.zelf115.soulland.trial.GodTrial;
+import com.zelf115.soulland.trial.GodTrialReward;
+import com.zelf115.soulland.trial.TrialTask;
+import com.zelf115.soulland.trial.TrialTasks;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 
@@ -22,8 +29,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public static final int MIN_INNATE_STAT = 1;
     public static final int MAX_INNATE_STAT = 20;
     public static final int NEUTRAL_INNATE_STAT = 10;
-    private static final int MIN_MOVEMENT_USAGE_PERCENT = 30;
-    private static final int MAX_MOVEMENT_USAGE_PERCENT = 200;
+    private static final int MIN_MOVEMENT_USAGE_PERCENT = 10;
+    private static final int MAX_MOVEMENT_USAGE_PERCENT = 100;
 
     // Current cultivation level (1–120)
     private int level = 1;
@@ -56,6 +63,26 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private int rebirthCount = 0;
     // Permanent flat bonus applied to all stats, accumulated across rebirths
     private double permanentBonusStats = 0.0;
+    // The god trial undertaken this rebirth; null until an altar starts one
+    private GodTrial godTrial;
+    // The five tasks rolled when the trial started, in order
+    private final List<TrialTask> godTrialTasks = new ArrayList<>();
+    // How far through those tasks the player is; reaching the task count finishes the trial
+    private int godTrialTaskIndex = 0;
+    // Progress toward the current task only
+    private int godTrialProgress = 0;
+    // Rewards earned by finishing tasks but not yet collected at the altar
+    private int godTrialPendingRewards = 0;
+    // Every reward granted so far; the index is the modifier id suffix
+    private final List<GodTrialReward> godTrialRewards = new ArrayList<>();
+    // Which gods the player has passed; this is what lets them wield a relic, and it outlives rebirth
+    private final Set<GodTrial> completedGodTrials = EnumSet.noneOf(GodTrial.class);
+    // Round reached in the tournament run of the current period; 0 when no run is open
+    private int tournamentRound = 0;
+    // Wall-clock time the current tournament run began, so the daily reset survives a server restart
+    private long tournamentRunStartedAt = 0L;
+    // Whether this period's single run is over, by victory or defeat
+    private boolean tournamentRunSpent = false;
     // Current spirit energy resource derived from spirit stat
     private double spiritEnergy = 0.0;
     // Whether the starting spirit energy pool has already been filled once, on first login
@@ -113,6 +140,16 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setMartialSoulBuffUntil(final long tick) { martialSoulBuffUntil = tick; }
     public SoulSlot getActiveSoulSlot() { return activeSoulSlot; }
     public int getSelectedRingIndex() { return selectedRingIndex; }
+    public GodTrial getGodTrial() { return godTrial; }
+    public List<TrialTask> getGodTrialTasks() { return Collections.unmodifiableList(godTrialTasks); }
+    public int getGodTrialTaskIndex() { return godTrialTaskIndex; }
+    public int getGodTrialProgress() { return godTrialProgress; }
+    public int getGodTrialPendingRewards() { return godTrialPendingRewards; }
+    public List<GodTrialReward> getGodTrialRewards() { return Collections.unmodifiableList(godTrialRewards); }
+    public Set<GodTrial> getCompletedGodTrials() { return Collections.unmodifiableSet(completedGodTrials); }
+    public int getTournamentRound() { return tournamentRound; }
+    public long getTournamentRunStartedAt() { return tournamentRunStartedAt; }
+    public boolean isTournamentRunSpent() { return tournamentRunSpent; }
 
     // ---- Setters ----
 
@@ -140,6 +177,25 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
 
     public void setActiveSoulSlot(final SoulSlot slot) { this.activeSoulSlot = slot == null ? SoulSlot.PRIMARY : slot; }
     public void setSelectedRingIndex(final int index) { this.selectedRingIndex = Math.max(0, index); }
+
+    public void setGodTrial(final GodTrial trial) { this.godTrial = trial; }
+    public void setGodTrialTaskIndex(final int index) { this.godTrialTaskIndex = Math.max(0, index); }
+    public void setGodTrialProgress(final int progress) { this.godTrialProgress = Math.max(0, progress); }
+    public void setGodTrialPendingRewards(final int count) { this.godTrialPendingRewards = Math.max(0, count); }
+    public void setTournamentRound(final int round) { this.tournamentRound = Math.max(0, round); }
+    public void setTournamentRunStartedAt(final long epochMillis) { this.tournamentRunStartedAt = epochMillis; }
+    public void setTournamentRunSpent(final boolean spent) { this.tournamentRunSpent = spent; }
+
+    public void setGodTrialTasks(final List<TrialTask> tasks) {
+        godTrialTasks.clear();
+        godTrialTasks.addAll(tasks);
+    }
+
+    public void addGodTrialReward(final GodTrialReward reward) { godTrialRewards.add(reward); }
+
+    public void clearGodTrialRewards() { godTrialRewards.clear(); }
+
+    public void addCompletedGodTrial(final GodTrial trial) { completedGodTrials.add(trial); }
 
     public void setMartialSoul(final MartialSoul martialSoul) { this.martialSoul = martialSoul; }
     public void setSecondaryMartialSoul(final MartialSoul soul) { this.secondaryMartialSoul = soul; }
@@ -171,6 +227,20 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     /** The rings of one soul's own track, in absorption order. */
     public List<AbsorbedRing> getRings(final SoulSlot slot) {
         return absorbedRings.stream().filter(ring -> ring.slot() == slot).toList();
+    }
+
+    public boolean hasStartedGodTrial() { return godTrial != null; }
+
+    public boolean isGodTrialFinished() { return godTrialTaskIndex >= TrialTasks.TASK_COUNT; }
+
+    public boolean hasRelicEntitlement(final GodTrial trial) { return completedGodTrials.contains(trial); }
+
+    /** The task the trial is waiting on, or null when no trial is running or it is already finished. */
+    public TrialTask getCurrentTrialTask() {
+        if (godTrialTaskIndex < 0 || godTrialTaskIndex >= godTrialTasks.size()) {
+            return null;
+        }
+        return godTrialTasks.get(godTrialTaskIndex);
     }
 
     /** Player tier is soul-ring count + 1, minimum 1. */
@@ -241,6 +311,18 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putLong("martialSoulBuffUntil", martialSoulBuffUntil);
         tag.putString("activeSoulSlot", activeSoulSlot.name());
         tag.putInt("selectedRingIndex", selectedRingIndex);
+        if (godTrial != null) {
+            tag.putString("godTrial", godTrial.name());
+        }
+        tag.put("godTrialTasks", writeTrialTasks());
+        tag.putInt("godTrialTaskIndex", godTrialTaskIndex);
+        tag.putInt("godTrialProgress", godTrialProgress);
+        tag.putInt("godTrialPendingRewards", godTrialPendingRewards);
+        tag.put("godTrialRewards", writeTrialRewards());
+        tag.put("godTrialsCompleted", writeCompletedTrials());
+        tag.putInt("tournamentRound", tournamentRound);
+        tag.putLong("tournamentRunStartedAt", tournamentRunStartedAt);
+        tag.putBoolean("tournamentRunSpent", tournamentRunSpent);
         return tag;
     }
 
@@ -287,6 +369,76 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         martialSoulBuffUntil = tag.getLong("martialSoulBuffUntil");
         activeSoulSlot = readSoulSlot(tag.getString("activeSoulSlot"));
         selectedRingIndex = Math.max(0, tag.getInt("selectedRingIndex"));
+        godTrial = readGodTrial(tag);
+        readTrialTasks(tag.getList("godTrialTasks", Tag.TAG_COMPOUND));
+        godTrialTaskIndex = Math.max(0, tag.getInt("godTrialTaskIndex"));
+        godTrialProgress = Math.max(0, tag.getInt("godTrialProgress"));
+        godTrialPendingRewards = Math.max(0, tag.getInt("godTrialPendingRewards"));
+        readTrialRewards(tag.getList("godTrialRewards", Tag.TAG_COMPOUND));
+        readCompletedTrials(tag.getList("godTrialsCompleted", Tag.TAG_STRING));
+        tournamentRound = Math.max(0, tag.getInt("tournamentRound"));
+        tournamentRunStartedAt = tag.getLong("tournamentRunStartedAt");
+        tournamentRunSpent = tag.getBoolean("tournamentRunSpent");
+    }
+
+    private static GodTrial readGodTrial(final CompoundTag tag) {
+        if (!tag.contains("godTrial")) {
+            return null;
+        }
+        try {
+            return GodTrial.valueOf(tag.getString("godTrial"));
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private ListTag writeTrialTasks() {
+        final ListTag list = new ListTag();
+        for (final TrialTask task : godTrialTasks) {
+            list.add(task.toNbt());
+        }
+        return list;
+    }
+
+    private ListTag writeTrialRewards() {
+        final ListTag list = new ListTag();
+        for (final GodTrialReward reward : godTrialRewards) {
+            list.add(reward.toNbt());
+        }
+        return list;
+    }
+
+    private ListTag writeCompletedTrials() {
+        final ListTag list = new ListTag();
+        for (final GodTrial trial : completedGodTrials) {
+            list.add(StringTag.valueOf(trial.name()));
+        }
+        return list;
+    }
+
+    private void readTrialTasks(final ListTag list) {
+        godTrialTasks.clear();
+        for (int index = 0; index < list.size(); index++) {
+            godTrialTasks.add(TrialTask.readFrom(list.getCompound(index)));
+        }
+    }
+
+    private void readTrialRewards(final ListTag list) {
+        godTrialRewards.clear();
+        for (int index = 0; index < list.size(); index++) {
+            godTrialRewards.add(GodTrialReward.readFrom(list.getCompound(index)));
+        }
+    }
+
+    private void readCompletedTrials(final ListTag list) {
+        completedGodTrials.clear();
+        for (int index = 0; index < list.size(); index++) {
+            try {
+                completedGodTrials.add(GodTrial.valueOf(list.getString(index)));
+            } catch (IllegalArgumentException ignored) {
+                // Ignore a god removed or renamed by another version.
+            }
+        }
     }
 
     private static SoulSlot readSoulSlot(final String name) {

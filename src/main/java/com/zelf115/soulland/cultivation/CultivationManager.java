@@ -69,7 +69,7 @@ public class CultivationManager {
     private static final int TWIN_SOUL_BASE_CHANCE_PERCENT = 20;
     private static final int TWIN_SOUL_CHANCE_PER_INNATE_POINT = 2;
     /** Percent of the next level a kill awards per beast tier, before the tier ratio. */
-    private static final double KILL_XP_PERCENT_PER_TIER = 5.0;
+    private static final double KILL_XP_PERCENT_PER_TIER = 20.0;
     private static final double PERCENT = 100.0;
 
     // ---- XP Calculations ----

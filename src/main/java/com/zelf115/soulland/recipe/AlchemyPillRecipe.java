@@ -31,6 +31,8 @@ import net.minecraft.world.level.Level;
 public record AlchemyPillRecipe(List<CostEntry> ingredients, Result result, int minLevel, int maxLevel)
         implements Recipe<AlchemyPillRecipe.Input> {
 
+    private static final int MINIMUM_COST = 1;
+
     public static final MapCodec<AlchemyPillRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             CostEntry.CODEC.codec().listOf().fieldOf("ingredients").forGetter(AlchemyPillRecipe::ingredients),
             Result.CODEC.fieldOf("result").forGetter(AlchemyPillRecipe::result),
@@ -44,10 +46,6 @@ public record AlchemyPillRecipe(List<CostEntry> ingredients, Result result, int 
             ByteBufCodecs.VAR_INT, AlchemyPillRecipe::minLevel,
             ByteBufCodecs.VAR_INT, AlchemyPillRecipe::maxLevel,
             AlchemyPillRecipe::new);
-
-    public boolean allowsLevel(final int playerLevel) {
-        return playerLevel >= minLevel && playerLevel <= maxLevel;
-    }
 
     public boolean hasIngredients(final Player player, final double costMultiplier) {
         for (final CostEntry entry : ingredients) {
@@ -64,8 +62,25 @@ public record AlchemyPillRecipe(List<CostEntry> ingredients, Result result, int 
         }
     }
 
+    /** How many of one ingredient the player is carrying, for the menu to show against its cost. */
+    public static int carriedCount(final Player player, final CostEntry entry) {
+        return countMatching(player, entry.ingredient());
+    }
+
+    /** What one ingredient actually costs at this furnace tier, for the menu to show. */
+    public static int costFor(final CostEntry entry, final double costMultiplier) {
+        return scaledCount(entry.count(), costMultiplier);
+    }
+
+    /**
+     * A discount may never round an ingredient away: a furnace that cuts costs by a fifth would
+     * otherwise ask for none of anything a recipe wants a single one of, and hand the pill over free.
+     */
     private static int scaledCount(final int baseCount, final double costMultiplier) {
-        return (int) Math.floor(baseCount * costMultiplier);
+        if (baseCount <= 0) {
+            return 0;
+        }
+        return Math.max(MINIMUM_COST, (int) Math.floor(baseCount * costMultiplier));
     }
 
     private static int countMatching(final Player player, final Ingredient ingredient) {
@@ -129,7 +144,7 @@ public record AlchemyPillRecipe(List<CostEntry> ingredients, Result result, int 
         private static final int DEFAULT_COUNT = 1;
 
         public static final MapCodec<CostEntry> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.CODEC.fieldOf("item").forGetter(CostEntry::ingredient),
+                Ingredient.CODEC.fieldOf("ingredient").forGetter(CostEntry::ingredient),
                 Codec.INT.optionalFieldOf("count", DEFAULT_COUNT).forGetter(CostEntry::count)
         ).apply(instance, CostEntry::new));
 

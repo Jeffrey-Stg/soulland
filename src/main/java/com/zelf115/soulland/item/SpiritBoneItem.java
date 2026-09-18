@@ -38,7 +38,7 @@ public final class SpiritBoneItem extends Item {
         bonus.writeTo(tag);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         stack.set(DataComponents.CUSTOM_NAME, Component.literal(SpiritBeastManager.describeTier(tier) + " " + slot)
-                .withStyle(SpiritBeastManager.tierColor(tier)));
+                .withStyle(style -> style.withColor(SpiritBeastManager.tierTextColor(tier))));
         return stack;
     }
 

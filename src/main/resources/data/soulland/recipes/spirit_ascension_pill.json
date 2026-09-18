@@ -1,9 +1,0 @@
-{
-  "type": "soulland:alchemy_pill",
-  "ingredients": [
-    {"item": "soulland:common_spirit_herb", "count": 64},
-    {"item": "soulland:ice_crystal_fruit", "count": 5},
-    {"item": "soulland:scarlet_flame_fruit", "count": 5}
-  ],
-  "result": {"id": "soulland:spirit_ascension_pill", "count": 1}
-}

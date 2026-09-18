@@ -1,7 +1,7 @@
 {
   "type": "soulland:alchemy_pill",
   "ingredients": [
-    {"item": "soulland:common_spirit_herb", "count": 64}
+    {"ingredient": {"item": "soulland:common_spirit_herb"}, "count": 64}
   ],
   "result": {"id": "soulland:mysterious_water_pill", "count": 1}
 }

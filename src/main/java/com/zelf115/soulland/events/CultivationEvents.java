@@ -7,11 +7,15 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
+import com.zelf115.soulland.item.GodRelic;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.HudSyncPayload;
 import com.zelf115.soulland.qi.QiManager;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import com.zelf115.soulland.tournament.SoulMasterEntity;
+import com.zelf115.soulland.tournament.TournamentManager;
+import com.zelf115.soulland.trial.GodTrialManager;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -100,6 +104,16 @@ public class CultivationEvents {
     public static void onLivingDeath(LivingDeathEvent event) {
         final LivingEntity victim = event.getEntity();
 
+        if (victim instanceof SoulMasterEntity opponent) {
+            recordTournamentResult(event, opponent);
+            return;
+        }
+        if (victim instanceof ServerPlayer fallenChallenger) {
+            TournamentManager.recordChallengerDefeat(fallenChallenger,
+                    fallenChallenger.getData(CultivationAttachment.CULTIVATION_DATA.get()));
+            return;
+        }
+
         // Only reward XP for registered spirit beasts.
         if (!(victim instanceof SpiritBeastEntity spiritBeast)) return;
 
@@ -112,6 +126,18 @@ public class CultivationEvents {
                 data.getLevel(), data.getPlayerTier(), SpiritBeastManager.getTier(spiritBeast));
 
         CultivationManager.grantXp(player, data, xpReward * baseXpMultiplier(player, data));
+        if (player instanceof ServerPlayer serverPlayer) {
+            GodTrialManager.recordBeastKill(serverPlayer, data, spiritBeast);
+        }
+    }
+
+    /** Only the challenger who was sent this opponent may claim the round. */
+    private static void recordTournamentResult(final LivingDeathEvent event, final SoulMasterEntity opponent) {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
+        if (!player.getUUID().equals(opponent.getChallengerId())) return;
+
+        TournamentManager.recordOpponentDefeat(player, player.getData(CultivationAttachment.CULTIVATION_DATA.get()),
+                opponent);
     }
 
     /**
@@ -162,6 +188,11 @@ public class CultivationEvents {
         float updatedAmount = event.getAmount();
 
         if (event.getSource().getEntity() instanceof Player attackingPlayer) {
+            if (GodRelic.isUnearnedRelic(attackingPlayer)) {
+                GodRelic.refuse(attackingPlayer);
+                event.setCanceled(true);
+                return;
+            }
             updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, Stats.getDamage(attackingPlayer));
         } else if (event.getSource().getEntity() instanceof SpiritBeastEntity spiritBeast) {
             SpiritBeastManager.ensureSpiritBeast(spiritBeast);

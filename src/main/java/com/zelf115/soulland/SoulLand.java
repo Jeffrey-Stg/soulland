@@ -2,6 +2,10 @@ package com.zelf115.soulland;
 
 import com.zelf115.soulland.effect.MeditationEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
+import com.zelf115.soulland.block.GodAltarBlock;
+import com.zelf115.soulland.block.TournamentRegistryBlock;
+import com.zelf115.soulland.tournament.TournamentEntities;
+import com.zelf115.soulland.trial.GodTrial;
 import com.zelf115.soulland.compat.CuriosCompat;
 import com.zelf115.soulland.events.AttributeEvents;
 import com.zelf115.soulland.fluid.SoulLandFluids;
@@ -10,6 +14,10 @@ import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.item.HerbItem;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.item.NineHeartBegoniaItem;
+import com.zelf115.soulland.item.AngelGodSwordItem;
+import com.zelf115.soulland.item.AsuraSwordItem;
+import com.zelf115.soulland.item.RakshasaDaggerItem;
+import com.zelf115.soulland.item.SeaGodTridentItem;
 import com.zelf115.soulland.item.AlchemyItem;
 import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.menu.SoulLandMenus;
@@ -64,6 +72,9 @@ public class SoulLand {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, MODID);
 
+    /** Altars are meant to stay where they are put: as tough as obsidian is quick to mine. */
+    private static final float ALTAR_STRENGTH = 25.0F;
+
     public static final DeferredBlock<Block> FIRE_CRYSTAL = BLOCKS.registerSimpleBlock("fire_crystal",
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F).sound(SoundType.AMETHYST));
         public static final DeferredItem<BlockItem> FIRE_CRYSTAL_ITEM = ITEMS.registerSimpleBlockItem("fire_crystal", FIRE_CRYSTAL);
@@ -102,16 +113,29 @@ public class SoulLand {
             public static final DeferredItem<BlockItem> ICE_CRYSTAL_LARGE_BUD_ITEM = ITEMS.registerSimpleBlockItem("ice_crystal_large_bud", ICE_CRYSTAL_LARGE_BUD);
             public static final DeferredItem<Item> FIRE_CRYSTAL_SHARD = ITEMS.registerSimpleItem("fire_crystal_shard");
             public static final DeferredItem<Item> ICE_CRYSTAL_SHARD = ITEMS.registerSimpleItem("ice_crystal_shard");
+    public static final DeferredBlock<Block> SEA_GOD_ALTAR = registerGodAltar("sea_god_altar", GodTrial.SEA_GOD);
+    public static final DeferredItem<BlockItem> SEA_GOD_ALTAR_ITEM = ITEMS.registerSimpleBlockItem("sea_god_altar", SEA_GOD_ALTAR);
+    public static final DeferredBlock<Block> ANGEL_GOD_ALTAR = registerGodAltar("angel_god_altar", GodTrial.SERAPHIM);
+    public static final DeferredItem<BlockItem> ANGEL_GOD_ALTAR_ITEM = ITEMS.registerSimpleBlockItem("angel_god_altar", ANGEL_GOD_ALTAR);
+    public static final DeferredBlock<Block> ASURA_GOD_ALTAR = registerGodAltar("asura_god_altar", GodTrial.DEATH_GOD);
+    public static final DeferredItem<BlockItem> ASURA_GOD_ALTAR_ITEM = ITEMS.registerSimpleBlockItem("asura_god_altar", ASURA_GOD_ALTAR);
+    public static final DeferredBlock<Block> RAKSHASA_GOD_ALTAR = registerGodAltar("rakshasa_god_altar", GodTrial.RAKSHASA);
+    public static final DeferredItem<BlockItem> RAKSHASA_GOD_ALTAR_ITEM = ITEMS.registerSimpleBlockItem("rakshasa_god_altar", RAKSHASA_GOD_ALTAR);
+    public static final DeferredBlock<Block> TOURNAMENT_REGISTRY = BLOCKS.register("tournament_registry",
+            () -> new TournamentRegistryBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL).strength(ALTAR_STRENGTH).sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()));
+    public static final DeferredItem<BlockItem> TOURNAMENT_REGISTRY_ITEM = ITEMS.registerSimpleBlockItem("tournament_registry", TOURNAMENT_REGISTRY);
     public static final DeferredItem<Item> SOUL_RING_ITEM = ITEMS.register("soul_ring", () -> new SoulRingItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> CLEAR_SKY_HAMMER = ITEMS.register("clear_sky_hammer", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.register("nine_heart_begonia", () -> new NineHeartBegoniaItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.register("seven_treasure_glazed_tile_pagoda", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<Item> ANGEL_GOD_SWORD = ITEMS.register("angel_god_sword", () -> new SwordItem(Tiers.DIAMOND, new Item.Properties()));
-    public static final DeferredItem<Item> ASURA_SWORD = ITEMS.register("asura_sword", () -> new SwordItem(Tiers.DIAMOND, new Item.Properties()));
-    public static final DeferredItem<Item> RAKSHASA_DAGGER = ITEMS.register("rakshasa_dagger", () -> new SwordItem(Tiers.IRON, new Item.Properties()));
-    public static final DeferredItem<Item> SEA_GOD_TRIDENT = ITEMS.register("sea_god_trident", () -> new TridentItem(new Item.Properties()));
+    public static final DeferredItem<Item> ANGEL_GOD_SWORD = ITEMS.register("angel_god_sword", AngelGodSwordItem::new);
+    public static final DeferredItem<Item> ASURA_SWORD = ITEMS.register("asura_sword", AsuraSwordItem::new);
+    public static final DeferredItem<Item> RAKSHASA_DAGGER = ITEMS.register("rakshasa_dagger", RakshasaDaggerItem::new);
+    public static final DeferredItem<Item> SEA_GOD_TRIDENT = ITEMS.register("sea_god_trident", SeaGodTridentItem::new);
     public static final DeferredItem<Item> PILL_FURNACE = registerPillFurnace("pill_furnace", PillFurnaceItem.Tier.REGULAR);
     public static final DeferredItem<Item> ENCHANTED_PILL_FURNACE = registerPillFurnace("enchanted_pill_furnace", PillFurnaceItem.Tier.ENCHANTED);
     public static final DeferredItem<Item> NETHER_PILL_FURNACE = registerPillFurnace("nether_pill_furnace", PillFurnaceItem.Tier.NETHER);
@@ -154,6 +178,12 @@ public class SoulLand {
         return ITEMS.register(name, () -> new AlchemyItem(effect, qiLevel, AlchemyItem.pillProperties()));
     }
 
+    private static DeferredBlock<Block> registerGodAltar(final String name, final GodTrial trial) {
+        return BLOCKS.register(name, () -> new GodAltarBlock(BlockBehaviour.Properties.of()
+                .mapColor(MapColor.QUARTZ).strength(ALTAR_STRENGTH).sound(SoundType.STONE)
+                .requiresCorrectToolForDrops(), trial));
+    }
+
     private static DeferredBlock<AmethystClusterBlock> registerCrystalBud(String name, float height, float width, MapColor color) {
         return BLOCKS.register(name, () -> new AmethystClusterBlock(height, width,
                 BlockBehaviour.Properties.ofFullCopy(Blocks.SMALL_AMETHYST_BUD).mapColor(color)
@@ -174,6 +204,7 @@ public class SoulLand {
         CREATIVE_MODE_TABS.register(modEventBus);
         MOB_EFFECTS.register(modEventBus);
         SpiritBeastEntities.register(modEventBus);
+        TournamentEntities.register(modEventBus);
         SoulLandFeatures.FEATURES.register(modEventBus);
         SoulLandRecipes.register(modEventBus);
         SoulLandMenus.register(modEventBus);
@@ -217,6 +248,11 @@ public class SoulLand {
             event.accept(ICE_CRYSTAL_SMALL_BUD_ITEM);
             event.accept(ICE_CRYSTAL_MEDIUM_BUD_ITEM);
             event.accept(ICE_CRYSTAL_LARGE_BUD_ITEM);
+            event.accept(SEA_GOD_ALTAR_ITEM);
+            event.accept(ANGEL_GOD_ALTAR_ITEM);
+            event.accept(ASURA_GOD_ALTAR_ITEM);
+            event.accept(RAKSHASA_GOD_ALTAR_ITEM);
+            event.accept(TOURNAMENT_REGISTRY_ITEM);
         }
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SOUL_RING_ITEM);

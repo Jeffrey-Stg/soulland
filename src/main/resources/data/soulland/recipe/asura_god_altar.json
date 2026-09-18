@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["DDD", "DXD", "DDD"],
+  "key": {
+    "D": {"item": "minecraft:diamond"},
+    "X": {"item": "minecraft:diamond_sword"}
+  },
+  "result": {"id": "soulland:asura_god_altar", "count": 1}
+}

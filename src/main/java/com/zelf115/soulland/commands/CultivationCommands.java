@@ -11,6 +11,11 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.Rebirth;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import com.zelf115.soulland.tournament.TournamentManager;
+import com.zelf115.soulland.trial.GodTrial;
+import com.zelf115.soulland.trial.GodTrialManager;
+import com.zelf115.soulland.trial.TrialTasks;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -28,6 +33,9 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation settitle <title>} — sets the player's title (requires level ≥ 90)</li>
  *   <li>{@code /cultivation setinnate <1-20>} — operator stand-in until martial souls roll it</li>
  *   <li>{@code /cultivation rebirth} — restarts cultivation at level 1 and re-opens the soul picker</li>
+ *   <li>{@code /cultivation trial status} — shows the running god trial and the relics already earned</li>
+ *   <li>{@code /cultivation trial advance|reset|grant <god>} — operator tools for testing trials</li>
+ *   <li>{@code /cultivation tournament status|reset} — shows or reopens the daily tournament run</li>
  * </ul>
  */
 public class CultivationCommands {
@@ -49,6 +57,25 @@ public class CultivationCommands {
                                 .executes(CultivationCommands::setTitle)))
                 .then(Commands.literal("rebirth")
                         .executes(CultivationCommands::rebirth))
+                .then(Commands.literal("trial")
+                        .then(Commands.literal("status")
+                                .executes(CultivationCommands::trialStatus))
+                        .then(Commands.literal("advance")
+                                .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                                .executes(CultivationCommands::advanceTrialTask))
+                        .then(Commands.literal("reset")
+                                .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                                .executes(CultivationCommands::resetTrial))
+                        .then(Commands.literal("grant")
+                                .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                                .then(Commands.argument("god", StringArgumentType.word())
+                                        .executes(CultivationCommands::grantRelic))))
+                .then(Commands.literal("tournament")
+                        .then(Commands.literal("status")
+                                .executes(CultivationCommands::tournamentStatus))
+                        .then(Commands.literal("reset")
+                                .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                                .executes(CultivationCommands::resetTournament)))
                 .then(Commands.literal("setinnate")
                         .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
                         .then(Commands.argument("value",
@@ -88,9 +115,112 @@ public class CultivationCommands {
                 .append(Component.literal(data.getMovementUsagePercent() + "%").withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nRebirth Count: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.valueOf(data.getRebirthCount())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nGod Trial: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(describeTrial(data)).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nRelics: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(describeRelics(data)).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nTitle: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(titleStr).withStyle(ChatFormatting.AQUA));
         player.sendSystemMessage(statusMessage);
+        return 1;
+    }
+
+    private static int trialStatus(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (!data.hasStartedGodTrial()) {
+            player.sendSystemMessage(Component.translatable("soulland.command.trial.none"));
+        } else {
+            player.sendSystemMessage(Component.translatable("soulland.command.trial.status",
+                    data.getGodTrial().displayName(), data.getGodTrialTaskIndex() + 1, TrialTasks.TASK_COUNT,
+                    GodTrialManager.describeCurrentTask(data), data.getGodTrialPendingRewards()));
+        }
+        player.sendSystemMessage(Component.translatable("soulland.command.trial.relics", describeRelics(data)));
+        return 1;
+    }
+
+    private static String describeTrial(final CultivationData data) {
+        if (!data.hasStartedGodTrial()) {
+            return "none";
+        }
+        if (data.isGodTrialFinished()) {
+            return data.getGodTrial().displayName().getString() + " (passed)";
+        }
+        return data.getGodTrial().displayName().getString()
+                + " (task " + (data.getGodTrialTaskIndex() + 1) + " of " + TrialTasks.TASK_COUNT + ")";
+    }
+
+    private static String describeRelics(final CultivationData data) {
+        if (data.getCompletedGodTrials().isEmpty()) {
+            return "none";
+        }
+        return data.getCompletedGodTrials().stream()
+                .map(trial -> trial.displayName().getString())
+                .collect(Collectors.joining(", "));
+    }
+
+    private static int advanceTrialTask(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        GodTrialManager.forceCompleteCurrentTask(player, data);
+        return 1;
+    }
+
+    private static int resetTrial(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        GodTrialManager.clearTrial(player.getData(CultivationAttachment.CULTIVATION_DATA.get()));
+        player.sendSystemMessage(Component.translatable("soulland.command.trial.reset"));
+        return 1;
+    }
+
+    private static int grantRelic(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final GodTrial trial = readGodTrial(StringArgumentType.getString(ctx, "god"));
+        if (trial == null) {
+            player.sendSystemMessage(Component.translatable("soulland.command.trial.unknown_god"));
+            return 0;
+        }
+
+        player.getData(CultivationAttachment.CULTIVATION_DATA.get()).addCompletedGodTrial(trial);
+        player.sendSystemMessage(Component.translatable("soulland.command.trial.granted", trial.displayName()));
+        return 1;
+    }
+
+    private static GodTrial readGodTrial(final String name) {
+        try {
+            return GodTrial.valueOf(name.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private static int tournamentStatus(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        player.sendSystemMessage(Component.translatable("soulland.command.tournament.status",
+                data.getTournamentRound(), TournamentManager.TOTAL_ROUNDS, data.isTournamentRunSpent()));
+        return 1;
+    }
+
+    private static int resetTournament(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        data.setTournamentRunStartedAt(0L);
+        data.setTournamentRunSpent(false);
+        data.setTournamentRound(0);
+        player.sendSystemMessage(Component.translatable("soulland.command.tournament.reset"));
         return 1;
     }
 

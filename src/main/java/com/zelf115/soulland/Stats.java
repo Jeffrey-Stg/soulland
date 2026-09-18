@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class Stats {
@@ -19,6 +20,7 @@ public class Stats {
     private static final double DEFAULT_PLAYER_ATTACK_DAMAGE = 1.0;
     private static final double DEFAULT_PLAYER_MOVEMENT_SPEED = 0.1;
     private static final double DEFAULT_PLAYER_ATTACK_SPEED = 4.0;
+    private static final double DEFAULT_PLAYER_SWIM_SPEED = 1.0;
     private static final double DEFAULT_PLAYER_ARMOR = 0.0;
     private static final double PERCENT = 100.0;
 
@@ -195,6 +197,8 @@ public class Stats {
         setVanillaBaseValue(player, Attributes.ARMOR, DerivedStats.armor(DEFAULT_PLAYER_ARMOR, defenseStat));
         setVanillaBaseValue(player, Attributes.MOVEMENT_SPEED,
                 DerivedStats.movementSpeed(DEFAULT_PLAYER_MOVEMENT_SPEED, speedStat) * movementUsage);
+        setVanillaBaseValue(player, NeoForgeMod.SWIM_SPEED,
+                DerivedStats.swimSpeed(DEFAULT_PLAYER_SWIM_SPEED, speedStat) * movementUsage);
         setVanillaBaseValue(player, Attributes.ATTACK_SPEED, DerivedStats.attackSpeed(DEFAULT_PLAYER_ATTACK_SPEED, speedStat));
         if (player.getHealth() > player.getMaxHealth()) {
             player.setHealth(player.getMaxHealth());

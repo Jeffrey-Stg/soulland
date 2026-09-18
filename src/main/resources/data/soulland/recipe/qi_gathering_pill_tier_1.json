@@ -1,7 +1,7 @@
 {
   "type": "soulland:alchemy_pill",
   "ingredients": [
-    {"item": "soulland:common_spirit_herb", "count": 64}
+    {"ingredient": {"item": "soulland:common_spirit_herb"}, "count": 64}
   ],
   "result": {"id": "soulland:qi_gathering_pill_tier_1", "count": 1},
   "min_level": 1,
