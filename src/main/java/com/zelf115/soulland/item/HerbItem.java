@@ -36,7 +36,6 @@ public final class HerbItem extends Item {
     }
 
     private static final String MARTIAL_SOUL_ELEMENT_KEY = "soulland_martial_soul_element";
-    private static final String NINE_TREASURE_PAGODA_KEY = "soulland_nine_treasure_glazed_tile_pagoda";
 
     private final Effect effect;
 

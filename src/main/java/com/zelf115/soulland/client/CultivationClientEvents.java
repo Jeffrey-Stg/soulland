@@ -6,6 +6,7 @@ import net.minecraft.client.KeyMapping;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -28,6 +29,12 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.OPEN_MARTIAL_SOUL_MENU, CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU);
         sendOnPress(CultivationKeyMappings.SWITCH_MARTIAL_SOUL, CultivationActionPayload.SWITCH_MARTIAL_SOUL);
         sendOnPress(CultivationKeyMappings.SELECT_NEXT_RING, CultivationActionPayload.SELECT_NEXT_RING);
+    }
+
+    /** Ring caches belong to one world; the next one starts empty. */
+    @SubscribeEvent
+    public static void onLoggingOut(final ClientPlayerNetworkEvent.LoggingOut event) {
+        RingDisplayClientData.clear();
     }
 
     private static void sendOnPress(final KeyMapping mapping, final int action) {

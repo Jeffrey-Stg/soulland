@@ -229,6 +229,16 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         return absorbedRings.stream().filter(ring -> ring.slot() == slot).toList();
     }
 
+    /** The rings shown on the HUD and around the player, per their display mode choice. */
+    public List<AbsorbedRing> visibleRings() {
+        return switch (ringDisplayMode) {
+            case NONE -> List.of();
+            case PRIMARY -> getRings(SoulSlot.PRIMARY);
+            case SECONDARY -> getRings(SoulSlot.SECONDARY);
+            case ALL -> getAbsorbedRings();
+        };
+    }
+
     public boolean hasStartedGodTrial() { return godTrial != null; }
 
     public boolean isGodTrialFinished() { return godTrialTaskIndex >= TrialTasks.TASK_COUNT; }

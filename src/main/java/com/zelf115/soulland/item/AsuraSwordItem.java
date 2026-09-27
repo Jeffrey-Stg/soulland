@@ -1,10 +1,7 @@
 package com.zelf115.soulland.item;
 
-import com.zelf115.soulland.trial.GodTrial;
 import java.util.List;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;

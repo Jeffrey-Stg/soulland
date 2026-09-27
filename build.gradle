@@ -70,7 +70,7 @@ runs {
         // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
         systemProperty 'forge.logging.console.level', 'debug'
 
-        workingDirectory project.layout.projectDirectory.dir('run').dir(name)
+        workingDirectory = project.layout.projectDirectory.dir('run').dir(name)
 
         modSource project.sourceSets.main
     }
@@ -183,7 +183,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            url = "file://${project.projectDir}/repo"
         }
     }
 }

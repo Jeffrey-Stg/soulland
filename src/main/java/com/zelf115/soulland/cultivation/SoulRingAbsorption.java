@@ -5,6 +5,7 @@ import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.spirit.AffinitySystem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -142,6 +143,9 @@ public final class SoulRingAbsorption {
             ring.bonus().scaled(AffinitySystem.ringMultiplier(player, tag)));
         MartialSoulEvolution.tryEvolve(player, data);
         Stats.syncDerivedPlayerStats(player, data);
+        if (player instanceof ServerPlayer serverPlayer) {
+            RingDisplaySync.broadcast(serverPlayer);
+        }
         destroy(stack);
     }
 

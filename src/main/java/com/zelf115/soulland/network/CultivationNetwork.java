@@ -10,6 +10,7 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.RingDisplayMode;
+import com.zelf115.soulland.cultivation.RingDisplaySync;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.item.SoulRingItem;
@@ -38,12 +39,18 @@ public final class CultivationNetwork {
                 .playToClient(OverreachPromptPayload.TYPE, OverreachPromptPayload.STREAM_CODEC, CultivationNetwork::handleOverreachPrompt)
                 .playToClient(HudSyncPayload.TYPE, HudSyncPayload.STREAM_CODEC, CultivationNetwork::handleHudSync)
                 .playToServer(ChooseMartialSoulPayload.TYPE, ChooseMartialSoulPayload.STREAM_CODEC, CultivationNetwork::handleChooseMartialSoul)
-                .playToClient(OpenMartialSoulPickerPayload.TYPE, OpenMartialSoulPickerPayload.STREAM_CODEC, CultivationNetwork::handleOpenMartialSoulPicker);
+                .playToClient(OpenMartialSoulPickerPayload.TYPE, OpenMartialSoulPickerPayload.STREAM_CODEC, CultivationNetwork::handleOpenMartialSoulPicker)
+                .playToClient(RingDisplayPayload.TYPE, RingDisplayPayload.STREAM_CODEC, CultivationNetwork::handleRingDisplay);
     }
 
     private static void handleHudSync(final HudSyncPayload payload, final IPayloadContext context) {
         // Resolved inside the lambda so the dedicated server never loads the client holder class.
         context.enqueueWork(() -> HudClientData.update(payload));
+    }
+
+    private static void handleRingDisplay(final RingDisplayPayload payload, final IPayloadContext context) {
+        // Resolved inside the lambda so the dedicated server never loads the client holder class.
+        context.enqueueWork(() -> com.zelf115.soulland.client.RingDisplayClientData.update(payload));
     }
 
     private static void handleOverreachPrompt(final OverreachPromptPayload payload, final IPayloadContext context) {
@@ -153,6 +160,7 @@ public final class CultivationNetwork {
     private static void cycleRingDisplay(final ServerPlayer player, final CultivationData data) {
         final RingDisplayMode next = data.getRingDisplayMode().next(data.getSecondaryMartialSoul() != null);
         data.setRingDisplayMode(next);
+        RingDisplaySync.broadcast(player);
         player.sendSystemMessage(Component.translatable("soulland.soul_ring.display.set",
                 Component.translatable(next.translationKey())));
     }

@@ -4,7 +4,6 @@ import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import java.util.List;
-import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;

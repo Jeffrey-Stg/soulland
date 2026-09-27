@@ -43,6 +43,7 @@ public final class Rebirth {
         data.setSelectedRingIndex(0);
         data.setMartialSoulCanReachLevel100(false);
         Stats.syncDerivedPlayerStats(player, data);
+        RingDisplaySync.broadcast(player);
 
         player.sendSystemMessage(Component.translatable("soulland.cultivation.rebirth.done", data.getRebirthCount()));
         PacketDistributor.sendToPlayer(player, new OpenMartialSoulPickerPayload());

@@ -25,7 +25,7 @@ public final class SoulLandRecipes {
                     () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, ALCHEMY_PILL_ID)));
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AlchemyPillRecipe>> ALCHEMY_PILL_SERIALIZER =
-            RECIPE_SERIALIZERS.register(ALCHEMY_PILL_ID, () -> new RecipeSerializer<>() {
+            RECIPE_SERIALIZERS.register(ALCHEMY_PILL_ID, () -> new RecipeSerializer<AlchemyPillRecipe>() {
                 @Override
                 public MapCodec<AlchemyPillRecipe> codec() {
                     return AlchemyPillRecipe.CODEC;

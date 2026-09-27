@@ -7,6 +7,7 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
+import com.zelf115.soulland.cultivation.RingDisplaySync;
 import com.zelf115.soulland.item.GodRelic;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.HudSyncPayload;
@@ -71,7 +72,7 @@ public class CultivationEvents {
     }
 
     private static void syncHud(final ServerPlayer player, final CultivationData data) {
-        final List<AbsorbedRing> rings = visibleRings(data);
+        final List<AbsorbedRing> rings = data.visibleRings();
         final AbsorbedRing currentRing = rings.isEmpty() ? null : rings.get(rings.size() - 1);
         final List<Integer> ringTiers = rings.stream().map(AbsorbedRing::tier).toList();
         final HudSyncPayload.Gauge xp = new HudSyncPayload.Gauge(data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()));
@@ -80,20 +81,6 @@ public class CultivationEvents {
                 currentRing == null ? "" : currentRing.sourceName(), currentRing == null ? 0 : currentRing.tier());
         PacketDistributor.sendToPlayer(player, new HudSyncPayload(
                 data.getLevel(), xp, data.isInBottleneck(), spiritEnergy, getRegionQi(player), soulBeast, ringTiers));
-    }
-
-    /** The rings the HUD shows, per the player's {@link com.zelf115.soulland.cultivation.RingDisplayMode} choice. */
-    private static List<AbsorbedRing> visibleRings(final CultivationData data) {
-        return switch (data.getRingDisplayMode()) {
-            case NONE -> List.of();
-            case PRIMARY -> ringsOfSlot(data, com.zelf115.soulland.cultivation.SoulSlot.PRIMARY);
-            case SECONDARY -> ringsOfSlot(data, com.zelf115.soulland.cultivation.SoulSlot.SECONDARY);
-            case ALL -> data.getAbsorbedRings();
-        };
-    }
-
-    private static List<AbsorbedRing> ringsOfSlot(final CultivationData data, final com.zelf115.soulland.cultivation.SoulSlot slot) {
-        return data.getAbsorbedRings().stream().filter(ring -> ring.slot() == slot).toList();
     }
 
     /**
@@ -180,6 +167,36 @@ public class CultivationEvents {
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
         Stats.syncDerivedPlayerStats(player, data);
+    }
+
+    /** A viewer who just started rendering a player needs that player's rings straight away. */
+    @SubscribeEvent
+    public static void onStartTracking(final PlayerEvent.StartTracking event) {
+        if (event.getEntity() instanceof ServerPlayer viewer && event.getTarget() instanceof ServerPlayer subject) {
+            RingDisplaySync.sendTo(viewer, subject);
+        }
+    }
+
+    /** A fresh client, a respawned body and a new dimension all begin with an empty ring cache. */
+    @SubscribeEvent
+    public static void onLoginSyncRings(final PlayerEvent.PlayerLoggedInEvent event) {
+        broadcastRings(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onRespawnSyncRings(final PlayerEvent.PlayerRespawnEvent event) {
+        broadcastRings(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onChangedDimensionSyncRings(final PlayerEvent.PlayerChangedDimensionEvent event) {
+        broadcastRings(event.getEntity());
+    }
+
+    private static void broadcastRings(final Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            RingDisplaySync.broadcast(serverPlayer);
+        }
     }
 
     @SubscribeEvent
