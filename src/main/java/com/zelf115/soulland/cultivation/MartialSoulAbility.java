@@ -3,6 +3,7 @@ package com.zelf115.soulland.cultivation;
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -62,8 +63,11 @@ public final class MartialSoulAbility {
         if (data.getSpiritEnergy() < ENERGY_COST_PER_SECOND) return;
 
         final MartialSoul soul = data.getActiveMartialSoul();
+        if (!grantToolItem(player, soul)) {
+            player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.no_room"));
+            return;
+        }
         data.setMartialSoulActive(true);
-        grantToolItem(player, soul);
         if (isNonToolCategory(soul)) {
             Stats.applyTemporaryStatPercentBonus(player, ACTIVATION_BONUS_ID, NON_TOOL_ACTIVATION_BONUS_PERCENT);
         }
@@ -73,23 +77,29 @@ public final class MartialSoulAbility {
         return soul != null && soul.category() != MartialSoul.Category.TOOL;
     }
 
-    private static void grantToolItem(final Player player, final MartialSoul soul) {
+    /** Whether the soul is now armed: true for the souls that carry no tool at all. */
+    private static boolean grantToolItem(final Player player, final MartialSoul soul) {
         final DeferredItem<Item> item = toolItemFor(soul);
-        if (item != null) {
-            player.getInventory().add(item.get().getDefaultInstance());
+        if (item == null) {
+            return true;
         }
+        return player.getInventory().add(item.get().getDefaultInstance());
     }
 
-    /** Takes back the tool granted on activation, wherever it landed in the player's inventory. */
+    /**
+     * Takes back the tool granted on activation, wherever it landed: the whole inventory, not only
+     * the main compartment, or a tool moved to the off-hand would survive being put away and the
+     * next activation would mint a second copy of it.
+     */
     private static void removeToolItem(final Player player, final MartialSoul soul) {
         final DeferredItem<Item> item = toolItemFor(soul);
         if (item == null) return;
 
         final Item target = item.get();
-        final var inventoryItems = player.getInventory().items;
-        for (int slot = 0; slot < inventoryItems.size(); slot++) {
-            if (inventoryItems.get(slot).is(target)) {
-                inventoryItems.set(slot, ItemStack.EMPTY);
+        final Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            if (inventory.getItem(slot).is(target)) {
+                inventory.setItem(slot, ItemStack.EMPTY);
             }
         }
     }

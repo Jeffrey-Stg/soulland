@@ -32,6 +32,10 @@ public class MartialSoulSwordItem extends SwordItem {
     public boolean hurtEnemy(final ItemStack stack, final LivingEntity target, final LivingEntity attacker) {
         final boolean result = super.hurtEnemy(stack, target, attacker);
         if (attacker instanceof Player player) {
+            // The swing that called this has just armed the target's invulnerability window, which
+            // would drop the follow-up hit outright (or shave it down to the difference). Reopening
+            // the window is what makes the advertised bonus actually land.
+            target.invulnerableTime = 0;
             target.hurt(player.damageSources().playerAttack(player), (float) (Stats.getDamage(player) * BONUS_DAMAGE_PERCENT_OF_STAT));
         }
         return result;

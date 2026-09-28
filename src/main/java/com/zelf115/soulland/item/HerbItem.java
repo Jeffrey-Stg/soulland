@@ -6,6 +6,7 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulEvolution;
+import com.zelf115.soulland.spirit.Affinity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,7 +36,8 @@ public final class HerbItem extends Item {
         ALL_BUT_SPIRIT_ONE
     }
 
-    private static final String MARTIAL_SOUL_ELEMENT_KEY = "soulland_martial_soul_element";
+    /** The multiplier a soul with no leaning toward an element carries for it. */
+    private static final double NO_AFFINITY = 1.0;
 
     private final Effect effect;
 
@@ -71,10 +73,10 @@ public final class HerbItem extends Item {
 
     private boolean canEat(final Player player, final Level level) {
         if (effect == Effect.ICE_SPIRIT_TEN || effect == Effect.ICE_CULTIVATION_SPEED_TWO) {
-            return matchesElement(player, "ice", level);
+            return matchesElement(player, Affinity.ICE);
         }
         if (effect == Effect.FIRE_SPIRIT_TEN || effect == Effect.FIRE_CULTIVATION_SPEED_TWO) {
-            return matchesElement(player, "fire", level);
+            return matchesElement(player, Affinity.FIRE);
         }
         if (effect == Effect.ALL_BUT_SPIRIT_AND_INNATE_ONE_SOUL_END) {
             return level.getBiome(player.blockPosition()).is(SoulLandBiomes.SOUL_END);
@@ -82,9 +84,16 @@ public final class HerbItem extends Item {
         return true;
     }
 
-    private static boolean matchesElement(final Player player, final String required, final Level level) {
-        final String element = player.getPersistentData().getString(MARTIAL_SOUL_ELEMENT_KEY);
-        return element.isEmpty() || required.equalsIgnoreCase(element);
+    /**
+     * An elemental herb only feeds a soul that carries that element. A cultivator who has not
+     * awakened a soul yet is not held back, since there is no element to match against.
+     */
+    private static boolean matchesElement(final Player player, final Affinity required) {
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (data.getMartialSoul() == null) {
+            return true;
+        }
+        return data.getAffinityMultiplier(required) > NO_AFFINITY;
     }
 
     private void applyEffect(final Player player) {

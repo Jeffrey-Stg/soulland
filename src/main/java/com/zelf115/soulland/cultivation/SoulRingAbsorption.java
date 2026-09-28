@@ -3,6 +3,7 @@ package com.zelf115.soulland.cultivation;
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.spirit.AffinitySystem;
+import java.util.OptionalInt;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,24 +64,27 @@ public final class SoulRingAbsorption {
 
     /** Rings fill the primary track first, then the secondary one, each up to its own cap. */
     private static SoulSlot resolveSlotForNewRing(final CultivationData data) {
-        if (data.getRingCount(SoulSlot.PRIMARY) < capFor(data.getMartialSoul(), data.getLevel())) {
+        if (data.getRingCount(SoulSlot.PRIMARY) < ringCapFor(data.getMartialSoul(), data.getLevel())) {
             return SoulSlot.PRIMARY;
         }
         if (data.getSecondaryMartialSoul() != null
-                && data.getRingCount(SoulSlot.SECONDARY) < capFor(data.getSecondaryMartialSoul(), data.getLevel())) {
+                && data.getRingCount(SoulSlot.SECONDARY) < ringCapFor(data.getSecondaryMartialSoul(), data.getLevel())) {
             return SoulSlot.SECONDARY;
         }
         return null;
     }
 
-    private static int capFor(final MartialSoul soul, final int level) {
-        if (soul != null) {
-            final java.util.OptionalInt override = soul.ringCapOverride();
-            if (override.isPresent()) {
-                return override.getAsInt();
-            }
+    /**
+     * How many rings one soul's own track may hold. A soul that caps its track lowers the level
+     * gate but never lifts it, so the ten-level rhythm still decides when the next ring may be taken.
+     */
+    public static int ringCapFor(final MartialSoul soul, final int level) {
+        final int levelCap = CultivationManager.maxSoulRingCountForLevel(level);
+        if (soul == null) {
+            return levelCap;
         }
-        return CultivationManager.maxSoulRingCountForLevel(level);
+        final OptionalInt override = soul.ringCapOverride();
+        return override.isPresent() ? Math.min(override.getAsInt(), levelCap) : levelCap;
     }
 
     /**

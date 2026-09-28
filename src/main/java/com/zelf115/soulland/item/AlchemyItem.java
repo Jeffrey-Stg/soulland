@@ -6,6 +6,8 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -37,6 +39,27 @@ public final class AlchemyItem extends Item {
                 .nutrition(0).saturationModifier(0.0F).alwaysEdible().build());
     }
 
+    /**
+     * A banded pill outside its band is refused before it is swallowed, rather than eaten for
+     * nothing. Only the server may judge that: the cultivation attachment is not synced, so the
+     * client's copy always reads level one and would refuse every pill above tier one.
+     */
+    @Override
+    public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
+        final ItemStack stack = player.getItemInHand(hand);
+        if (!level.isClientSide() && effect == Effect.QI_GATHERING
+                && !isQiGatheringTierUsableAt(cultivationLevelOf(player))) {
+            player.sendSystemMessage(Component.translatable("soulland.alchemy.wrong_level_band",
+                    tierMinLevel(), tierMaxLevel()));
+            return InteractionResultHolder.fail(stack);
+        }
+        return super.use(level, player, hand);
+    }
+
+    private static int cultivationLevelOf(final Player player) {
+        return player.getData(CultivationAttachment.CULTIVATION_DATA.get()).getLevel();
+    }
+
     @Override
     public ItemStack finishUsingItem(final ItemStack stack, final Level level, final LivingEntity entity) {
         final ItemStack result = super.finishUsingItem(stack, level, entity);
@@ -54,12 +77,7 @@ public final class AlchemyItem extends Item {
                 data.setInnateStat(data.getInnateStat() + 1);
                 Stats.addSpirit(player, 110.0);
             }
-            case QI_GATHERING -> {
-                if (!isQiGatheringTierUsableAt(data.getLevel())) {
-                    return;
-                }
-                Stats.addSpirit(player, qiLevel * 10.0);
-            }
+            case QI_GATHERING -> Stats.addSpirit(player, qiLevel * 10.0);
         }
         Stats.syncDerivedPlayerStats(player, data);
     }

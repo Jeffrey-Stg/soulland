@@ -56,7 +56,7 @@ public final class MartialSoulSelectScreen extends Screen {
 
     private void selectCategory(final MartialSoul.Category selected) {
         this.category = selected;
-        init();
+        rebuildWidgets();
     }
 
     private void initSoulStep() {
@@ -73,7 +73,7 @@ public final class MartialSoulSelectScreen extends Screen {
 
     private void back() {
         this.category = null;
-        init();
+        rebuildWidgets();
     }
 
     private static List<MartialSoul> soulsIn(final MartialSoul.Category category) {

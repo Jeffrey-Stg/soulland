@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -13,6 +14,13 @@ import net.neoforged.neoforge.event.LootTableLoadEvent;
 @EventBusSubscriber(modid = SoulLand.MODID)
 public final class AlchemyLootEvents {
     private static final String POOL_PREFIX = "soulland_alchemy_";
+    /**
+     * A furnace is a find, not furniture: a stronghold has dozens of corridor and crossing chests
+     * and a bastion as many again, so an unconditional pool would put one in every single chest.
+     */
+    private static final float COMMON_CHEST_CHANCE = 0.12F;
+    /** End ships are rare enough that their two chests can afford far better odds. */
+    private static final float RARE_CHEST_CHANCE = 0.5F;
 
     private AlchemyLootEvents() {
     }
@@ -23,23 +31,24 @@ public final class AlchemyLootEvents {
         if (table.equals(BuiltInLootTables.STRONGHOLD_LIBRARY.location())
                 || table.equals(BuiltInLootTables.STRONGHOLD_CROSSING.location())
                 || table.equals(BuiltInLootTables.STRONGHOLD_CORRIDOR.location())) {
-            addFurnace(event, SoulLand.ENCHANTED_PILL_FURNACE.get(), "enchanted");
+            addFurnace(event, SoulLand.ENCHANTED_PILL_FURNACE.get(), "enchanted", COMMON_CHEST_CHANCE);
         } else if (table.equals(BuiltInLootTables.BASTION_TREASURE.location())
                 || table.equals(BuiltInLootTables.BASTION_OTHER.location())
                 || table.equals(BuiltInLootTables.BASTION_BRIDGE.location())
                 || table.equals(BuiltInLootTables.BASTION_HOGLIN_STABLE.location())
                 || table.equals(ResourceLocation.withDefaultNamespace("chests/nether_bridge"))) {
-            addFurnace(event, SoulLand.NETHER_PILL_FURNACE.get(), "nether");
+            addFurnace(event, SoulLand.NETHER_PILL_FURNACE.get(), "nether", COMMON_CHEST_CHANCE);
         } else if (table.equals(BuiltInLootTables.END_CITY_TREASURE.location())) {
-            addFurnace(event, SoulLand.STAR_PILL_FURNACE.get(), "star");
+            addFurnace(event, SoulLand.STAR_PILL_FURNACE.get(), "star", RARE_CHEST_CHANCE);
         }
     }
 
     private static void addFurnace(final LootTableLoadEvent event, final net.minecraft.world.level.ItemLike furnace,
-                                   final String tier) {
+                                   final String tier, final float chance) {
         event.getTable().addPool(LootPool.lootPool()
                 .name(POOL_PREFIX + tier)
                 .setRolls(ConstantValue.exactly(1.0F))
+                .when(LootItemRandomChanceCondition.randomChance(chance))
                 .add(LootItem.lootTableItem(furnace).setWeight(1))
                 .build());
     }

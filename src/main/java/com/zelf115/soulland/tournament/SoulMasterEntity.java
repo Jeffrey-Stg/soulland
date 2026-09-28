@@ -3,6 +3,7 @@ package com.zelf115.soulland.tournament;
 import com.zelf115.soulland.DerivedStats;
 import net.minecraft.core.Holder;
 import java.util.UUID;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -27,6 +28,7 @@ public class SoulMasterEntity extends Monster {
     private static final EntityDataAccessor<Integer> SIMULATED_LEVEL =
             SynchedEntityData.defineId(SoulMasterEntity.class, EntityDataSerializers.INT);
 
+    private static final String SIMULATED_LEVEL_KEY = "SoullandSimulatedLevel";
     private static final String CHALLENGER_KEY = "soulland_tournament_challenger";
     private static final String ROUND_KEY = "soulland_tournament_round";
 
@@ -69,6 +71,24 @@ public class SoulMasterEntity extends Monster {
         setAttributeBase(Attributes.ATTACK_DAMAGE, DerivedStats.attackDamage(BASE_ATTACK_DAMAGE, stat));
         setAttributeBase(Attributes.ARMOR, DerivedStats.armor(BASE_ARMOR, stat));
         setHealth(getMaxHealth());
+    }
+
+    /**
+     * Synched data is not saved, so the level has to be written out by hand: without it an opponent
+     * that survives a chunk unload comes back reading level one and pays out a level one's rewards.
+     */
+    @Override
+    public void addAdditionalSaveData(final CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt(SIMULATED_LEVEL_KEY, getSimulatedLevel());
+    }
+
+    @Override
+    public void readAdditionalSaveData(final CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains(SIMULATED_LEVEL_KEY)) {
+            entityData.set(SIMULATED_LEVEL, tag.getInt(SIMULATED_LEVEL_KEY));
+        }
     }
 
     private void setAttributeBase(final Holder<Attribute> attribute, final double value) {

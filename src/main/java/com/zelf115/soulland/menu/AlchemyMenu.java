@@ -107,9 +107,9 @@ public final class AlchemyMenu extends AbstractContainerMenu {
         final ItemStack result = recipe.getResultItem(player.level().registryAccess());
         result.setCount(result.getCount() + tier.bonusPillCount());
         announceBrew(player, result);
-        if (!player.getInventory().add(result)) {
-            player.drop(result, false);
-        }
+        // Inventory.add reports success as soon as a single pill fits and leaves the rest in the
+        // stack, so the leftover has to be placed rather than tested for: it would be lost.
+        player.getInventory().placeItemBackInInventory(result);
     }
 
     /** Names the pill before it is handed over: adding it to the inventory empties the stack. */

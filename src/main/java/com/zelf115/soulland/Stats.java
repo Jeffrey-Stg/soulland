@@ -240,18 +240,6 @@ public class Stats {
         putModifier(player, CULTIVATION_SPEED, id, bonus.cultivationSpeed());
     }
 
-    public static void applyTemporaryPercentBonus(final Player player, final String id, final double percent) {
-        final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
-        for (final Holder<Attribute> attribute : List.of(DAMAGE, DEFENSE)) {
-            final AttributeInstance instance = player.getAttribute(attribute);
-            if (instance != null) {
-                instance.addOrReplacePermanentModifier(new AttributeModifier(modifierId, percent,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-            }
-        }
-        syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
-    }
-
     /** Raises a single attribute by a percentage, under an id the caller can take back later. */
     public static void applyTemporaryPercentBonus(final Player player, final String id,
                                                   final Holder<Attribute> attribute, final double percent) {

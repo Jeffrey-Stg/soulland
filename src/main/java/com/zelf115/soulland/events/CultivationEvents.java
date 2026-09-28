@@ -72,7 +72,9 @@ public class CultivationEvents {
     }
 
     private static void syncHud(final ServerPlayer player, final CultivationData data) {
-        final List<AbsorbedRing> rings = data.visibleRings();
+        // The player's own panel shows every ring they hold. visibleRings() is the choice of what
+        // other players get to see, and it starts out hidden, which would leave this panel blank.
+        final List<AbsorbedRing> rings = data.getAbsorbedRings();
         final AbsorbedRing currentRing = rings.isEmpty() ? null : rings.get(rings.size() - 1);
         final List<Integer> ringTiers = rings.stream().map(AbsorbedRing::tier).toList();
         final HudSyncPayload.Gauge xp = new HudSyncPayload.Gauge(data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()));
