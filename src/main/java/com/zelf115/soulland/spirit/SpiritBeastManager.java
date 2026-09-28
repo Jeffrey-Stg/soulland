@@ -2,6 +2,7 @@ package com.zelf115.soulland.spirit;
 
 import com.zelf115.soulland.Config;
 import com.zelf115.soulland.DerivedStats;
+import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
@@ -67,6 +68,11 @@ public final class SpiritBeastManager {
     /** Youngest age each tier starts at, in tier order; the inverse of the year roll table. */
     private static final int[] TIER_YEAR_FLOORS = {1, 100, 1_000, 10_000, 100_000, 200_000, 1_000_000};
     private static final int LOWEST_TIER = 1;
+    /**
+     * The tier roll where 1 000-year beasts begin: wild lands roll below it, capping beasts at 999
+     * years, and the mod's own biomes roll above it.
+     */
+    private static final double HOMELAND_ROLL_FLOOR = 0.55D;
     /** Beasts whose bones are boss loot, so no other source may hand them out. */
     public static final Set<String> BOSS_BEAST_PATHS = Set.of(
             "ice_jade_scorpion", "ice_bear", "evil_spirit_orca", "three_eyed_golden_lion");
@@ -95,7 +101,7 @@ public final class SpiritBeastManager {
 
     /** Rolls a beast's age, tier and starting stats, recording the vanilla values it started from. */
     private static void rollBeast(final SpiritBeastEntity monster, final CompoundTag data) {
-        final int tier = rollTier(monster.getRandom().nextDouble());
+        final int tier = rollTier(tierRollFor(monster));
         final int years = randomYearsForTier(monster, tier);
         final int level = effectiveLevelForYears(years);
         final double baseMaxHealth = getBaseValue(monster, Attributes.MAX_HEALTH, DEFAULT_BASE_MAX_HEALTH);
@@ -327,11 +333,25 @@ public final class SpiritBeastManager {
         return id == null ? "" : id.getPath();
     }
 
+    private static double tierRollFor(final SpiritBeastEntity monster) {
+        final double roll = monster.getRandom().nextDouble();
+        if (isInSoulLandBiome(monster)) {
+            return HOMELAND_ROLL_FLOOR + roll * (1.0D - HOMELAND_ROLL_FLOOR);
+        }
+        return roll * HOMELAND_ROLL_FLOOR;
+    }
+
+    private static boolean isInSoulLandBiome(final SpiritBeastEntity monster) {
+        return monster.level().getBiome(monster.blockPosition()).unwrapKey()
+                .map(key -> key.location().getNamespace().equals(SoulLand.MODID))
+                .orElse(false);
+    }
+
     private static int rollTier(final double roll) {
         if (roll < 0.30D) {
             return 1;
         }
-        if (roll < 0.55D) {
+        if (roll < HOMELAND_ROLL_FLOOR) {
             return 2;
         }
         if (roll < 0.75D) {

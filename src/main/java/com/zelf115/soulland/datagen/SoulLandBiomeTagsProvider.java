@@ -9,6 +9,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
@@ -64,6 +65,7 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
     /** Stands in for snowy plains, ice spikes, snowy slopes and frozen peaks. */
     private void addExtremeNorthTags() {
         this.tag(BiomeTags.IS_MOUNTAIN).add(SoulLandBiomes.EXTREME_NORTH);
+        this.tag(Tags.Biomes.IS_SNOWY).add(SoulLandBiomes.EXTREME_NORTH);
         this.tag(BiomeTags.INCREASED_FIRE_BURNOUT).add(SoulLandBiomes.EXTREME_NORTH);
         this.tag(BiomeTags.SPAWNS_COLD_VARIANT_FROGS).add(SoulLandBiomes.EXTREME_NORTH);
         this.tag(BiomeTags.SPAWNS_SNOW_FOXES).add(SoulLandBiomes.EXTREME_NORTH);
@@ -79,6 +81,7 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
     private void addIceboundForestTags() {
         this.tag(BiomeTags.IS_TAIGA).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.IS_FOREST).add(SoulLandBiomes.ICEBOUND_FOREST);
+        this.tag(Tags.Biomes.IS_SNOWY).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.SPAWNS_COLD_VARIANT_FROGS).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.SPAWNS_SNOW_FOXES).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.SPAWNS_WHITE_RABBITS).add(SoulLandBiomes.ICEBOUND_FOREST);

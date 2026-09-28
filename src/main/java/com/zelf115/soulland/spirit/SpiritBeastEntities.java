@@ -16,6 +16,8 @@ public final class SpiritBeastEntities {
             DeferredRegister.create(Registries.ENTITY_TYPE, SoulLand.MODID);
     private static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> ALL_INTERNAL = new ArrayList<>();
     public static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> ALL = Collections.unmodifiableList(ALL_INTERNAL);
+    private static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> AMPHIBIOUS_INTERNAL = new ArrayList<>();
+    public static final List<DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>>> AMPHIBIOUS = Collections.unmodifiableList(AMPHIBIOUS_INTERNAL);
 
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> WHITE_TIGER = register("white_tiger");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> HELL_SPIRIT_CAT = register("hell_spirit_cat");
@@ -33,14 +35,14 @@ public final class SpiritBeastEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> HEAVENLY_PHOENIX = register("heavenly_phoenix");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> DARKNESS_PHOENIX = register("darkness_phoenix");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> EMERALD_PHOENIX = register("emerald_phoenix");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> DEMON_WHITE_SHARK = register("demon_white_shark");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> DEMON_WHITE_SHARK = registerAmphibious("demon_white_shark");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> ROMANTI_SNAKE = register("romanti_snake");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> MANFACED_DEMON_SPIDER = register("manfaced_demon_spider");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> PHANTOM_TIGER = register("phantom_tiger");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> PIT_DEMON_SPIDER = register("pit_demon_spider");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> DARK_DEVILGOD_TIGER = register("dark_devilgod_tiger");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> EVIL_SPIRIT_ORCA = register("evil_spirit_orca");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> NINE_KNOT_ICHTHYOSAUR = register("nine_knot_ichthyosaur");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> EVIL_SPIRIT_ORCA = registerAmphibious("evil_spirit_orca");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> NINE_KNOT_ICHTHYOSAUR = registerAmphibious("nine_knot_ichthyosaur");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> WIND_SPIRIT_WOLF = register("wind_spirit_wolf");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> WIND_BABOON = register("wind_baboon");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> DARK_GOLD_TERROR_CLAW_BEAR = register("dark_gold_terror_claw_bear");
@@ -65,8 +67,8 @@ public final class SpiritBeastEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> EMERALD_DEMON_BIRD = register("emerald_demon_bird");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> TYRANT_DRAGON = register("tyrant_dragon");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> THREE_EYED_DEMON_APE = register("three_eyed_demon_ape");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GIANT_OCTOPUS = register("giant_octopus");
-    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> TITANOHIPPO = register("titanohippo");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GIANT_OCTOPUS = registerAmphibious("giant_octopus");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> TITANOHIPPO = registerAmphibious("titanohippo");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> LAVA_HOUND = register("lava_hound");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLD_EYED_LEOPARD = register("gold_eyed_leopard");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> GOLD_SILK_APE = register("gold_silk_ape");
@@ -83,9 +85,21 @@ public final class SpiritBeastEntities {
     }
 
     private static DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> register(final String id) {
+        return register(id, SpiritBeastEntity::new);
+    }
+
+    private static DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> registerAmphibious(final String id) {
+        final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> holder =
+                register(id, AmphibiousSpiritBeastEntity::new);
+        AMPHIBIOUS_INTERNAL.add(holder);
+        return holder;
+    }
+
+    private static DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> register(
+            final String id, final EntityType.EntityFactory<SpiritBeastEntity> factory) {
         final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> holder = ENTITY_TYPES.register(id,
                 // Placeholder size until species-specific models and dimensions are added.
-                () -> EntityType.Builder.<SpiritBeastEntity>of(SpiritBeastEntity::new, MobCategory.MONSTER)
+                () -> EntityType.Builder.of(factory, MobCategory.MONSTER)
                         .sized(0.9F, 1.8F)
                         .clientTrackingRange(8)
                         .build(SoulLand.MODID + ":" + id));
