@@ -25,6 +25,9 @@ public final class CultivationKeyMappings {
     public static final KeyMapping OPEN_MARTIAL_SOUL_MENU = new KeyMapping("key.soulland.open_martial_soul_menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, CATEGORY);
     public static final KeyMapping SWITCH_MARTIAL_SOUL = new KeyMapping("key.soulland.switch_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, CATEGORY);
     public static final KeyMapping SELECT_NEXT_RING = new KeyMapping("key.soulland.select_next_ring", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, CATEGORY);
+    public static final KeyMapping DEMON_EYE = new KeyMapping("key.soulland.demon_eye", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, CATEGORY);
+    public static final KeyMapping DEMON_EYE_STRIKE = new KeyMapping("key.soulland.demon_eye_strike", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, CATEGORY);
+    public static final KeyMapping SHADOW_STEP = new KeyMapping("key.soulland.shadow_step", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, CATEGORY);
 
     private CultivationKeyMappings() {
     }
@@ -42,6 +45,9 @@ public final class CultivationKeyMappings {
         event.register(OPEN_ALCHEMY_MENU);
         event.register(OPEN_MARTIAL_SOUL_MENU);
         event.register(SWITCH_MARTIAL_SOUL);
+        event.register(DEMON_EYE);
+        event.register(DEMON_EYE_STRIKE);
+        event.register(SHADOW_STEP);
         event.register(SELECT_NEXT_RING);
     }
 }

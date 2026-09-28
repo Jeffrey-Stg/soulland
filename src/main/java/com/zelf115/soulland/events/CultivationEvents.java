@@ -8,6 +8,8 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
 import com.zelf115.soulland.cultivation.RingDisplaySync;
+import com.zelf115.soulland.cultivation.technique.MysteriousHaven;
+import com.zelf115.soulland.cultivation.technique.PurpleDemonEye;
 import com.zelf115.soulland.item.GodRelic;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.HudSyncPayload;
@@ -57,6 +59,7 @@ public class CultivationEvents {
         Stats.syncDerivedPlayerStats(player, data);
         regenerateSpiritEnergy(player, data);
         MartialSoulAbility.tick(player, data, gameTick);
+        PurpleDemonEye.tick(player, data, gameTick);
 
         final int level = data.getLevel();
         CultivationManager.applyFlightAbilities(player, level);
@@ -238,6 +241,7 @@ public class CultivationEvents {
             return;
         }
         data.setLastMeditationTick(gameTick);
+        MysteriousHaven.trainWhileMeditating(player, data);
 
         final double xpGain = CultivationManager.MEDITATION_XP_PER_TICK
                 * meditationXpMultiplier(player, data);
@@ -257,7 +261,8 @@ public class CultivationEvents {
     }
 
     private static double meditationXpMultiplier(final Player player, final CultivationData data) {
-        return baseXpMultiplier(player, data) * CultivationManager.regionQiMultiplier(getRegionQi(player));
+        return baseXpMultiplier(player, data) * CultivationManager.regionQiMultiplier(getRegionQi(player))
+                * MysteriousHaven.cultivationMultiplier(data);
     }
 
     /** The multipliers that apply wherever the XP came from. */

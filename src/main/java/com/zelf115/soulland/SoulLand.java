@@ -20,6 +20,8 @@ import com.zelf115.soulland.item.RakshasaDaggerItem;
 import com.zelf115.soulland.item.SeaGodTridentItem;
 import com.zelf115.soulland.item.AlchemyItem;
 import com.zelf115.soulland.item.PillFurnaceItem;
+import com.zelf115.soulland.item.TechniqueBookItem;
+import com.zelf115.soulland.cultivation.technique.Technique;
 import com.zelf115.soulland.menu.SoulLandMenus;
 import com.zelf115.soulland.network.CultivationNetwork;
 import com.zelf115.soulland.recipe.SoulLandRecipes;
@@ -160,7 +162,14 @@ public class SoulLand {
     public static final DeferredItem<Item> SINGULAR_VELVET_SKY_CHRYSANTHEMUM = registerHerb("singular_velvet_sky_chrysanthemum", HerbItem.Effect.INNATE_ONE);
     public static final DeferredItem<Item> WATER_CRYSTAL_PEACH = registerHerb("water_crystal_peach", HerbItem.Effect.ALL_BUT_SPIRIT_ONE);
     public static final DeferredItem<Item> YEARNING_HEARTBROKEN_RED = registerHerb("yearning_heartbroken_red", HerbItem.Effect.INNATE_TWO);
+    public static final DeferredItem<Item> PURPLE_DEMON_EYE_BOOK = registerTechniqueBook("purple_demon_eye_book", Technique.PURPLE_DEMON_EYE);
+    public static final DeferredItem<Item> GHOSTLY_SHADOW_STEP_BOOK = registerTechniqueBook("ghostly_shadow_step_book", Technique.GHOSTLY_SHADOW_STEP);
+    public static final DeferredItem<Item> MYSTERIOUS_HAVEN_BOOK = registerTechniqueBook("mysterious_haven_book", Technique.MYSTERIOUS_HAVEN);
     public static final DeferredHolder<MobEffect, MobEffect> MEDITATION_EFFECT = MOB_EFFECTS.register("meditation", MeditationEffect::new);
+
+    private static DeferredItem<Item> registerTechniqueBook(final String name, final Technique technique) {
+        return ITEMS.register(name, () -> new TechniqueBookItem(technique, new Item.Properties().stacksTo(1)));
+    }
 
     private static DeferredItem<Item> registerHerb(String name, HerbItem.Effect effect) {
         return ITEMS.register(name, () -> new HerbItem(effect,
@@ -287,6 +296,11 @@ public class SoulLand {
             event.accept(QI_GATHERING_PILL_TIER_3);
             event.accept(QI_GATHERING_PILL_TIER_4);
             event.accept(QI_GATHERING_PILL_TIER_5);
+        }
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(PURPLE_DEMON_EYE_BOOK);
+            event.accept(GHOSTLY_SHADOW_STEP_BOOK);
+            event.accept(MYSTERIOUS_HAVEN_BOOK);
         }
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(ANGEL_GOD_SWORD);

@@ -29,6 +29,9 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.OPEN_MARTIAL_SOUL_MENU, CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU);
         sendOnPress(CultivationKeyMappings.SWITCH_MARTIAL_SOUL, CultivationActionPayload.SWITCH_MARTIAL_SOUL);
         sendOnPress(CultivationKeyMappings.SELECT_NEXT_RING, CultivationActionPayload.SELECT_NEXT_RING);
+        sendOnPress(CultivationKeyMappings.DEMON_EYE, CultivationActionPayload.DEMON_EYE);
+        sendOnPress(CultivationKeyMappings.DEMON_EYE_STRIKE, CultivationActionPayload.DEMON_EYE_STRIKE);
+        sendOnPress(CultivationKeyMappings.SHADOW_STEP, CultivationActionPayload.SHADOW_STEP);
     }
 
     /** Ring caches belong to one world; the next one starts empty. */
