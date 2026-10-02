@@ -50,6 +50,14 @@ public final class GodRelic {
         return data.hasRelicEntitlement(trial);
     }
 
+    /**
+     * Whether a relic's use must be turned away. The client never receives the cultivation data, so
+     * it lets every use through and leaves the decision to the server.
+     */
+    public static boolean refusesUse(final Player player, final GodTrial trial) {
+        return !player.level().isClientSide() && !isEntitled(player, trial);
+    }
+
     /** Whether the weapon the player is swinging is a relic they never earned. */
     public static boolean isUnearnedRelic(final Player player) {
         final GodTrial trial = GodTrial.forRelic(player.getMainHandItem().getItem());

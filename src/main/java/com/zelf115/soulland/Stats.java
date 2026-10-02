@@ -26,6 +26,8 @@ public class Stats {
     private static final double DEFAULT_PLAYER_ARMOR = 0.0;
     private static final double PERCENT = 100.0;
     private static final double PLAYER_MAX_HEALTH_CAP = 1_000_000.0;
+    private static final ResourceLocation REBIRTH_BONUS_ID =
+            ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "rebirth_bonus");
 
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(Registries.ATTRIBUTE, SoulLand.MODID);
@@ -203,14 +205,14 @@ public class Stats {
         final double damageStat = getDamage(player);
         final double defenseStat = getDefense(player);
         final double speedStat = getSpeed(player);
-        final double movementUsage = data.getMovementUsagePercent() / PERCENT;
+        final double usedSpeedStat = speedStat * data.getMovementUsagePercent() / PERCENT;
         setVanillaBaseValue(player, Attributes.MAX_HEALTH, DerivedStats.maxHealth(DEFAULT_PLAYER_MAX_HEALTH, healthStat));
         setVanillaBaseValue(player, Attributes.ATTACK_DAMAGE, DerivedStats.attackDamage(DEFAULT_PLAYER_ATTACK_DAMAGE, damageStat));
         setVanillaBaseValue(player, Attributes.ARMOR, DerivedStats.armor(DEFAULT_PLAYER_ARMOR, defenseStat));
         setVanillaBaseValue(player, Attributes.MOVEMENT_SPEED,
-                DerivedStats.movementSpeed(DEFAULT_PLAYER_MOVEMENT_SPEED, speedStat) * movementUsage);
+                DerivedStats.movementSpeed(DEFAULT_PLAYER_MOVEMENT_SPEED, usedSpeedStat));
         setVanillaBaseValue(player, NeoForgeMod.SWIM_SPEED,
-                DerivedStats.swimSpeed(DEFAULT_PLAYER_SWIM_SPEED, speedStat) * movementUsage);
+                DerivedStats.swimSpeed(DEFAULT_PLAYER_SWIM_SPEED, usedSpeedStat));
         setVanillaBaseValue(player, Attributes.ATTACK_SPEED, DerivedStats.attackSpeed(DEFAULT_PLAYER_ATTACK_SPEED, speedStat));
         if (player.getHealth() > player.getMaxHealth()) {
             player.setHealth(player.getMaxHealth());
@@ -250,6 +252,31 @@ public class Stats {
         putModifier(player, SPEED, id, bonus.speed());
         putModifier(player, SPIRIT, id, bonus.spirit());
         putModifier(player, CULTIVATION_SPEED, id, bonus.cultivationSpeed());
+    }
+
+    /**
+     * Raises every mod stat by {@code fraction} of its final value, replacing the previous rebirth
+     * bonus so repeated rebirths never stack duplicate modifiers.
+     */
+    public static void applyRebirthBonus(final Player player, final double fraction) {
+        for (final Holder<Attribute> attribute : ALL) {
+            final AttributeInstance instance = player.getAttribute(attribute);
+            if (instance != null) {
+                instance.addOrReplacePermanentModifier(new AttributeModifier(REBIRTH_BONUS_ID, fraction,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            }
+        }
+        syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
+    }
+
+    /** Returns every stat the player earned back to what a fresh player starts with, leaving bonuses alone. */
+    public static void resetEarnedStats(final Player player) {
+        for (final Holder<Attribute> attribute : ALL) {
+            final AttributeInstance instance = player.getAttribute(attribute);
+            if (instance != null) {
+                instance.setBaseValue(attribute.value().getDefaultValue());
+            }
+        }
     }
 
     /** Raises a single attribute by a percentage, under an id the caller can take back later. */

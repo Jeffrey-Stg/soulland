@@ -41,7 +41,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
  *   <li>Passive meditation XP gain (player tick)</li>
  *   <li>Spirit-stat boost during bottleneck meditation</li>
  *   <li>Flight ability reapplication on tick</li>
- *   <li>Elytra-like gliding (level 70–89)</li>
  *   <li>Spirit-beast kill XP rewards</li>
  *   <li>Stat-driven damage dealt and taken</li>
  *   <li>Ability restoration on player respawn and login</li>
@@ -65,7 +64,6 @@ public class CultivationEvents {
 
         final int level = data.getLevel();
         CultivationManager.applyFlightAbilities(player, level);
-        CultivationManager.tickElytraGlide(player, level);
 
         if (player.hasEffect(SoulLand.MEDITATION_EFFECT)) {
             tickMeditation(player, data, gameTick);

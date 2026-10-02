@@ -30,7 +30,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class CultivationNetwork {
-    private static final int SPEED_STEP_PERCENT = 10;
+    private static final int SPEED_STEP_PERCENT = 1;
 
     private CultivationNetwork() {
     }

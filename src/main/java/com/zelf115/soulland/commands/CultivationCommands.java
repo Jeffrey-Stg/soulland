@@ -1,9 +1,11 @@
 package com.zelf115.soulland.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
@@ -21,14 +23,17 @@ import com.zelf115.soulland.tournament.TournamentManager;
 import com.zelf115.soulland.trial.GodTrial;
 import com.zelf115.soulland.trial.GodTrialManager;
 import com.zelf115.soulland.trial.TrialTasks;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -48,6 +53,8 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation tournament status|reset} — shows or reopens the daily tournament run</li>
  *   <li>{@code /cultivation techniques [setlevel <technique> <level>]} — shows learned techniques; operators can set a level</li>
  *   <li>{@code /cultivation skillring <skill>} / {@code skillbone <skill>} — operator tools: a ring or bone carrying the named skill</li>
+ *   <li>{@code /cultivation xp add|set <targets> <amount>} — operator tool: grants XP, levelling up until the next gate</li>
+ *   <li>{@code /cultivation level add|set <targets> <level>} — operator tool: moves straight to a level, skipping gates</li>
  * </ul>
  */
 public class CultivationCommands {
@@ -110,6 +117,26 @@ public class CultivationCommands {
                         .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
                         .then(Commands.argument("skill", StringArgumentType.word())
                                 .executes(CultivationCommands::giveSkillBone)))
+                .then(Commands.literal("xp")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.literal("add")
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .then(Commands.argument("amount", DoubleArgumentType.doubleArg(0.0))
+                                                .executes(CultivationCommands::addXp))))
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .then(Commands.argument("amount", DoubleArgumentType.doubleArg(0.0))
+                                                .executes(CultivationCommands::setXp)))))
+                .then(Commands.literal("level")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.literal("add")
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .then(Commands.argument("levels", IntegerArgumentType.integer())
+                                                .executes(CultivationCommands::addLevels))))
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .then(Commands.argument("level", IntegerArgumentType.integer(1, CultivationManager.MAX_LEVEL))
+                                                .executes(CultivationCommands::setLevel)))))
         );
     }
 
@@ -401,5 +428,40 @@ public class CultivationCommands {
         data.setInnateStat(IntegerArgumentType.getInteger(ctx, "value"));
         player.sendSystemMessage(Component.translatable("soulland.cultivation.innate.set", data.getEffectiveInnateStat()));
         return 1;
+    }
+
+    private static int addXp(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final double amount = DoubleArgumentType.getDouble(ctx, "amount");
+        return changeEachTarget(ctx, (player, data) -> CultivationManager.grantXp(player, data, amount));
+    }
+
+    private static int setXp(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final double amount = DoubleArgumentType.getDouble(ctx, "amount");
+        return changeEachTarget(ctx, (player, data) -> {
+            data.setXp(amount);
+            CultivationManager.grantXp(player, data, 0.0);
+        });
+    }
+
+    private static int addLevels(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final int levels = IntegerArgumentType.getInteger(ctx, "levels");
+        return changeEachTarget(ctx, (player, data) -> CultivationManager.forceLevel(player, data, data.getLevel() + levels));
+    }
+
+    private static int setLevel(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final int level = IntegerArgumentType.getInteger(ctx, "level");
+        return changeEachTarget(ctx, (player, data) -> CultivationManager.forceLevel(player, data, level));
+    }
+
+    private static int changeEachTarget(final CommandContext<CommandSourceStack> ctx,
+                                        final BiConsumer<ServerPlayer, CultivationData> change) throws CommandSyntaxException {
+        final Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "targets");
+        for (final ServerPlayer target : targets) {
+            final CultivationData data = target.getData(CultivationAttachment.CULTIVATION_DATA.get());
+            change.accept(target, data);
+            ctx.getSource().sendSuccess(() -> Component.translatable("soulland.cultivation.admin.progress",
+                    target.getDisplayName(), data.getLevel(), String.format(Locale.ROOT, "%.0f", data.getXp())), true);
+        }
+        return targets.size();
     }
 }

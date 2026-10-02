@@ -2,7 +2,13 @@
   "required": true,
   "package": "com.zelf115.soulland.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "LivingEntityMixin",
+    "PlayerMixin"
+  ],
+  "client": [
+    "LocalPlayerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

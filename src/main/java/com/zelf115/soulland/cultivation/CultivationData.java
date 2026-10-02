@@ -31,7 +31,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public static final int MIN_INNATE_STAT = 1;
     public static final int MAX_INNATE_STAT = 20;
     public static final int NEUTRAL_INNATE_STAT = 10;
-    private static final int MIN_MOVEMENT_USAGE_PERCENT = 10;
+    private static final int MIN_MOVEMENT_USAGE_PERCENT = 0;
     private static final int MAX_MOVEMENT_USAGE_PERCENT = 100;
 
     // Current cultivation level (1–120)
@@ -63,8 +63,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private boolean martialSoulCanReachLevel100 = false;
     // Number of times the player has reborn (gate for level 100 as an alternative)
     private int rebirthCount = 0;
-    // Permanent flat bonus applied to all stats, accumulated across rebirths
-    private double permanentBonusStats = 0.0;
     // The god trial undertaken this rebirth; null until an altar starts one
     private GodTrial godTrial;
     // The five tasks rolled when the trial started, in order
@@ -89,8 +87,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private double spiritEnergy = 0.0;
     // Whether the starting spirit energy pool has already been filled once, on first login
     private boolean spiritEnergySeeded = false;
-    // Percentage of the derived movement speed the player wants to actively use
-    private int movementUsagePercent = 100;
+    // Percentage of the Speed stat bonus the player wants to apply to movement and swimming
+    private int movementUsagePercent = MIN_MOVEMENT_USAGE_PERCENT;
     // Innate stat rolled 1–20 when the martial soul is chosen; drives the XP bonus
     private int innateStat = NEUTRAL_INNATE_STAT;
     // How absorbed soul rings are shown
@@ -131,7 +129,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public boolean hasGodInheritance() { return hasGodInheritance; }
     public boolean canMartialSoulReachLevel100() { return martialSoulCanReachLevel100; }
     public int getRebirthCount() { return rebirthCount; }
-    public double getPermanentBonusStats() { return permanentBonusStats; }
     public double getSpiritEnergy() { return spiritEnergy; }
     public boolean isSpiritEnergySeeded() { return spiritEnergySeeded; }
     public int getMovementUsagePercent() { return movementUsagePercent; }
@@ -172,7 +169,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setHasGodInheritance(boolean value) { this.hasGodInheritance = value; }
     public void setMartialSoulCanReachLevel100(final boolean value) { martialSoulCanReachLevel100 = value; }
     public void setRebirthCount(int count) { this.rebirthCount = Math.max(0, count); }
-    public void setPermanentBonusStats(double bonus) { this.permanentBonusStats = bonus; }
     public void setSpiritEnergy(double spiritEnergy) { this.spiritEnergy = Math.max(0.0, spiritEnergy); }
     public void markSpiritEnergySeeded() { this.spiritEnergySeeded = true; }
     public void setRingDisplayMode(RingDisplayMode mode) { this.ringDisplayMode = mode == null ? RingDisplayMode.NONE : mode; }
@@ -318,7 +314,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putBoolean("hasGodInheritance", hasGodInheritance);
         tag.putBoolean("martialSoulCanReachLevel100", martialSoulCanReachLevel100);
         tag.putInt("rebirthCount", rebirthCount);
-        tag.putDouble("permanentBonusStats", permanentBonusStats);
         tag.putDouble("spiritEnergy", spiritEnergy);
         tag.putBoolean("spiritEnergySeeded", spiritEnergySeeded);
         tag.putInt("movementUsagePercent", movementUsagePercent);
@@ -378,10 +373,9 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         hasGodInheritance = tag.getBoolean("hasGodInheritance");
         martialSoulCanReachLevel100 = tag.getBoolean("martialSoulCanReachLevel100");
         rebirthCount = tag.getInt("rebirthCount");
-        permanentBonusStats = tag.getDouble("permanentBonusStats");
         spiritEnergy = Math.max(0.0, tag.getDouble("spiritEnergy"));
         spiritEnergySeeded = tag.getBoolean("spiritEnergySeeded");
-        setMovementUsagePercent(tag.contains("movementUsagePercent") ? tag.getInt("movementUsagePercent") : 100);
+        setMovementUsagePercent(tag.contains("movementUsagePercent") ? tag.getInt("movementUsagePercent") : MIN_MOVEMENT_USAGE_PERCENT);
         setInnateStat(tag.contains("innateStat") ? tag.getInt("innateStat") : NEUTRAL_INNATE_STAT);
         ringDisplayMode = RingDisplayMode.byOrdinal(tag.getInt("ringDisplayMode"));
         externalBoneVisible = !tag.contains("externalBoneVisible") || tag.getBoolean("externalBoneVisible");

@@ -36,6 +36,11 @@ public final class SkillRuntime {
         }
     }
 
+    /** Ends whatever channel or toggle is running. */
+    public void stopSustainedSkill() {
+        sustainedSkill = null;
+    }
+
     public void tick(final Player player, final CultivationData data, final long gameTick) {
         resyncWhenBuffsWearOff(player, data);
         if (sustainedSkill != null && gameTick >= nextPulseTick) {

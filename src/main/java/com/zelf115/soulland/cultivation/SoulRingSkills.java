@@ -116,9 +116,13 @@ public final class SoulRingSkills {
 
     public static void expireBuff(final Player player, final CultivationData data, final long gameTick) {
         if (data.getMartialSoulBuffUntil() > 0 && gameTick >= data.getMartialSoulBuffUntil()) {
-            Stats.removeTemporaryBonus(player, SKILL_BUFF_ID);
-            data.setMartialSoulBuffUntil(0L);
+            endBuff(player, data);
         }
+    }
+
+    public static void endBuff(final Player player, final CultivationData data) {
+        Stats.removeTemporaryBonus(player, SKILL_BUFF_ID);
+        data.setMartialSoulBuffUntil(0L);
     }
 
     private static boolean isPagoda(final MartialSoul soul) {

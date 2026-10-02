@@ -28,7 +28,7 @@ public class SeaGodTridentItem extends TridentItem {
     @Override
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
-        if (!GodRelic.isEntitled(player, GodTrial.SEA_GOD)) {
+        if (GodRelic.refusesUse(player, GodTrial.SEA_GOD)) {
             GodRelic.refuse(player);
             return InteractionResultHolder.fail(stack);
         }
