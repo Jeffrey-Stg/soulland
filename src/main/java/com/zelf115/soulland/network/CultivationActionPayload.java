@@ -28,6 +28,9 @@ public record CultivationActionPayload(int action) implements CustomPacketPayloa
     public static final int DEMON_EYE = 12;
     public static final int DEMON_EYE_STRIKE = 13;
     public static final int SHADOW_STEP = 14;
+    public static final int SELECT_NEXT_BONE = 15;
+    public static final int CAST_BONE_SKILL = 16;
+    public static final int RELEASE_CHANNEL = 17;
 
     @Override
     public Type<CultivationActionPayload> type() {

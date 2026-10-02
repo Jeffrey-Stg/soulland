@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.zelf115.soulland.cultivation.skill.SkillRuntime;
 import com.zelf115.soulland.cultivation.technique.LearnedTechniques;
 import com.zelf115.soulland.spirit.Affinity;
 import com.zelf115.soulland.trial.GodTrial;
@@ -106,6 +107,9 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private SoulSlot activeSoulSlot = SoulSlot.PRIMARY;
     // Index of the ring, inside the active soul's own track, whose skill the cast key uses
     private int selectedRingIndex = 0;
+    // Index, among the bones that carry a castable skill, of the one the bone cast key uses
+    private int selectedBoneIndex = 0;
+    private final SkillRuntime skillRuntime = new SkillRuntime();
     private LearnedTechniques techniques = new LearnedTechniques();
 
     // ---- Getters ----
@@ -142,6 +146,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setMartialSoulBuffUntil(final long tick) { martialSoulBuffUntil = tick; }
     public SoulSlot getActiveSoulSlot() { return activeSoulSlot; }
     public int getSelectedRingIndex() { return selectedRingIndex; }
+    public int getSelectedBoneIndex() { return selectedBoneIndex; }
+    public SkillRuntime getSkillRuntime() { return skillRuntime; }
     public GodTrial getGodTrial() { return godTrial; }
     public List<TrialTask> getGodTrialTasks() { return Collections.unmodifiableList(godTrialTasks); }
     public int getGodTrialTaskIndex() { return godTrialTaskIndex; }
@@ -180,6 +186,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
 
     public void setActiveSoulSlot(final SoulSlot slot) { this.activeSoulSlot = slot == null ? SoulSlot.PRIMARY : slot; }
     public void setSelectedRingIndex(final int index) { this.selectedRingIndex = Math.max(0, index); }
+    public void setSelectedBoneIndex(final int index) { this.selectedBoneIndex = Math.max(0, index); }
 
     public void setGodTrial(final GodTrial trial) { this.godTrial = trial; }
     public void setGodTrialTaskIndex(final int index) { this.godTrialTaskIndex = Math.max(0, index); }
@@ -324,6 +331,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putLong("martialSoulBuffUntil", martialSoulBuffUntil);
         tag.putString("activeSoulSlot", activeSoulSlot.name());
         tag.putInt("selectedRingIndex", selectedRingIndex);
+        tag.putInt("selectedBoneIndex", selectedBoneIndex);
         if (godTrial != null) {
             tag.putString("godTrial", godTrial.name());
         }
@@ -383,6 +391,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         martialSoulBuffUntil = tag.getLong("martialSoulBuffUntil");
         activeSoulSlot = readSoulSlot(tag.getString("activeSoulSlot"));
         selectedRingIndex = Math.max(0, tag.getInt("selectedRingIndex"));
+        selectedBoneIndex = Math.max(0, tag.getInt("selectedBoneIndex"));
         godTrial = readGodTrial(tag);
         readTrialTasks(tag.getList("godTrialTasks", Tag.TAG_COMPOUND));
         godTrialTaskIndex = Math.max(0, tag.getInt("godTrialTaskIndex"));

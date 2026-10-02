@@ -3,6 +3,7 @@ package com.zelf115.soulland.events;
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import com.zelf115.soulland.spirit.SpiritBosses;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -33,6 +34,10 @@ public final class SpiritBeastEvents {
         }
 
         spiritBeast.spawnAtLocation(SpiritBeastManager.createSoulRing(spiritBeast));
+        if (SpiritBosses.isBoss(spiritBeast.getType())) {
+            SpiritBeastManager.createBossBones(spiritBeast).forEach(spiritBeast::spawnAtLocation);
+            return;
+        }
         if (SpiritBeastManager.getTier(spiritBeast) >= SpiritBeastManager.SPIRIT_BONE_MIN_TIER
                 && spiritBeast.getRandom().nextDouble() < SpiritBeastManager.SPIRIT_BONE_DROP_CHANCE) {
             spiritBeast.spawnAtLocation(SpiritBeastManager.createSpiritBone(spiritBeast));

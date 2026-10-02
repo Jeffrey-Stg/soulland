@@ -1,6 +1,8 @@
 package com.zelf115.soulland;
 
+import com.zelf115.soulland.effect.MarkerEffect;
 import com.zelf115.soulland.effect.MeditationEffect;
+import com.zelf115.soulland.effect.SkillBuffEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
 import com.zelf115.soulland.block.GodAltarBlock;
 import com.zelf115.soulland.block.TournamentRegistryBlock;
@@ -21,6 +23,7 @@ import com.zelf115.soulland.item.SeaGodTridentItem;
 import com.zelf115.soulland.item.AlchemyItem;
 import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.item.TechniqueBookItem;
+import com.zelf115.soulland.cultivation.skill.SkillEntities;
 import com.zelf115.soulland.cultivation.technique.Technique;
 import com.zelf115.soulland.menu.SoulLandMenus;
 import com.zelf115.soulland.network.CultivationNetwork;
@@ -32,6 +35,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 import com.zelf115.soulland.feature.SoulLandFeatures;
 import com.zelf115.soulland.qi.QiCommand;
 import com.zelf115.soulland.worldgen.SoulLandRegions;
@@ -166,6 +170,18 @@ public class SoulLand {
     public static final DeferredItem<Item> GHOSTLY_SHADOW_STEP_BOOK = registerTechniqueBook("ghostly_shadow_step_book", Technique.GHOSTLY_SHADOW_STEP);
     public static final DeferredItem<Item> MYSTERIOUS_HAVEN_BOOK = registerTechniqueBook("mysterious_haven_book", Technique.MYSTERIOUS_HAVEN);
     public static final DeferredHolder<MobEffect, MobEffect> MEDITATION_EFFECT = MOB_EFFECTS.register("meditation", MeditationEffect::new);
+    public static final DeferredHolder<MobEffect, MobEffect> SKILL_DEFENSE_EFFECT = MOB_EFFECTS.register("skill_defense",
+            () -> new SkillBuffEffect(0xE8D36B, Stats.DEFENSE, "skill_defense"));
+    public static final DeferredHolder<MobEffect, MobEffect> SKILL_DAMAGE_EFFECT = MOB_EFFECTS.register("skill_damage",
+            () -> new SkillBuffEffect(0xD9534F, Stats.DAMAGE, "skill_damage"));
+    public static final DeferredHolder<MobEffect, MobEffect> SKILL_VENOM_EFFECT = MOB_EFFECTS.register("skill_venom",
+            () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, 0x4E9A06));
+    public static final DeferredHolder<MobEffect, MobEffect> SKILL_FROST_EFFECT = MOB_EFFECTS.register("skill_frost",
+            () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, 0x9AD9F5));
+    public static final DeferredHolder<MobEffect, MobEffect> SKILL_TITAN_FIST_EFFECT = MOB_EFFECTS.register("skill_titan_fist",
+            () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, 0x8B5A2B));
+    public static final DeferredHolder<MobEffect, MobEffect> SUNDERED_EFFECT = MOB_EFFECTS.register("sundered",
+            () -> new MarkerEffect(MobEffectCategory.HARMFUL, 0x5A5A5A));
 
     private static DeferredItem<Item> registerTechniqueBook(final String name, final Technique technique) {
         return ITEMS.register(name, () -> new TechniqueBookItem(technique, new Item.Properties().stacksTo(1)));
@@ -211,6 +227,7 @@ public class SoulLand {
         MOB_EFFECTS.register(modEventBus);
         SpiritBeastEntities.register(modEventBus);
         TournamentEntities.register(modEventBus);
+        SkillEntities.register(modEventBus);
         SoulLandFeatures.FEATURES.register(modEventBus);
         SoulLandRecipes.register(modEventBus);
         SoulLandMenus.register(modEventBus);
@@ -228,6 +245,7 @@ public class SoulLand {
 
     private void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(SoulLandRegions::register);
+        event.enqueueWork(Stats::liftMaxHealthCap);
 
         LOGGER.info("HELLO FROM COMMON SETUP");
 

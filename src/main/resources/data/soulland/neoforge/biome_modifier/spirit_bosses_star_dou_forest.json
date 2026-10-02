@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "soulland:star_dou_forest",
+  "spawners": [
+    { "type": "soulland:skydream_ice_worm", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:three_eyed_golden_lion_boss", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:sky_azure_bull_python", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:titan_giant_ape", "weight": 1, "minCount": 1, "maxCount": 1 }
+  ]
+}

@@ -10,20 +10,28 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.Rebirth;
+import com.zelf115.soulland.cultivation.skill.Skill;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.cultivation.technique.LearnedTechniques;
 import com.zelf115.soulland.cultivation.technique.Technique;
+import com.zelf115.soulland.item.SoulRingItem;
+import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import com.zelf115.soulland.tournament.TournamentManager;
 import com.zelf115.soulland.trial.GodTrial;
 import com.zelf115.soulland.trial.GodTrialManager;
 import com.zelf115.soulland.trial.TrialTasks;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 /**
@@ -39,11 +47,14 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation trial advance|reset|grant <god>} — operator tools for testing trials</li>
  *   <li>{@code /cultivation tournament status|reset} — shows or reopens the daily tournament run</li>
  *   <li>{@code /cultivation techniques [setlevel <technique> <level>]} — shows learned techniques; operators can set a level</li>
+ *   <li>{@code /cultivation skillring <skill>} / {@code skillbone <skill>} — operator tools: a ring or bone carrying the named skill</li>
  * </ul>
  */
 public class CultivationCommands {
 
     private static final int OPERATOR_PERMISSION_LEVEL = 2;
+    private static final int SKILL_ITEM_TIER = 1;
+    private static final String SKILL_BONE_SLOT = "Torso Bone";
 
     public static void register(RegisterCommandsEvent event) {
         register(event.getDispatcher());
@@ -91,6 +102,14 @@ public class CultivationCommands {
                                 .then(Commands.argument("technique", StringArgumentType.word())
                                         .then(Commands.argument("level", IntegerArgumentType.integer(0))
                                                 .executes(CultivationCommands::setTechniqueLevel)))))
+                .then(Commands.literal("skillring")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.argument("skill", StringArgumentType.word())
+                                .executes(CultivationCommands::giveSkillRing)))
+                .then(Commands.literal("skillbone")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.argument("skill", StringArgumentType.word())
+                                .executes(CultivationCommands::giveSkillBone)))
         );
     }
 
@@ -246,6 +265,49 @@ public class CultivationCommands {
                 .setProgress(technique, technique.progressForLevel(level));
         player.sendSystemMessage(Component.translatable("soulland.command.techniques.set", technique.displayName(), level));
         return 1;
+    }
+
+    private static int giveSkillRing(CommandContext<CommandSourceStack> ctx) {
+        return giveSkillItem(ctx, CultivationCommands::youngestTestRing);
+    }
+
+    private static int giveSkillBone(CommandContext<CommandSourceStack> ctx) {
+        return giveSkillItem(ctx, CultivationCommands::youngestTestBone);
+    }
+
+    /** Hands out a ring or bone carrying the named skill, so every skill can be tried without farming drops. */
+    private static int giveSkillItem(CommandContext<CommandSourceStack> ctx, final Supplier<ItemStack> carrier) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final Optional<Skill> skill = Skill.byName(StringArgumentType.getString(ctx, "skill").toUpperCase(Locale.ROOT));
+        if (skill.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("soulland.command.skillitem.unknown"));
+            return 0;
+        }
+
+        final ItemStack item = carrier.get();
+        SkillTag.attach(item, skill.get());
+        player.getInventory().placeItemBackInInventory(item);
+        player.sendSystemMessage(Component.translatable("soulland.command.skillitem.given",
+                item.getHoverName(), skill.get().displayName()));
+        return 1;
+    }
+
+    private static ItemStack youngestTestRing() {
+        final int years = SpiritBeastManager.oldestYearsOfTier(SKILL_ITEM_TIER);
+        return SoulRingItem.create(testSourceName(), SKILL_ITEM_TIER, years,
+                SpiritBeastManager.soulRingBonusForAge(SKILL_ITEM_TIER, years), Set.of());
+    }
+
+    private static ItemStack youngestTestBone() {
+        final int years = SpiritBeastManager.oldestYearsOfTier(SKILL_ITEM_TIER);
+        return SpiritBoneItem.create(testSourceName(), SKILL_BONE_SLOT, SKILL_ITEM_TIER, years,
+                SpiritBeastManager.spiritBoneBonusForAge(SKILL_ITEM_TIER, years));
+    }
+
+    private static String testSourceName() {
+        return Component.translatable("soulland.command.skillitem.source").getString();
     }
 
     private static Technique readTechnique(final String name) {

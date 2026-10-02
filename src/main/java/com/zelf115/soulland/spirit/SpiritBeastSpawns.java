@@ -6,10 +6,12 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
@@ -23,6 +25,8 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  */
 @EventBusSubscriber(modid = SoulLand.MODID)
 public final class SpiritBeastSpawns {
+
+    private static final double BOSS_EXCLUSION_RADIUS = 128.0;
 
     private SpiritBeastSpawns() {
     }
@@ -43,7 +47,7 @@ public final class SpiritBeastSpawns {
         event.register(spiritBeastType,
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                Monster::checkMonsterSpawnRules,
+                aloneIfBoss(spiritBeastType, Monster::checkMonsterSpawnRules),
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
@@ -52,8 +56,22 @@ public final class SpiritBeastSpawns {
         event.register(spiritBeastType,
                 SpawnPlacementTypes.IN_WATER,
                 Heightmap.Types.OCEAN_FLOOR,
-                SpiritBeastSpawns::checkInWaterSpawnRules,
+                aloneIfBoss(spiritBeastType, SpiritBeastSpawns::checkInWaterSpawnRules),
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
+    }
+
+    /** A boss never spawns while another of its kind is still alive nearby. */
+    private static SpawnPlacements.SpawnPredicate<SpiritBeastEntity> aloneIfBoss(
+            final EntityType<SpiritBeastEntity> spiritBeastType, final SpawnPlacements.SpawnPredicate<SpiritBeastEntity> rules) {
+        if (!SpiritBosses.isBoss(spiritBeastType)) return rules;
+        return (type, level, spawnType, pos, random) ->
+                rules.test(type, level, spawnType, pos, random) && hasNoLivingTwin(type, level, pos);
+    }
+
+    private static boolean hasNoLivingTwin(
+            final EntityType<SpiritBeastEntity> bossType, final ServerLevelAccessor level, final BlockPos pos) {
+        return level.getEntitiesOfClass(SpiritBeastEntity.class, new AABB(pos).inflate(BOSS_EXCLUSION_RADIUS),
+                beast -> beast.getType() == bossType).isEmpty();
     }
 
     private static boolean checkInWaterSpawnRules(

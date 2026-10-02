@@ -2,6 +2,8 @@ package com.zelf115.soulland.client;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.network.CultivationActionPayload;
+import java.util.HashSet;
+import java.util.Set;
 import net.minecraft.client.KeyMapping;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -12,6 +14,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = SoulLand.MODID, value = Dist.CLIENT)
 public final class CultivationClientEvents {
+    private static final Set<KeyMapping> HELD_CAST_KEYS = new HashSet<>();
+
     private CultivationClientEvents() {
     }
 
@@ -24,7 +28,9 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.TOGGLE_EXTERNAL_BONE, CultivationActionPayload.TOGGLE_EXTERNAL_BONE);
         sendOnPress(CultivationKeyMappings.ATTEMPT_BREAKTHROUGH, CultivationActionPayload.ATTEMPT_BREAKTHROUGH);
         sendOnPress(CultivationKeyMappings.USE_MARTIAL_SOUL, CultivationActionPayload.USE_MARTIAL_SOUL);
-        sendOnPress(CultivationKeyMappings.CAST_MARTIAL_SOUL, CultivationActionPayload.CAST_MARTIAL_SOUL);
+        sendWhileHeld(CultivationKeyMappings.CAST_MARTIAL_SOUL, CultivationActionPayload.CAST_MARTIAL_SOUL);
+        sendWhileHeld(CultivationKeyMappings.CAST_BONE_SKILL, CultivationActionPayload.CAST_BONE_SKILL);
+        sendOnPress(CultivationKeyMappings.SELECT_NEXT_BONE, CultivationActionPayload.SELECT_NEXT_BONE);
         sendOnPress(CultivationKeyMappings.OPEN_ALCHEMY_MENU, CultivationActionPayload.OPEN_ALCHEMY_MENU);
         sendOnPress(CultivationKeyMappings.OPEN_MARTIAL_SOUL_MENU, CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU);
         sendOnPress(CultivationKeyMappings.SWITCH_MARTIAL_SOUL, CultivationActionPayload.SWITCH_MARTIAL_SOUL);
@@ -44,5 +50,31 @@ public final class CultivationClientEvents {
         while (mapping.consumeClick()) {
             PacketDistributor.sendToServer(new CultivationActionPayload(action));
         }
+    }
+
+    /**
+     * Casts once when the key goes down and releases any channel when it comes up. Clicks while the
+     * key is already held are key repeats, and would otherwise flip a toggle skill on and off.
+     */
+    private static void sendWhileHeld(final KeyMapping mapping, final int pressAction) {
+        final boolean clicked = drainClicks(mapping);
+        if (clicked && !HELD_CAST_KEYS.contains(mapping)) {
+            PacketDistributor.sendToServer(new CultivationActionPayload(pressAction));
+        }
+        if (mapping.isDown()) {
+            HELD_CAST_KEYS.add(mapping);
+            return;
+        }
+        if (HELD_CAST_KEYS.remove(mapping) || clicked) {
+            PacketDistributor.sendToServer(new CultivationActionPayload(CultivationActionPayload.RELEASE_CHANNEL));
+        }
+    }
+
+    private static boolean drainClicks(final KeyMapping mapping) {
+        boolean clicked = false;
+        while (mapping.consumeClick()) {
+            clicked = true;
+        }
+        return clicked;
     }
 }

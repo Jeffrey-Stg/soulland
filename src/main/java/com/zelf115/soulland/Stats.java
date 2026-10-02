@@ -1,6 +1,8 @@
 package com.zelf115.soulland;
 
+import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
+import com.zelf115.soulland.cultivation.skill.PassiveSkills;
 import java.util.List;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -23,6 +25,7 @@ public class Stats {
     private static final double DEFAULT_PLAYER_SWIM_SPEED = 1.0;
     private static final double DEFAULT_PLAYER_ARMOR = 0.0;
     private static final double PERCENT = 100.0;
+    private static final double PLAYER_MAX_HEALTH_CAP = 1_000_000.0;
 
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(Registries.ATTRIBUTE, SoulLand.MODID);
@@ -174,12 +177,21 @@ public class Stats {
         }
     }
 
+    /**
+     * Vanilla stops max health at 1024, which cultivators pass long before their Health stat stops
+     * growing; past it every extra point of Health would silently do nothing.
+     */
+    public static void liftMaxHealthCap() {
+        ((RangedAttribute) Attributes.MAX_HEALTH.value()).maxValue = PLAYER_MAX_HEALTH_CAP;
+    }
+
     public static double getMaxSpiritEnergy(final Player player) {
         return DerivedStats.maxSpiritEnergy(getSpirit(player));
     }
 
     public static double getSpiritEnergyRegenPerSecond(final Player player) {
-        return DerivedStats.spiritEnergyRegenPerSecond(getSpirit(player));
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        return DerivedStats.spiritEnergyRegenPerSecond(getSpirit(player)) * PassiveSkills.spiritRegenMultiplier(data);
     }
 
     public static void syncDerivedPlayerStats(final Player player, final CultivationData data) {

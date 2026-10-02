@@ -69,7 +69,14 @@ public final class AffinitySystem {
             entry("purple_thunder_bear", Affinity.LIGHTNING, Affinity.BEAST),
             entry("yin_yang_chaos_bird", Affinity.LIGHT, Affinity.DARK, Affinity.HOLY, Affinity.DEMONIC, Affinity.BIRD),
             entry("lightning_blue_leopard", Affinity.LIGHTNING),
-            entry("thunder_dragon", Affinity.LIGHTNING, Affinity.DRAGON));
+            entry("thunder_dragon", Affinity.LIGHTNING, Affinity.DRAGON),
+            entry("ice_jade_scorpion_empress", Affinity.INSECT, Affinity.POISON, Affinity.ICE),
+            entry("ice_bear_king", Affinity.ICE, Affinity.BEAST),
+            entry("skydream_ice_worm", Affinity.ICE, Affinity.SPIRIT, Affinity.INSECT),
+            entry("three_eyed_golden_lion_boss", Affinity.LIGHT, Affinity.HOLY, Affinity.SPIRIT, Affinity.BEAST),
+            entry("sky_azure_bull_python", Affinity.LIGHTNING, Affinity.DRAGON, Affinity.BEAST),
+            entry("titan_giant_ape", Affinity.BEAST, Affinity.SPIRIT),
+            entry("evil_spirit_orca_king", Affinity.ICE, Affinity.BEAST, Affinity.DEMONIC));
 
     private AffinitySystem() {
     }

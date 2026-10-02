@@ -2,11 +2,17 @@ package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.StatBonus;
+import com.zelf115.soulland.cultivation.skill.Skill;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
+import com.zelf115.soulland.spirit.SpiritBeastManager;
+import java.util.Optional;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 /** A soul ring the player has absorbed, kept so it can be rendered, re-applied and inspected. */
-public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bonus, SoulSlot slot) {
+public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bonus, SoulSlot slot,
+                           Optional<Skill> skill) {
 
     public static final String SOURCE_NAME_KEY = "SourceName";
     public static final String TIER_KEY = "Tier";
@@ -19,7 +25,8 @@ public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bon
                 tag.getInt(TIER_KEY),
                 tag.getInt(YEARS_KEY),
                 StatBonus.readFrom(tag),
-                readSlot(tag));
+                readSlot(tag),
+                SkillTag.read(tag));
     }
 
     private static SoulSlot readSlot(final CompoundTag tag) {
@@ -40,10 +47,15 @@ public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bon
         tag.putInt(YEARS_KEY, years);
         tag.putString(SLOT_KEY, slot.name());
         bonus.writeTo(tag);
+        SkillTag.write(tag, skill);
         return tag;
     }
 
     /** Stable modifier id for the ring in the given slot of the player ring list. */
+    public Component coloredSourceName() {
+        return SpiritBeastManager.nameInTierColor(sourceName, tier);
+    }
+
     public static ResourceLocation modifierId(final int ringIndex) {
         return ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "soul_ring_" + ringIndex);
     }

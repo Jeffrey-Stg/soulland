@@ -94,6 +94,15 @@ config="${mod_id}.mixins.json"
     ordering="AFTER"
     side="BOTH"
 
+# Overflowing Bars is optional: cultivator health climbs far past vanilla's heart rows, and with it
+# installed the extra rows stack into one bar instead of filling the screen.
+[[dependencies.${mod_id}]]
+    modId="overflowingbars"
+    type="optional"
+    versionRange="${overflowing_bars_version_range}"
+    ordering="NONE"
+    side="CLIENT"
+
 # Here's another dependency
 [[dependencies.${mod_id}]]
     modId="minecraft"

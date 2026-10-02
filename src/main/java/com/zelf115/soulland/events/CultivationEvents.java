@@ -5,6 +5,8 @@ import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
+import com.zelf115.soulland.cultivation.skill.MeleeRiders;
+import com.zelf115.soulland.cultivation.skill.SkillEffects;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
 import com.zelf115.soulland.cultivation.RingDisplaySync;
@@ -215,6 +217,8 @@ public class CultivationEvents {
                 event.setCanceled(true);
                 return;
             }
+            MeleeRiders.applyOnHitEffects(attackingPlayer, victim, event.getSource());
+            updatedAmount += MeleeRiders.consumeSmashBonus(attackingPlayer, event.getSource());
             updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, Stats.getDamage(attackingPlayer));
         } else if (event.getSource().getEntity() instanceof SpiritBeastEntity spiritBeast) {
             SpiritBeastManager.ensureSpiritBeast(spiritBeast);
@@ -222,9 +226,11 @@ public class CultivationEvents {
         }
 
         if (victim instanceof Player defendingPlayer) {
-            updatedAmount = Stats.applyDefenseReduction(updatedAmount, Stats.getDefense(defendingPlayer));
+            updatedAmount = Stats.applyDefenseReduction(updatedAmount,
+                    SkillEffects.defenseAfterSunder(victim, Stats.getDefense(defendingPlayer)));
         } else if (victim instanceof SpiritBeastEntity spiritBeast) {
-            updatedAmount = Stats.applyDefenseReduction(updatedAmount, SpiritBeastManager.getDefenseStat(spiritBeast));
+            updatedAmount = Stats.applyDefenseReduction(updatedAmount,
+                    SkillEffects.defenseAfterSunder(victim, SpiritBeastManager.getDefenseStat(spiritBeast)));
         }
 
         event.setAmount(updatedAmount);

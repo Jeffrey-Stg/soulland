@@ -7,6 +7,7 @@ import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.network.OverreachPromptPayload;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
@@ -78,7 +79,7 @@ public final class SoulRingItem extends Item {
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         switch (result) {
             case ABSORBED -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.absorbed",
-                    data.getAbsorbedRings().get(data.getSoulRingCount() - 1).sourceName(), data.getSoulRingCount()));
+                    data.getAbsorbedRings().get(data.getSoulRingCount() - 1).coloredSourceName(), data.getSoulRingCount()));
             case LEVEL_LIMIT -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.limit",
                     CultivationManager.maxSoulRingCountForLevel(data.getLevel())));
             case SPIRIT_CAPACITY -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.no_capacity"));
@@ -114,6 +115,7 @@ public final class SoulRingItem extends Item {
         }
 
         StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tag.getInt(AbsorbedRing.YEARS_KEY));
+        SkillTag.appendTooltip(tooltipComponents, tag);
         StatBonusTooltip.appendStats(tooltipComponents, StatBonus.readFrom(tag));
     }
 }

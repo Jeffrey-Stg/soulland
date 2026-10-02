@@ -121,6 +121,7 @@ public final class MartialSoulAbility {
             if (data.getSpiritEnergy() <= 0.0) deactivate(player, data);
         }
         SoulRingSkills.expireBuff(player, data, gameTick);
+        data.getSkillRuntime().tick(player, data, gameTick);
     }
 
     public static void cast(final Player player, final CultivationData data) {

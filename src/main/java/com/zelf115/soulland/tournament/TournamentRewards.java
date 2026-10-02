@@ -5,6 +5,7 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import com.zelf115.soulland.spirit.SpiritBosses;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -147,7 +148,7 @@ public final class TournamentRewards {
         final List<EntityType<?>> candidates = new ArrayList<>();
         for (final var holder : SpiritBeastEntities.ALL) {
             final EntityType<?> type = holder.get();
-            if (!SpiritBeastManager.BOSS_BEAST_PATHS.contains(pathOf(type))) {
+            if (!SpiritBosses.paths().contains(pathOf(type))) {
                 candidates.add(type);
             }
         }

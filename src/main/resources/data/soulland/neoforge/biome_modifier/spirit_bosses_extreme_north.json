@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "soulland:extreme_north",
+  "spawners": [
+    { "type": "soulland:ice_jade_scorpion_empress", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:ice_bear_king", "weight": 1, "minCount": 1, "maxCount": 1 }
+  ]
+}

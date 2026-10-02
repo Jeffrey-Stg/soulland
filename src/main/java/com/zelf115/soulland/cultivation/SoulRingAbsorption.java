@@ -2,6 +2,7 @@ package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.spirit.AffinitySystem;
 import java.util.OptionalInt;
 import net.minecraft.core.component.DataComponents;
@@ -141,7 +142,8 @@ public final class SoulRingAbsorption {
     private static void grant(final Player player, final CultivationData data, final ItemStack stack,
                               final CompoundTag tag, final SoulSlot slot) {
         final AbsorbedRing ring = new AbsorbedRing(
-                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag), slot);
+                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag), slot,
+                SkillTag.read(tag));
         data.addRing(ring);
         Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1),
             ring.bonus().scaled(AffinitySystem.ringMultiplier(player, tag)));

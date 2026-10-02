@@ -77,6 +77,14 @@ public final class SpiritBeastEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> LIGHTNING_BLUE_LEOPARD = register("lightning_blue_leopard");
     public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> THUNDER_DRAGON = register("thunder_dragon");
 
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> ICE_JADE_SCORPION_EMPRESS = register("ice_jade_scorpion_empress");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> ICE_BEAR_KING = register("ice_bear_king");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> SKYDREAM_ICE_WORM = register("skydream_ice_worm");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> THREE_EYED_GOLDEN_LION_BOSS = register("three_eyed_golden_lion_boss");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> SKY_AZURE_BULL_PYTHON = register("sky_azure_bull_python");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> TITAN_GIANT_APE = register("titan_giant_ape");
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> EVIL_SPIRIT_ORCA_KING = registerAmphibious("evil_spirit_orca_king");
+
     private SpiritBeastEntities() {
     }
 
