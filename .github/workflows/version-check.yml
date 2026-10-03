@@ -1,0 +1,42 @@
+name: Version Check
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  version-bumped:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare mod_version with the base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          version_of() { grep -E '^mod_version=' | cut -d= -f2 | tr -d '[:space:]'; }
+
+          base_version=$(git show "origin/${BASE_REF}:gradle.properties" | version_of)
+          pr_version=$(version_of < gradle.properties)
+          echo "${BASE_REF}: ${base_version}"
+          echo "This PR: ${pr_version}"
+
+          if [ "${pr_version}" = "${base_version}" ]; then
+            echo "::error file=gradle.properties::mod_version is still ${base_version}. Bump it before merging into ${BASE_REF}."
+            exit 1
+          fi
+
+          highest=$(printf '%s\n%s\n' "${base_version}" "${pr_version}" | sort -V | tail -n 1)
+          if [ "${highest}" != "${pr_version}" ]; then
+            echo "::error file=gradle.properties::mod_version ${pr_version} is lower than ${BASE_REF}'s ${base_version}."
+            exit 1
+          fi
+
+          echo "### Version bumped: ${base_version} → ${pr_version}" >> "$GITHUB_STEP_SUMMARY"
