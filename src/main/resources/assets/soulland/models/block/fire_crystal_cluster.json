@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "ambientocclusion": false,
+  "render_type": "minecraft:cutout",
+  "textures": { "cross": "soulland:block/fire_crystal_cluster" }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XX",
+    "XX"
+  ],
+  "key": {
+    "X": {
+      "item": "soulland:fire_crystal_shard"
+    }
+  },
+  "result": {
+    "id": "soulland:fire_crystal",
+    "count": 1
+  }
+}

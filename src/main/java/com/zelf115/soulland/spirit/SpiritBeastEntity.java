@@ -51,10 +51,20 @@ public class SpiritBeastEntity extends Monster {
         return this.entityData.get(TIER);
     }
 
+    /**
+     * A cultivator sizes up a beast before committing to the fight, so the name tag hangs over
+     * every spirit beast rather than only over the ones someone has named.
+     */
+    @Override
+    public boolean shouldShowName() {
+        return true;
+    }
+
     /** Names the beast in the colour of the soul ring it will drop, so players can judge a fight. */
     @Override
     public Component getDisplayName() {
-        return super.getDisplayName().copy().withStyle(SpiritBeastManager.tierColor(getTier()));
+        return super.getDisplayName().copy()
+                .withStyle(style -> style.withColor(SpiritBeastManager.tierTextColor(getTier())));
     }
 
     @Override

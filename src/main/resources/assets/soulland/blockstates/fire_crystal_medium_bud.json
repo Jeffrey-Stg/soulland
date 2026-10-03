@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down": { "model": "soulland:block/fire_crystal_medium_bud", "x": 180 },
+    "facing=east": { "model": "soulland:block/fire_crystal_medium_bud", "x": 90, "y": 90 },
+    "facing=north": { "model": "soulland:block/fire_crystal_medium_bud", "x": 90 },
+    "facing=south": { "model": "soulland:block/fire_crystal_medium_bud", "x": 90, "y": 180 },
+    "facing=up": { "model": "soulland:block/fire_crystal_medium_bud" },
+    "facing=west": { "model": "soulland:block/fire_crystal_medium_bud", "x": 90, "y": 270 }
+  }
+}

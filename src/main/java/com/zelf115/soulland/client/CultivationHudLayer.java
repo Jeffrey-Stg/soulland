@@ -103,7 +103,7 @@ public final class CultivationHudLayer implements LayeredDraw.Layer {
 
         if (soulBeastName != null) {
             graphics.drawString(font, soulBeastLabel, contentX, y, TEXT_COLOR, true);
-            final int beastColor = SpiritBeastManager.tierColor(hud.soulBeast().tier()).getColor();
+            final int beastColor = SpiritBeastManager.tierTextColor(hud.soulBeast().tier());
             graphics.drawString(font, soulBeastName, contentX + font.width(soulBeastLabel), y, beastColor, true);
         }
     }
@@ -128,7 +128,7 @@ public final class CultivationHudLayer implements LayeredDraw.Layer {
         final int centerY = y + PIP_RADIUS;
         for (int slot = 0; slot < ringTiers.size(); slot++) {
             final int centerX = x + PIP_RADIUS + slot * (PIP_RADIUS * 2 + PIP_GAP);
-            final int color = SpiritBeastManager.tierColor(ringTiers.get(slot)).getColor() | OPAQUE_ALPHA_MASK;
+            final int color = SpiritBeastManager.tierTextColor(ringTiers.get(slot)) | OPAQUE_ALPHA_MASK;
             drawCircle(graphics, centerX, centerY, PIP_RADIUS + 1, BAR_BORDER_COLOR);
             drawCircle(graphics, centerX, centerY, PIP_RADIUS, color);
         }

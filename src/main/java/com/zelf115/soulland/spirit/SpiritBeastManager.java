@@ -7,7 +7,8 @@ import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.ChatFormatting;
+import java.util.Set;
+import java.util.stream.Stream;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -54,6 +55,21 @@ public final class SpiritBeastManager {
     private static final List<String> BODY_BONE_SLOTS = List.of(
             "Torso Bone", "Left Arm Bone", "Right Arm Bone", "Left Leg Bone", "Right Leg Bone");
     private static final String SKULL_BONE_SLOT = "Skull Bone";
+    /** Every bone slot a beast carries inside its body, as opposed to the external bones. */
+    public static final List<String> INTERNAL_BONE_SLOTS = Stream.concat(
+            BODY_BONE_SLOTS.stream(), Stream.of(SKULL_BONE_SLOT)).toList();
+    /** Spread of a single ring stat around what the beast's age and colour earn it. */
+    private static final double MIN_STAT_ROLL = 0.60;
+    private static final double MAX_STAT_ROLL = 1.60;
+    /** Age lifts a ring at most this far above the floor of its colour, so the top end stays finite. */
+    private static final double MIN_AGE_STRENGTH = 1.0;
+    private static final double MAX_AGE_STRENGTH = 4.0;
+    /** Youngest age each tier starts at, in tier order; the inverse of the year roll table. */
+    private static final int[] TIER_YEAR_FLOORS = {1, 100, 1_000, 10_000, 100_000, 200_000, 1_000_000};
+    private static final int LOWEST_TIER = 1;
+    /** Beasts whose bones are boss loot, so no other source may hand them out. */
+    public static final Set<String> BOSS_BEAST_PATHS = Set.of(
+            "ice_jade_scorpion", "ice_bear", "evil_spirit_orca", "three_eyed_golden_lion");
     /** The external spirit bone each of these named beasts carries, keyed by entity path. */
     private static final Map<String, String> EXTERNAL_BONE_BY_BEAST = Map.of(
             "ice_jade_scorpion", "Ice Jade Tail",
@@ -143,9 +159,71 @@ public final class SpiritBeastManager {
     public static ItemStack createSoulRing(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
         final int tier = data.getInt(TIER_KEY);
-        final StatBonus bonus = statsOf(data).scaled(SOUL_RING_STRENGTH_SHARE)
+        final int years = data.getInt(YEARS_KEY);
+        final StatBonus bonus = rolledPerStat(
+                statsOf(data).scaled(SOUL_RING_STRENGTH_SHARE * ageStrength(years, tier)), monster.getRandom())
                 .withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
-        return SoulRingItem.create(beastName(monster), tier, data.getInt(YEARS_KEY), bonus);
+        return SoulRingItem.create(beastName(monster), tier, years, bonus,
+            AffinitySystem.affinitiesOf(monster));
+    }
+
+    /**
+     * How much the beast's own age lifts the ring above the floor of its colour.
+     *
+     * <p>Combat stats stop climbing at the configured level ceiling, which would otherwise make the
+     * ring off a million-year beast identical to one off a beast a tenth its age. The ring reads the
+     * raw years instead, so within a colour the elder beast always yields the better ring.
+     */
+    private static double ageStrength(final int years, final int tier) {
+        final int band = Math.max(LOWEST_TIER, Math.min(TIER_YEAR_FLOORS.length, tier));
+        final double floor = TIER_YEAR_FLOORS[band - 1];
+        final double span = Math.max(1.0, oldestYearsOfTier(band) - floor);
+        final double throughBand = Math.max(0.0, Math.min(1.0, (years - floor) / span));
+        return MIN_AGE_STRENGTH + (MAX_AGE_STRENGTH - MIN_AGE_STRENGTH) * throughBand;
+    }
+
+    /**
+     * Rolls each stat of the ring separately, so two rings of one colour and age are still worth
+     * comparing rather than being the same ring twice.
+     */
+    private static StatBonus rolledPerStat(final StatBonus bonus, final RandomSource random) {
+        return new StatBonus(
+                roll(bonus.damage(), random),
+                roll(bonus.health(), random),
+                roll(bonus.defense(), random),
+                roll(bonus.speed(), random),
+                roll(bonus.spirit(), random),
+                bonus.cultivationSpeed());
+    }
+
+    private static double roll(final double statValue, final RandomSource random) {
+        return statValue * (MIN_STAT_ROLL + random.nextDouble() * (MAX_STAT_ROLL - MIN_STAT_ROLL));
+    }
+
+    /**
+     * The strength of a ring that was never cut from a living beast, priced as if it had been taken
+     * from one of that colour and age.
+     */
+    public static StatBonus soulRingBonusForAge(final int tier, final int years) {
+        final double stat = grownStat(BASE_SPIRIT_STAT, effectiveLevelForYears(years), tier);
+        return new StatBonus(stat, stat, stat, stat, stat, 0.0)
+                .scaled(SOUL_RING_STRENGTH_SHARE * ageStrength(years, tier))
+                .withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
+    }
+
+    /** The strength of a bone that came from no particular beast, priced by colour and age. */
+    public static StatBonus spiritBoneBonusForAge(final int tier, final int years) {
+        final double stat = grownStat(BASE_SPIRIT_STAT, effectiveLevelForYears(years), tier);
+        return new StatBonus(stat, stat, stat, stat, stat, 0.0).scaled(SPIRIT_BONE_STRENGTH_SHARE);
+    }
+
+    /** The greatest age a beast of this colour reaches; the top colour is open-ended, so it returns its floor. */
+    public static int oldestYearsOfTier(final int tier) {
+        final int index = Math.max(LOWEST_TIER, Math.min(TIER_YEAR_FLOORS.length, tier)) - 1;
+        if (index + 1 >= TIER_YEAR_FLOORS.length) {
+            return TIER_YEAR_FLOORS[index];
+        }
+        return TIER_YEAR_FLOORS[index + 1] - 1;
     }
 
     public static ItemStack createSpiritBone(final SpiritBeastEntity monster) {
@@ -159,6 +237,21 @@ public final class SpiritBeastManager {
         return monster.getPersistentData().getInt(TIER_KEY);
     }
 
+    public static int getYears(final SpiritBeastEntity monster) {
+        return monster.getPersistentData().getInt(YEARS_KEY);
+    }
+
+    /** The colour a beast of this age carries, the inverse of the tier year bands. */
+    public static int tierForYears(final int years) {
+        int tier = LOWEST_TIER;
+        for (int index = 0; index < TIER_YEAR_FLOORS.length; index++) {
+            if (years >= TIER_YEAR_FLOORS[index]) {
+                tier = index + 1;
+            }
+        }
+        return tier;
+    }
+
     public static double getDamageStat(final SpiritBeastEntity monster) {
         return monster.getPersistentData().getDouble(DAMAGE_STAT_KEY);
     }
@@ -167,16 +260,20 @@ public final class SpiritBeastManager {
         return monster.getPersistentData().getDouble(DEFENSE_STAT_KEY);
     }
 
-    public static ChatFormatting tierColor(final int tier) {
-        return switch (tier) {
-            case 1 -> ChatFormatting.WHITE;
-            case 2 -> ChatFormatting.YELLOW;
-            case 3 -> ChatFormatting.DARK_PURPLE;
-            case 4 -> ChatFormatting.DARK_GRAY;
-            case 5 -> ChatFormatting.RED;
-            case 6 -> ChatFormatting.GOLD;
-            default -> ChatFormatting.AQUA;
-        };
+    /**
+     * The colour of the soul ring each age band drops, as exact text colours.
+     *
+     * <p>Chat formatting has no orange and only one gold, which would have left the two oldest
+     * bands indistinguishable, so the bands carry their own colours instead. Black is lightened
+     * enough to stay readable against a name tag's dark backing.
+     */
+    private static final int[] TIER_TEXT_COLORS = {
+            0xFFFFFF, 0xFFE14F, 0xB44BFF, 0x70707E, 0xFF4B4B, 0xFF9A2E, 0xFFD24A};
+
+    /** The text colour for an age band, matching the ring a beast of that band drops. */
+    public static int tierTextColor(final int tier) {
+        final int index = Math.max(LOWEST_TIER, Math.min(TIER_TEXT_COLORS.length, tier)) - 1;
+        return TIER_TEXT_COLORS[index];
     }
 
     public static String describeTier(final int tier) {

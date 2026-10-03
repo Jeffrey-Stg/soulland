@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/bucket",
+  "textures": {
+    "layer0": "soulland:item/cyan_water_bucket"
+  }
+}

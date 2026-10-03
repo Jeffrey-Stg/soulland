@@ -6,10 +6,17 @@ import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.MartialSoulAbility;
+import com.zelf115.soulland.cultivation.RingDisplaySync;
+import com.zelf115.soulland.item.GodRelic;
+import com.zelf115.soulland.item.MartialSoulSwordItem;
 import com.zelf115.soulland.network.HudSyncPayload;
 import com.zelf115.soulland.qi.QiManager;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import com.zelf115.soulland.tournament.SoulMasterEntity;
+import com.zelf115.soulland.tournament.TournamentManager;
+import com.zelf115.soulland.trial.GodTrialManager;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -48,6 +56,7 @@ public class CultivationEvents {
 
         Stats.syncDerivedPlayerStats(player, data);
         regenerateSpiritEnergy(player, data);
+        MartialSoulAbility.tick(player, data, gameTick);
 
         final int level = data.getLevel();
         CultivationManager.applyFlightAbilities(player, level);
@@ -63,6 +72,8 @@ public class CultivationEvents {
     }
 
     private static void syncHud(final ServerPlayer player, final CultivationData data) {
+        // The player's own panel shows every ring they hold. visibleRings() is the choice of what
+        // other players get to see, and it starts out hidden, which would leave this panel blank.
         final List<AbsorbedRing> rings = data.getAbsorbedRings();
         final AbsorbedRing currentRing = rings.isEmpty() ? null : rings.get(rings.size() - 1);
         final List<Integer> ringTiers = rings.stream().map(AbsorbedRing::tier).toList();
@@ -82,6 +93,16 @@ public class CultivationEvents {
     public static void onLivingDeath(LivingDeathEvent event) {
         final LivingEntity victim = event.getEntity();
 
+        if (victim instanceof SoulMasterEntity opponent) {
+            recordTournamentResult(event, opponent);
+            return;
+        }
+        if (victim instanceof ServerPlayer fallenChallenger) {
+            TournamentManager.recordChallengerDefeat(fallenChallenger,
+                    fallenChallenger.getData(CultivationAttachment.CULTIVATION_DATA.get()));
+            return;
+        }
+
         // Only reward XP for registered spirit beasts.
         if (!(victim instanceof SpiritBeastEntity spiritBeast)) return;
 
@@ -94,6 +115,31 @@ public class CultivationEvents {
                 data.getLevel(), data.getPlayerTier(), SpiritBeastManager.getTier(spiritBeast));
 
         CultivationManager.grantXp(player, data, xpReward * baseXpMultiplier(player, data));
+        if (player instanceof ServerPlayer serverPlayer) {
+            GodTrialManager.recordBeastKill(serverPlayer, data, spiritBeast);
+        }
+    }
+
+    /** Only the challenger who was sent this opponent may claim the round. */
+    private static void recordTournamentResult(final LivingDeathEvent event, final SoulMasterEntity opponent) {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
+        if (!player.getUUID().equals(opponent.getChallengerId())) return;
+
+        TournamentManager.recordOpponentDefeat(player, player.getData(CultivationAttachment.CULTIVATION_DATA.get()),
+                opponent);
+    }
+
+    /**
+     * A martial soul's tool isn't loot: dying deactivates the ability instead of dropping it.
+     */
+    @SubscribeEvent
+    public static void onLivingDrops(final LivingDropsEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        if (!data.isMartialSoulActive()) return;
+
+        event.getDrops().removeIf(itemEntity -> itemEntity.getItem().getItem() instanceof MartialSoulSwordItem);
+        MartialSoulAbility.forceDeactivate(player, data);
     }
 
     /**
@@ -106,6 +152,11 @@ public class CultivationEvents {
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         CultivationManager.applyFlightAbilities(player, data.getLevel());
         Stats.syncDerivedPlayerStats(player, data);
+
+        if (!data.isSpiritEnergySeeded()) {
+            data.setSpiritEnergy(Stats.getMaxSpiritEnergy(player));
+            data.markSpiritEnergySeeded();
+        }
     }
 
     /**
@@ -120,12 +171,47 @@ public class CultivationEvents {
         Stats.syncDerivedPlayerStats(player, data);
     }
 
+    /** A viewer who just started rendering a player needs that player's rings straight away. */
+    @SubscribeEvent
+    public static void onStartTracking(final PlayerEvent.StartTracking event) {
+        if (event.getEntity() instanceof ServerPlayer viewer && event.getTarget() instanceof ServerPlayer subject) {
+            RingDisplaySync.sendTo(viewer, subject);
+        }
+    }
+
+    /** A fresh client, a respawned body and a new dimension all begin with an empty ring cache. */
+    @SubscribeEvent
+    public static void onLoginSyncRings(final PlayerEvent.PlayerLoggedInEvent event) {
+        broadcastRings(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onRespawnSyncRings(final PlayerEvent.PlayerRespawnEvent event) {
+        broadcastRings(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onChangedDimensionSyncRings(final PlayerEvent.PlayerChangedDimensionEvent event) {
+        broadcastRings(event.getEntity());
+    }
+
+    private static void broadcastRings(final Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            RingDisplaySync.broadcast(serverPlayer);
+        }
+    }
+
     @SubscribeEvent
     public static void onLivingIncomingDamage(final LivingIncomingDamageEvent event) {
         final LivingEntity victim = event.getEntity();
         float updatedAmount = event.getAmount();
 
         if (event.getSource().getEntity() instanceof Player attackingPlayer) {
+            if (GodRelic.isUnearnedRelic(attackingPlayer)) {
+                GodRelic.refuse(attackingPlayer);
+                event.setCanceled(true);
+                return;
+            }
             updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, Stats.getDamage(attackingPlayer));
         } else if (event.getSource().getEntity() instanceof SpiritBeastEntity spiritBeast) {
             SpiritBeastManager.ensureSpiritBeast(spiritBeast);

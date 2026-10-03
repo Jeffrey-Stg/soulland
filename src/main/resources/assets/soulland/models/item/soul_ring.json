@@ -1,6 +1,44 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/ender_pearl"
-  }
+    "layer0": "soulland:item/soul_ring_white"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "soulland:soul_ring_years": 100
+      },
+      "model": "soulland:item/soul_ring_yellow"
+    },
+    {
+      "predicate": {
+        "soulland:soul_ring_years": 1000
+      },
+      "model": "soulland:item/soul_ring_purple"
+    },
+    {
+      "predicate": {
+        "soulland:soul_ring_years": 10000
+      },
+      "model": "soulland:item/soul_ring_black"
+    },
+    {
+      "predicate": {
+        "soulland:soul_ring_years": 100000
+      },
+      "model": "soulland:item/soul_ring_red"
+    },
+    {
+      "predicate": {
+        "soulland:soul_ring_years": 200000
+      },
+      "model": "soulland:item/soul_ring_orange"
+    },
+    {
+      "predicate": {
+        "soulland:soul_ring_years": 1000000
+      },
+      "model": "soulland:item/soul_ring_gold"
+    }
+  ]
 }

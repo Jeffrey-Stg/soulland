@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XX",
+    "XX"
+  ],
+  "key": {
+    "X": {
+      "item": "soulland:ice_crystal_shard"
+    }
+  },
+  "result": {
+    "id": "soulland:ice_crystal",
+    "count": 1
+  }
+}

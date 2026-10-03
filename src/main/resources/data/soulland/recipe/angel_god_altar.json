@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["DDD", "DXD", "DDD"],
+  "key": {
+    "D": {"item": "minecraft:diamond"},
+    "X": {"item": "minecraft:feather"}
+  },
+  "result": {"id": "soulland:angel_god_altar", "count": 1}
+}

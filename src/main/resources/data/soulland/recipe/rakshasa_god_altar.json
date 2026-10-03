@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["DDD", "DXD", "DDD"],
+  "key": {
+    "D": {"item": "minecraft:diamond"},
+    "X": {"item": "minecraft:spider_eye"}
+  },
+  "result": {"id": "soulland:rakshasa_god_altar", "count": 1}
+}

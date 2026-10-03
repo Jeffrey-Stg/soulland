@@ -38,6 +38,8 @@ public class BreakthroughManager {
     public static final int FAILURE_COOLDOWN_TICKS = 20 * 60 * 5;
     /** Lowest damage the heavenly lightning can roll. */
     private static final float MIN_LIGHTNING_DAMAGE = 1.0F;
+    /** The twin-soul chance is only rolled after the first two breakthroughs. */
+    private static final int TWIN_SOUL_ROLL_BREAKTHROUGH_LIMIT = 2;
 
     // ---- Shared Preconditions ----
 
@@ -84,7 +86,7 @@ public class BreakthroughManager {
 
     /** Level 100 opens to a god inheritance or to anyone who has reborn at least once. */
     private static boolean hasLevel100Path(final CultivationData data) {
-        return data.hasGodInheritance() || data.getRebirthCount() >= 1;
+        return data.hasGodInheritance() || data.getRebirthCount() >= 1 || data.canMartialSoulReachLevel100();
     }
 
     /**
@@ -194,8 +196,14 @@ public class BreakthroughManager {
         final int newLevel = gateLevel + 1;
         data.setLevel(newLevel);
         data.setInBottleneck(false);
+        final int breakthroughsSoFar = data.getSuccessfulBreakthroughCount() + 1;
+        data.setSuccessfulBreakthroughCount(breakthroughsSoFar);
+        if (breakthroughsSoFar <= TWIN_SOUL_ROLL_BREAKTHROUGH_LIMIT) {
+            com.zelf115.soulland.spirit.AffinitySystem.rollTwinSoulChance(player, data);
+        }
         CultivationManager.applyBreakthroughStats(player, newLevel);
         CultivationManager.applyFlightAbilities(player, newLevel);
+        MartialSoulEvolution.tryEvolve(player, data);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.breakthrough.success", newLevel));
         CultivationManager.grantXp(player, data, 0.0);
     }

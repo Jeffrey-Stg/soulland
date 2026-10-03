@@ -37,6 +37,10 @@ public final class DerivedStats {
         return baseMovementSpeed * (1.0 + speedStat / (SPEED_POINTS_PER_MOVE_PERCENT * PERCENT));
     }
 
+    public static double swimSpeed(final double baseSwimSpeed, final double speedStat) {
+        return baseSwimSpeed * (1.0 + speedStat / (SPEED_POINTS_PER_MOVE_PERCENT * PERCENT));
+    }
+
     public static double attackSpeed(final double baseAttackSpeed, final double speedStat) {
         return baseAttackSpeed * (1.0 + bonusFraction(speedStat));
     }

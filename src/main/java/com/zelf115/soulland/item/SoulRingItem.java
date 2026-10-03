@@ -10,6 +10,9 @@ import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.network.OverreachPromptPayload;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
+import com.zelf115.soulland.spirit.Affinity;
+import com.zelf115.soulland.spirit.AffinitySystem;
+import java.util.Set;
 import java.util.List;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -33,15 +36,21 @@ public final class SoulRingItem extends Item {
     }
 
     public static ItemStack create(final String sourceName, final int tier, final int years, final StatBonus bonus) {
+        return create(sourceName, tier, years, bonus, Set.of());
+    }
+
+    public static ItemStack create(final String sourceName, final int tier, final int years, final StatBonus bonus,
+                                   final Set<Affinity> affinities) {
         final ItemStack stack = new ItemStack(SoulLand.SOUL_RING_ITEM.get());
         final CompoundTag tag = new CompoundTag();
         tag.putString("SourceName", sourceName);
         tag.putInt("Tier", tier);
         tag.putInt("Years", years);
+        AffinitySystem.writeRingAffinities(tag, affinities);
         bonus.writeTo(tag);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         stack.set(DataComponents.CUSTOM_NAME, Component.literal(SpiritBeastManager.describeTier(tier) + " Soul Ring")
-                .withStyle(SpiritBeastManager.tierColor(tier)));
+                .withStyle(style -> style.withColor(SpiritBeastManager.tierTextColor(tier))));
         return stack;
     }
 

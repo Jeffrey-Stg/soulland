@@ -2,8 +2,11 @@ package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.spirit.AffinitySystem;
+import java.util.OptionalInt;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -41,7 +44,8 @@ public final class SoulRingAbsorption {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        if (data.getSoulRingCount() >= CultivationManager.maxSoulRingCountForLevel(data.getLevel())) {
+        final SoulSlot slot = resolveSlotForNewRing(data);
+        if (slot == null) {
             return Result.LEVEL_LIMIT;
         }
 
@@ -54,8 +58,33 @@ public final class SoulRingAbsorption {
             return Result.SPIRIT_CAPACITY;
         }
 
-        grant(player, data, stack, tag);
+        grant(player, data, stack, tag, slot);
         return Result.ABSORBED;
+    }
+
+    /** Rings fill the primary track first, then the secondary one, each up to its own cap. */
+    private static SoulSlot resolveSlotForNewRing(final CultivationData data) {
+        if (data.getRingCount(SoulSlot.PRIMARY) < ringCapFor(data.getMartialSoul(), data.getLevel())) {
+            return SoulSlot.PRIMARY;
+        }
+        if (data.getSecondaryMartialSoul() != null
+                && data.getRingCount(SoulSlot.SECONDARY) < ringCapFor(data.getSecondaryMartialSoul(), data.getLevel())) {
+            return SoulSlot.SECONDARY;
+        }
+        return null;
+    }
+
+    /**
+     * How many rings one soul's own track may hold. A soul that caps its track lowers the level
+     * gate but never lifts it, so the ten-level rhythm still decides when the next ring may be taken.
+     */
+    public static int ringCapFor(final MartialSoul soul, final int level) {
+        final int levelCap = CultivationManager.maxSoulRingCountForLevel(level);
+        if (soul == null) {
+            return levelCap;
+        }
+        final OptionalInt override = soul.ringCapOverride();
+        return override.isPresent() ? Math.min(override.getAsInt(), levelCap) : levelCap;
     }
 
     /**
@@ -70,7 +99,8 @@ public final class SoulRingAbsorption {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        if (data.getSoulRingCount() >= CultivationManager.maxSoulRingCountForLevel(data.getLevel())) {
+        final SoulSlot slot = resolveSlotForNewRing(data);
+        if (slot == null) {
             return Result.LEVEL_LIMIT;
         }
 
@@ -88,7 +118,7 @@ public final class SoulRingAbsorption {
             return Result.OVERREACH_FAILED;
         }
 
-        grant(player, data, stack, tag);
+        grant(player, data, stack, tag, slot);
         return Result.ABSORBED;
     }
 
@@ -109,12 +139,17 @@ public final class SoulRingAbsorption {
     }
 
     private static void grant(final Player player, final CultivationData data, final ItemStack stack,
-                              final CompoundTag tag) {
+                              final CompoundTag tag, final SoulSlot slot) {
         final AbsorbedRing ring = new AbsorbedRing(
-                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag));
+                tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag), slot);
         data.addRing(ring);
-        Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1), ring.bonus());
+        Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1),
+            ring.bonus().scaled(AffinitySystem.ringMultiplier(player, tag)));
+        MartialSoulEvolution.tryEvolve(player, data);
         Stats.syncDerivedPlayerStats(player, data);
+        if (player instanceof ServerPlayer serverPlayer) {
+            RingDisplaySync.broadcast(serverPlayer);
+        }
         destroy(stack);
     }
 

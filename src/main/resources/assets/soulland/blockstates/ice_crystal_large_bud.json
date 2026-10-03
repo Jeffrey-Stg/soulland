@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down": { "model": "soulland:block/ice_crystal_large_bud", "x": 180 },
+    "facing=east": { "model": "soulland:block/ice_crystal_large_bud", "x": 90, "y": 90 },
+    "facing=north": { "model": "soulland:block/ice_crystal_large_bud", "x": 90 },
+    "facing=south": { "model": "soulland:block/ice_crystal_large_bud", "x": 90, "y": 180 },
+    "facing=up": { "model": "soulland:block/ice_crystal_large_bud" },
+    "facing=west": { "model": "soulland:block/ice_crystal_large_bud", "x": 90, "y": 270 }
+  }
+}
