@@ -364,6 +364,7 @@
   "key.soulland.demon_eye": "Purple Demon Eye",
   "key.soulland.demon_eye_strike": "Demon Eye Strike",
   "key.soulland.shadow_step": "Shadow Step",
+  "key.soulland.toggle_hud": "Toggle Cultivation HUD",
   "soulland.command.techniques.none": "You have not learned any techniques.",
   "soulland.command.techniques.entry": "%s: level %s / %s (%s%% to next)",
   "soulland.command.techniques.unknown": "Unknown technique. Use purple_demon_eye, ghostly_shadow_step or mysterious_haven.",

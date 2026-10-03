@@ -2,10 +2,10 @@
   "type": "neoforge:add_spawns",
   "biomes": "#minecraft:is_deep_ocean",
   "spawners": [
-    { "type": "soulland:demon_white_shark", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:evil_spirit_orca", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:nine_knot_ichthyosaur", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:giant_octopus", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:titanohippo", "weight": 1, "minCount": 1, "maxCount": 1 }
+    { "type": "soulland:demon_white_shark", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:evil_spirit_orca", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:nine_knot_ichthyosaur", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:giant_octopus", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:titanohippo", "weight": 10, "minCount": 1, "maxCount": 3 }
   ]
 }

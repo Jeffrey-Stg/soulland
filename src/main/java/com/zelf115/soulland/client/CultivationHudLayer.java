@@ -48,13 +48,19 @@ public final class CultivationHudLayer implements LayeredDraw.Layer {
     /** How much of the remaining distance to target a bar's fill closes per second of real time. */
     private static final double BAR_SMOOTHING_SPEED = 10.0;
 
+    private static volatile boolean hidden = false;
+
     private double xpDisplayedFraction = 0.0;
     private double spiritDisplayedFraction = 0.0;
+
+    public static void toggleVisibility() {
+        hidden = !hidden;
+    }
 
     @Override
     public void render(final GuiGraphics graphics, final DeltaTracker deltaTracker) {
         final HudSyncPayload hud = HudClientData.latest();
-        if (hud == null) {
+        if (hidden || hud == null) {
             return;
         }
 

@@ -38,6 +38,7 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.DEMON_EYE, CultivationActionPayload.DEMON_EYE);
         sendOnPress(CultivationKeyMappings.DEMON_EYE_STRIKE, CultivationActionPayload.DEMON_EYE_STRIKE);
         sendOnPress(CultivationKeyMappings.SHADOW_STEP, CultivationActionPayload.SHADOW_STEP);
+        toggleHudOnPress();
     }
 
     /** Ring and HUD caches belong to one world; the next one starts empty, so glide never reads a stale level. */
@@ -45,6 +46,12 @@ public final class CultivationClientEvents {
     public static void onLoggingOut(final ClientPlayerNetworkEvent.LoggingOut event) {
         RingDisplayClientData.clear();
         HudClientData.clear();
+    }
+
+    private static void toggleHudOnPress() {
+        while (CultivationKeyMappings.TOGGLE_HUD.consumeClick()) {
+            CultivationHudLayer.toggleVisibility();
+        }
     }
 
     private static void sendOnPress(final KeyMapping mapping, final int action) {
