@@ -35,6 +35,8 @@ public final class SkillEffects {
     private static final double AREA_EDGE_HEIGHT = 0.2;
     /** Slowness this strong roots a creature in place, which is what freezing and binding mean here. */
     private static final int FREEZE_AMPLIFIER = 19;
+    /** Effect levels are saved as an unsigned byte; a higher amplifier makes the holder's save fail. */
+    private static final int MAX_AMPLIFIER = 255;
 
     private SkillEffects() {
     }
@@ -120,7 +122,7 @@ public final class SkillEffects {
                              final int seconds) {
         final Player caster = cast.caster();
         final int points = (int) Math.round(cast.scaledBySpirit(amount));
-        caster.addEffect(new MobEffectInstance(effect, spiritScaledTicks(cast, seconds), Math.max(0, points - 1)));
+        caster.addEffect(new MobEffectInstance(effect, spiritScaledTicks(cast, seconds), amplifierForLevels(points)));
         Stats.syncDerivedPlayerStats(caster, caster.getData(CultivationAttachment.CULTIVATION_DATA.get()));
         return true;
     }
@@ -128,7 +130,7 @@ public final class SkillEffects {
     /** A status effect whose level and length both grow with the caster's spirit, starting from level I. */
     static void applyStatus(final SkillCast cast, final LivingEntity target, final Holder<MobEffect> effect,
                             final int seconds) {
-        final int amplifier = Math.max(0, (int) Math.round(cast.scaledBySpirit(1.0)) - 1);
+        final int amplifier = amplifierForLevels((int) Math.round(cast.scaledBySpirit(1.0)));
         target.addEffect(new MobEffectInstance(effect, spiritScaledTicks(cast, seconds), amplifier), cast.caster());
     }
 
@@ -160,6 +162,11 @@ public final class SkillEffects {
         bolt.moveTo(target.position());
         bolt.setVisualOnly(true);
         caster.level().addFreshEntity(bolt);
+    }
+
+    /** The amplifier that gives an effect this many levels, kept within what an effect can save. */
+    static int amplifierForLevels(final int levels) {
+        return Math.clamp(levels - 1L, 0, MAX_AMPLIFIER);
     }
 
     static int ticks(final int seconds) {

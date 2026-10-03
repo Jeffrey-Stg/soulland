@@ -40,10 +40,11 @@ public final class CultivationClientEvents {
         sendOnPress(CultivationKeyMappings.SHADOW_STEP, CultivationActionPayload.SHADOW_STEP);
     }
 
-    /** Ring caches belong to one world; the next one starts empty. */
+    /** Ring and HUD caches belong to one world; the next one starts empty, so glide never reads a stale level. */
     @SubscribeEvent
     public static void onLoggingOut(final ClientPlayerNetworkEvent.LoggingOut event) {
         RingDisplayClientData.clear();
+        HudClientData.clear();
     }
 
     private static void sendOnPress(final KeyMapping mapping, final int action) {

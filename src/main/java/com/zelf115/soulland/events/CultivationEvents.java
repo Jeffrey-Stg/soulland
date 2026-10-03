@@ -250,14 +250,14 @@ public class CultivationEvents {
         final double xpGain = CultivationManager.MEDITATION_XP_PER_TICK
                 * meditationXpMultiplier(player, data);
 
-        if (!data.isInBottleneck()) {
-            CultivationManager.grantXp(player, data, xpGain);
+        final boolean wasInBottleneck = data.isInBottleneck();
+        CultivationManager.grantXp(player, data, xpGain);
+        if (!wasInBottleneck) {
             return;
         }
 
         // During a bottleneck XP still banks for the post-breakthrough cascade, but of the stats
         // only Spirit grows, and only once a minute.
-        CultivationManager.grantXp(player, data, xpGain);
         if (gameTick - data.getLastSpiritTick() >= CultivationManager.TICKS_PER_MINUTE) {
             data.setLastSpiritTick(gameTick);
             Stats.addSpirit(player, CultivationManager.SPIRIT_BOTTLENECK_INCREASE_PER_MINUTE);

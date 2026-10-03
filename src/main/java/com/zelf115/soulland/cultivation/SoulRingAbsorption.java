@@ -63,8 +63,12 @@ public final class SoulRingAbsorption {
         return Result.ABSORBED;
     }
 
-    /** Rings fill the primary track first, then the secondary one, each up to its own cap. */
-    private static SoulSlot resolveSlotForNewRing(final CultivationData data) {
+    /**
+     * Rings fill the primary track first, then the secondary one, each up to its own cap.
+     *
+     * @return the track the next ring joins, or null when both are full
+     */
+    public static SoulSlot resolveSlotForNewRing(final CultivationData data) {
         if (data.getRingCount(SoulSlot.PRIMARY) < ringCapFor(data.getMartialSoul(), data.getLevel())) {
             return SoulSlot.PRIMARY;
         }

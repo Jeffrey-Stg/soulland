@@ -6,7 +6,6 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.cultivation.SoulRingCapacity;
-import com.zelf115.soulland.cultivation.SoulSlot;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.spirit.Affinity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
@@ -93,9 +92,7 @@ public final class GodTrialRewards {
 
     private static boolean hasOpenRingSlot(final ServerPlayer player, final CultivationData data) {
         final int tier = SoulRingCapacity.maxAbsorbableTier(Stats.getSpirit(player));
-        final SoulSlot slot = data.getActiveSoulSlot();
-        return data.getRingCount(slot)
-                        < SoulRingAbsorption.ringCapFor(data.getMartialSoul(slot), data.getLevel())
+        return SoulRingAbsorption.resolveSlotForNewRing(data) != null
                 && SoulRingCapacity.hasRoomFor(Stats.getSpirit(player), data.getAbsorbedRings(), tier);
     }
 

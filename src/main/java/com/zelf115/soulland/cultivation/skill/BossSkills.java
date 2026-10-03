@@ -122,7 +122,7 @@ public final class BossSkills {
     private static void sunder(final SkillCast cast, final LivingEntity target) {
         final int points = (int) Math.round(cast.scaledBySpirit(SUNDER_POINTS));
         final int ticks = (int) Math.round(cast.scaledBySpirit(SkillEffects.ticks(SUNDER_SECONDS)));
-        target.addEffect(new MobEffectInstance(SoulLand.SUNDERED_EFFECT, ticks, Math.max(0, points - 1)), cast.caster());
+        target.addEffect(new MobEffectInstance(SoulLand.SUNDERED_EFFECT, ticks, SkillEffects.amplifierForLevels(points)), cast.caster());
     }
 
     private static double spiritEnergyOf(final LivingEntity target) {
