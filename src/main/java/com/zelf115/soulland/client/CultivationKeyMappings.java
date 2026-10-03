@@ -30,6 +30,7 @@ public final class CultivationKeyMappings {
     public static final KeyMapping DEMON_EYE = new KeyMapping("key.soulland.demon_eye", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, CATEGORY);
     public static final KeyMapping DEMON_EYE_STRIKE = new KeyMapping("key.soulland.demon_eye_strike", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, CATEGORY);
     public static final KeyMapping SHADOW_STEP = new KeyMapping("key.soulland.shadow_step", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, CATEGORY);
+    public static final KeyMapping TOGGLE_HUD = new KeyMapping("key.soulland.toggle_hud", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY);
 
     private CultivationKeyMappings() {
     }
@@ -53,5 +54,6 @@ public final class CultivationKeyMappings {
         event.register(SELECT_NEXT_RING);
         event.register(SELECT_NEXT_BONE);
         event.register(CAST_BONE_SKILL);
+        event.register(TOGGLE_HUD);
     }
 }
