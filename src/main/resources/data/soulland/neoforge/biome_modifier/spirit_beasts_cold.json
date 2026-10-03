@@ -2,14 +2,14 @@
   "type": "neoforge:add_spawns",
   "biomes": { "type": "neoforge:or", "values": ["#c:is_snowy", "#minecraft:is_mountain"] },
   "spawners": [
-    { "type": "soulland:ice_jade_scorpion", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:ice_phoenix", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:ice_silk_worm", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:ice_devil_titan", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:ice_bear", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:ice_fire_demonic_tiger", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:wind_spirit_wolf", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:wind_baboon", "weight": 1, "minCount": 1, "maxCount": 1 },
-    { "type": "soulland:star_anise", "weight": 1, "minCount": 1, "maxCount": 1 }
+    { "type": "soulland:ice_jade_scorpion", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:ice_phoenix", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:ice_silk_worm", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:ice_devil_titan", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:ice_bear", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:ice_fire_demonic_tiger", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:wind_spirit_wolf", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:wind_baboon", "weight": 10, "minCount": 1, "maxCount": 3 },
+    { "type": "soulland:star_anise", "weight": 10, "minCount": 1, "maxCount": 3 }
   ]
 }
