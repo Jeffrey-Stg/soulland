@@ -1,0 +1,51 @@
+{
+  "type": "minecraft:block",
+  "functions": [
+    {
+      "function": "minecraft:explosion_decay"
+    }
+  ],
+  "pools": [
+    {
+      "rolls": 1.0,
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "soulland:common_spirit_herb"
+        }
+      ]
+    },
+    {
+      "rolls": 1.0,
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "soulland:spirit_herb_crop",
+          "properties": {
+            "age": "7"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "soulland:common_spirit_herb",
+          "functions": [
+            {
+              "function": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.5714286
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "random_sequence": "soulland:blocks/spirit_herb_crop"
+}

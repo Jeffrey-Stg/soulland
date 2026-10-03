@@ -1,0 +1,144 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "soulland:water_crystal_peach",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:common_spirit_herb",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:ice_crystal_fruit",
+          "weight": 60,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "biomes": [
+                  "soulland:extreme_north",
+                  "soulland:icebound_forest"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:scarlet_flame_fruit",
+          "weight": 60,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "biomes": [
+                  "soulland:soul_hell"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:sacred_soul_grass",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:singular_velvet_sky_chrysanthemum",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:full_moon_wearing_autumn_dew",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:eight_petal_immortal_orchid",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:yearning_heartbroken_red",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:beautiful_silk_tulip",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:black_jade_divine_bamboo",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:origin_energy_immortal_grass",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:octagonal_mysterious_ice_grass",
+          "weight": 5,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "biomes": [
+                  "soulland:extreme_north",
+                  "soulland:icebound_forest"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:infernal_delicate_apricot",
+          "weight": 5,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "biomes": [
+                  "soulland:soul_hell"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "soulland:dragonscale_fruit",
+          "weight": 5,
+          "conditions": [
+            {
+              "condition": "minecraft:location_check",
+              "predicate": {
+                "biomes": [
+                  "soulland:soul_end"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ],
+  "random_sequence": "soulland:blocks/spirit_herb"
+}

@@ -5,6 +5,8 @@ import com.zelf115.soulland.effect.MeditationEffect;
 import com.zelf115.soulland.effect.SkillBuffEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
 import com.zelf115.soulland.block.GodAltarBlock;
+import com.zelf115.soulland.block.SpiritHerbBlock;
+import com.zelf115.soulland.block.SpiritHerbCropBlock;
 import com.zelf115.soulland.block.TournamentRegistryBlock;
 import com.zelf115.soulland.tournament.TournamentEntities;
 import com.zelf115.soulland.trial.GodTrial;
@@ -44,12 +46,15 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemNameBlockItem;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -77,6 +82,8 @@ public class SoulLand {
 
     /** Altars are meant to stay where they are put: as tough as obsidian is quick to mine. */
     private static final float ALTAR_STRENGTH = 25.0F;
+    private static final FoodProperties COMMON_SPIRIT_HERB_FOOD =
+            new FoodProperties.Builder().nutrition(2).saturationModifier(0.5F).alwaysEdible().build();
 
     public static final DeferredBlock<Block> FIRE_CRYSTAL = BLOCKS.registerSimpleBlock("fire_crystal",
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F).sound(SoundType.AMETHYST));
@@ -129,6 +136,13 @@ public class SoulLand {
                     .mapColor(MapColor.METAL).strength(ALTAR_STRENGTH).sound(SoundType.METAL)
                     .requiresCorrectToolForDrops()));
     public static final DeferredItem<BlockItem> TOURNAMENT_REGISTRY_ITEM = ITEMS.registerSimpleBlockItem("tournament_registry", TOURNAMENT_REGISTRY);
+    public static final DeferredBlock<SpiritHerbBlock> SPIRIT_HERB = BLOCKS.register("spirit_herb",
+            () -> new SpiritHerbBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT).noCollission().instabreak().sound(SoundType.GRASS)
+                    .offsetType(BlockBehaviour.OffsetType.XZ).pushReaction(PushReaction.DESTROY)));
+    public static final DeferredItem<BlockItem> SPIRIT_HERB_ITEM = ITEMS.registerSimpleBlockItem("spirit_herb", SPIRIT_HERB);
+    public static final DeferredBlock<SpiritHerbCropBlock> SPIRIT_HERB_CROP = BLOCKS.register("spirit_herb_crop",
+            () -> new SpiritHerbCropBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CARROTS)));
     public static final DeferredItem<Item> SOUL_RING_ITEM = ITEMS.register("soul_ring", () -> new SoulRingItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SPIRIT_BONE_ITEM = ITEMS.register("spirit_bone", () -> new SpiritBoneItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> CLEAR_SKY_HAMMER = ITEMS.register("clear_sky_hammer", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
@@ -153,14 +167,15 @@ public class SoulLand {
     public static final DeferredItem<Item> QI_GATHERING_PILL_TIER_5 = registerPill("qi_gathering_pill_tier_5", AlchemyItem.Effect.QI_GATHERING, 5);
     public static final DeferredItem<Item> BEAUTIFUL_SILK_TULIP = registerHerb("beautiful_silk_tulip", HerbItem.Effect.EVOLVE_PAGODA);
     public static final DeferredItem<Item> BLACK_JADE_DIVINE_BAMBOO = registerHerb("black_jade_divine_bamboo", HerbItem.Effect.SPIRIT_HUNDRED);
-    public static final DeferredItem<Item> COMMON_SPIRIT_HERB = registerHerb("common_spirit_herb", HerbItem.Effect.COMMON_SPIRIT);
-    public static final DeferredItem<Item> DRAGONSCALE_FRUIT = registerHerb("dragonscale_fruit", HerbItem.Effect.ALL_BUT_SPIRIT_AND_INNATE_ONE_SOUL_END);
+    public static final DeferredItem<Item> COMMON_SPIRIT_HERB = ITEMS.register("common_spirit_herb",
+            () -> new ItemNameBlockItem(SPIRIT_HERB_CROP.get(), new Item.Properties().food(COMMON_SPIRIT_HERB_FOOD)));
+    public static final DeferredItem<Item> DRAGONSCALE_FRUIT = registerHerb("dragonscale_fruit", HerbItem.Effect.ALL_BUT_SPIRIT_AND_INNATE_ONE);
     public static final DeferredItem<Item> EIGHT_PETAL_IMMORTAL_ORCHID = registerHerb("eight_petal_immortal_orchid", HerbItem.Effect.CULTIVATION_LEVEL_ONE);
     public static final DeferredItem<Item> FULL_MOON_WEARING_AUTUMN_DEW = registerHerb("full_moon_wearing_autumn_dew", HerbItem.Effect.SPIRIT_FIFTY);
     public static final DeferredItem<Item> ICE_CRYSTAL_FRUIT = registerHerb("ice_crystal_fruit", HerbItem.Effect.ICE_SPIRIT_TEN);
     public static final DeferredItem<Item> INFERNAL_DELICATE_APRICOT = registerHerb("infernal_delicate_apricot", HerbItem.Effect.FIRE_CULTIVATION_SPEED_TWO);
     public static final DeferredItem<Item> OCTAGONAL_MYSTERIOUS_ICE_GRASS = registerHerb("octagonal_mysterious_ice_grass", HerbItem.Effect.ICE_CULTIVATION_SPEED_TWO);
-    public static final DeferredItem<Item> ORIGIN_ENERGY_IMMORTAL_GRASS = registerHerb("origin_energy_immortal_grass", HerbItem.Effect.CULTIVATION_LEVEL_ONE);
+    public static final DeferredItem<Item> ORIGIN_ENERGY_IMMORTAL_GRASS = registerHerb("origin_energy_immortal_grass", HerbItem.Effect.CULTIVATION_LEVEL_TWO);
     public static final DeferredItem<Item> SACRED_SOUL_GRASS = registerHerb("sacred_soul_grass", HerbItem.Effect.CULTIVATION_LEVEL_HALF);
     public static final DeferredItem<Item> SCARLET_FLAME_FRUIT = registerHerb("scarlet_flame_fruit", HerbItem.Effect.FIRE_SPIRIT_TEN);
     public static final DeferredItem<Item> SINGULAR_VELVET_SKY_CHRYSANTHEMUM = registerHerb("singular_velvet_sky_chrysanthemum", HerbItem.Effect.INNATE_ONE);
@@ -189,7 +204,7 @@ public class SoulLand {
 
     private static DeferredItem<Item> registerHerb(String name, HerbItem.Effect effect) {
         return ITEMS.register(name, () -> new HerbItem(effect,
-                new Item.Properties().food(HerbItem.foodProperties(effect))));
+                new Item.Properties().food(HerbItem.foodProperties())));
     }
 
     private static DeferredItem<Item> registerPillFurnace(final String name, final PillFurnaceItem.Tier tier) {
@@ -277,6 +292,7 @@ public class SoulLand {
             event.accept(ASURA_GOD_ALTAR_ITEM);
             event.accept(RAKSHASA_GOD_ALTAR_ITEM);
             event.accept(TOURNAMENT_REGISTRY_ITEM);
+            event.accept(SPIRIT_HERB_ITEM);
         }
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SOUL_RING_ITEM);

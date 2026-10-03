@@ -2,6 +2,7 @@ package com.zelf115.soulland.datagen;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.biome.SoulLandBiomes;
+import com.zelf115.soulland.events.HerbSpawnEvents;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -37,6 +38,7 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
         addSoulOceanTags();
         addSoulHellTags();
         addSoulEndTags();
+        addHerbTags();
     }
 
     private void addOverworldTags() {
@@ -123,5 +125,18 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
     private void addSoulEndTags() {
         this.tag(BiomeTags.IS_END).add(SoulLandBiomes.SOUL_END);
         this.tag(BiomeTags.HAS_END_CITY).add(SoulLandBiomes.SOUL_END);
+    }
+
+    /** Every mod biome grows wild spirit herbs. */
+    private void addHerbTags() {
+        this.tag(HerbSpawnEvents.HERB_BIOMES).add(
+                SoulLandBiomes.EXTREME_NORTH,
+                SoulLandBiomes.ICEBOUND_FOREST,
+                SoulLandBiomes.SUNSET_FOREST,
+                SoulLandBiomes.STAR_DOU_FOREST,
+                SoulLandBiomes.ISLAND,
+                SoulLandBiomes.SOUL_OCEAN,
+                SoulLandBiomes.SOUL_HELL,
+                SoulLandBiomes.SOUL_END);
     }
 }

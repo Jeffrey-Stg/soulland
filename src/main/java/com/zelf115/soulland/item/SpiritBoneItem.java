@@ -68,9 +68,7 @@ public final class SpiritBoneItem extends Item {
         replaceBone(player, data, bone);
         player.sendSystemMessage(Component.translatable("soulland.spirit_bone.absorbed", bone.slot(), bone.coloredSourceName()));
 
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-        }
+        stack.shrink(1);
         return InteractionResultHolder.sidedSuccess(stack, false);
     }
 

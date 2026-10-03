@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "botanypots"
+    }
+  ],
+  "type": "botanypots:block_derived_crop",
+  "block": "soulland:spirit_herb_crop",
+  "input": {
+    "item": "soulland:common_spirit_herb"
+  }
+}

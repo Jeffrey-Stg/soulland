@@ -1,7 +1,6 @@
 package com.zelf115.soulland.item;
 
 import com.zelf115.soulland.Stats;
-import com.zelf115.soulland.biome.SoulLandBiomes;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
@@ -20,14 +19,12 @@ public final class HerbItem extends Item {
     public enum Effect {
         INNATE_TWO,
         INNATE_ONE,
-        COMMON_SPIRIT,
+        CULTIVATION_LEVEL_TWO,
         CULTIVATION_LEVEL_ONE,
         CULTIVATION_LEVEL_HALF,
         SPIRIT_FIFTY,
         SPIRIT_HUNDRED,
-        CULTIVATION_SPEED_TWO,
         ALL_BUT_SPIRIT_AND_INNATE_ONE,
-        ALL_BUT_SPIRIT_AND_INNATE_ONE_SOUL_END,
         ICE_SPIRIT_TEN,
         FIRE_SPIRIT_TEN,
         ICE_CULTIVATION_SPEED_TWO,
@@ -46,17 +43,14 @@ public final class HerbItem extends Item {
         this.effect = effect;
     }
 
-    public static FoodProperties foodProperties(final Effect effect) {
-        if (effect == Effect.COMMON_SPIRIT) {
-            return new FoodProperties.Builder().nutrition(2).saturationModifier(0.5F).alwaysEdible().build();
-        }
+    public static FoodProperties foodProperties() {
         return new FoodProperties.Builder().nutrition(1).saturationModifier(0.1F).alwaysEdible().build();
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
-        if (!canEat(player, level)) {
+        if (!canEat(player)) {
             return InteractionResultHolder.fail(stack);
         }
         return super.use(level, player, hand);
@@ -71,15 +65,12 @@ public final class HerbItem extends Item {
         return result;
     }
 
-    private boolean canEat(final Player player, final Level level) {
+    private boolean canEat(final Player player) {
         if (effect == Effect.ICE_SPIRIT_TEN || effect == Effect.ICE_CULTIVATION_SPEED_TWO) {
             return matchesElement(player, Affinity.ICE);
         }
         if (effect == Effect.FIRE_SPIRIT_TEN || effect == Effect.FIRE_CULTIVATION_SPEED_TWO) {
             return matchesElement(player, Affinity.FIRE);
-        }
-        if (effect == Effect.ALL_BUT_SPIRIT_AND_INNATE_ONE_SOUL_END) {
-            return level.getBiome(player.blockPosition()).is(SoulLandBiomes.SOUL_END);
         }
         return true;
     }
@@ -101,6 +92,7 @@ public final class HerbItem extends Item {
         switch (effect) {
             case INNATE_TWO -> data.setInnateStat(data.getInnateStat() + 2);
             case INNATE_ONE -> data.setInnateStat(data.getInnateStat() + 1);
+            case CULTIVATION_LEVEL_TWO -> grantLevelFraction(player, data, 2.0);
             case CULTIVATION_LEVEL_ONE -> grantLevelFraction(player, data, 1.0);
             case CULTIVATION_LEVEL_HALF -> grantLevelFraction(player, data, 0.5);
             case SPIRIT_FIFTY -> {
@@ -108,7 +100,7 @@ public final class HerbItem extends Item {
                 MartialSoulEvolution.evolveFromFullMoonDew(player, data);
             }
             case SPIRIT_HUNDRED -> Stats.addSpirit(player, 100.0);
-            case COMMON_SPIRIT, CULTIVATION_SPEED_TWO, ICE_CULTIVATION_SPEED_TWO, FIRE_CULTIVATION_SPEED_TWO ->
+            case ICE_CULTIVATION_SPEED_TWO, FIRE_CULTIVATION_SPEED_TWO ->
                     Stats.addCultivationSpeed(player, 2.0);
             case ALL_BUT_SPIRIT_ONE -> {
                 Stats.addDamage(player, 1.0);
@@ -117,13 +109,6 @@ public final class HerbItem extends Item {
                 Stats.addSpeed(player, 1.0);
             }
             case ALL_BUT_SPIRIT_AND_INNATE_ONE -> {
-                Stats.addDamage(player, 1.0);
-                Stats.addHealth(player, 1.0);
-                Stats.addDefense(player, 1.0);
-                Stats.addSpeed(player, 1.0);
-                data.setInnateStat(data.getInnateStat() + 1);
-            }
-            case ALL_BUT_SPIRIT_AND_INNATE_ONE_SOUL_END -> {
                 Stats.addDamage(player, 1.0);
                 Stats.addHealth(player, 1.0);
                 Stats.addDefense(player, 1.0);
