@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "soulland:pill_furnace",
+    "soulland:enchanted_pill_furnace",
+    "soulland:nether_pill_furnace",
+    "soulland:star_pill_furnace",
+    "soulland:divine_pill_furnace"
+  ]
+}
