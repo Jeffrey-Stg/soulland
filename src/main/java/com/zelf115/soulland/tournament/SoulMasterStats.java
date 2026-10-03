@@ -1,14 +1,11 @@
 package com.zelf115.soulland.tournament;
 
 import com.zelf115.soulland.cultivation.CultivationManager;
-import net.minecraft.util.RandomSource;
 
-/** How strong a tournament opponent is, and how close to the challenger it is drawn. */
+/** How strong a tournament opponent is: each round of the ladder fights a stronger soul master. */
 public final class SoulMasterStats {
 
-    /** The bracket runs ten levels either side of the challenger. */
-    private static final int LEVEL_SPREAD = 10;
-    private static final int MIN_OPPONENT_LEVEL = 10;
+    private static final int LEVELS_PER_ROUND = 10;
     private static final int MAX_OPPONENT_LEVEL = 99;
     /** A cultivator gains half a stat point per level, so the total to a level is the triangle of that. */
     private static final double STAT_POINTS_PER_LEVEL_STEP = 0.5;
@@ -16,13 +13,9 @@ public final class SoulMasterStats {
     private SoulMasterStats() {
     }
 
-    public static int rollOpponentLevel(final int challengerLevel, final RandomSource random) {
-        final int offset = random.nextInt(LEVEL_SPREAD * 2 + 1) - LEVEL_SPREAD;
-        return clampToBracket(challengerLevel + offset);
-    }
-
-    public static int clampToBracket(final int level) {
-        return Math.max(MIN_OPPONENT_LEVEL, Math.min(MAX_OPPONENT_LEVEL, level));
+    /** Round one fights level 10, each round ten levels more, and the final round level 99. */
+    public static int opponentLevelForRound(final int round) {
+        return Math.min(MAX_OPPONENT_LEVEL, round * LEVELS_PER_ROUND);
     }
 
     /**

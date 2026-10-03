@@ -34,13 +34,28 @@ public class SkillProjectileEntity extends ThrowableProjectile {
     /** Fires from the caster's eyes along their look, turned sideways by the given yaw offset. */
     public static void launch(final Player caster, final float yawOffset, final ParticleOptions trail,
                               final Consumer<LivingEntity> onHit) {
+        final SkillProjectileEntity projectile = prepare(caster, trail, onHit);
+        projectile.shootFromRotation(caster, caster.getXRot(), caster.getYRot() + yawOffset, 0.0F, SPEED, 0.0F);
+        caster.level().addFreshEntity(projectile);
+    }
+
+    /** Fires from the caster's eyes straight at the target's chest, for casters that aim rather than look. */
+    public static void launchAt(final LivingEntity caster, final LivingEntity target, final ParticleOptions trail,
+                                final Consumer<LivingEntity> onHit) {
+        final SkillProjectileEntity projectile = prepare(caster, trail, onHit);
+        projectile.shoot(target.getX() - projectile.getX(), target.getY(0.5) - projectile.getY(),
+                target.getZ() - projectile.getZ(), SPEED, 0.0F);
+        caster.level().addFreshEntity(projectile);
+    }
+
+    private static SkillProjectileEntity prepare(final LivingEntity caster, final ParticleOptions trail,
+                                                 final Consumer<LivingEntity> onHit) {
         final SkillProjectileEntity projectile = new SkillProjectileEntity(SkillEntities.SKILL_PROJECTILE.get(), caster.level());
         projectile.trail = trail;
         projectile.onHit = onHit;
         projectile.setOwner(caster);
         projectile.setPos(caster.getX(), caster.getEyeY() - EYE_OFFSET, caster.getZ());
-        projectile.shootFromRotation(caster, caster.getXRot(), caster.getYRot() + yawOffset, 0.0F, SPEED, 0.0F);
-        caster.level().addFreshEntity(projectile);
+        return projectile;
     }
 
     @Override

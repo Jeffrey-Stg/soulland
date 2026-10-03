@@ -8,7 +8,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -16,11 +19,11 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 /** A tournament opponent: a soul master simulated at a level near the challenger's own. */
 public class SoulMasterEntity extends Monster {
@@ -39,6 +42,11 @@ public class SoulMasterEntity extends Monster {
     private static final double FOLLOW_RANGE = 32.0;
     private static final int STARTING_LEVEL = 1;
     private static final float LOOK_DISTANCE = 12.0F;
+    private static final int LEVELS_PER_RING = 10;
+    private static final int TARGET_SCAN_INTERVAL = 10;
+    private static final float DODGE_CHANCE = 0.25F;
+    private static final double DODGE_SPEED = 0.6;
+    private static final double DODGE_LIFT = 0.25;
 
     public SoulMasterEntity(final EntityType<? extends Monster> entityType, final Level level) {
         super(entityType, level);
@@ -102,6 +110,11 @@ public class SoulMasterEntity extends Monster {
         return entityData.get(SIMULATED_LEVEL);
     }
 
+    /** A cultivator absorbs one ring per ten levels, and the opponent fights with as many. */
+    public int getRingCount() {
+        return getSimulatedLevel() / LEVELS_PER_RING;
+    }
+
     public UUID getChallengerId() {
         return getPersistentData().hasUUID(CHALLENGER_KEY) ? getPersistentData().getUUID(CHALLENGER_KEY) : null;
     }
@@ -121,12 +134,35 @@ public class SoulMasterEntity extends Monster {
     }
 
     @Override
+    public boolean hurt(final DamageSource source, final float amount) {
+        final boolean hurt = super.hurt(source, amount);
+        if (hurt && !level().isClientSide() && isAlive() && onGround() && source.getEntity() != null
+                && getRandom().nextFloat() < DODGE_CHANCE) {
+            hopAsideFrom(source.getEntity());
+        }
+        return hurt;
+    }
+
+    /** Sidesteps at right angles to the attacker, so a challenger cannot simply trade blows with it. */
+    private void hopAsideFrom(final Entity attacker) {
+        final Vec3 away = position().subtract(attacker.position()).multiply(1.0, 0.0, 1.0).normalize();
+        final double speed = getRandom().nextBoolean() ? DODGE_SPEED : -DODGE_SPEED;
+        setDeltaMovement(getDeltaMovement().add(-away.z * speed, DODGE_LIFT, away.x * speed));
+    }
+
+    /** Only its own challenger: a bystander can neither be attacked by it nor draw it away. */
+    private boolean isChallenger(final LivingEntity entity) {
+        return entity.getUUID().equals(getChallengerId());
+    }
+
+    @Override
     protected void registerGoals() {
         goalSelector.addGoal(1, new FloatGoal(this));
-        goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
-        goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
-        goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-        targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        goalSelector.addGoal(2, new SoulMasterSkillGoal(this));
+        goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
+        goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
+        goalSelector.addGoal(5, new RandomLookAroundGoal(this));
+        targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, TARGET_SCAN_INTERVAL,
+                true, false, this::isChallenger));
     }
 }

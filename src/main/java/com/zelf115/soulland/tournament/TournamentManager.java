@@ -72,7 +72,7 @@ public final class TournamentManager {
             return;
         }
 
-        final int opponentLevel = SoulMasterStats.rollOpponentLevel(data.getLevel(), player.getRandom());
+        final int opponentLevel = SoulMasterStats.opponentLevelForRound(data.getTournamentRound());
         opponent.moveTo(pos.getX() + SPAWN_DISTANCE + HALF_BLOCK, pos.getY() + 1, pos.getZ() + HALF_BLOCK,
                 player.getYRot(), 0.0F);
         opponent.prepareForDuel(opponentLevel, player.getUUID(), data.getTournamentRound());
