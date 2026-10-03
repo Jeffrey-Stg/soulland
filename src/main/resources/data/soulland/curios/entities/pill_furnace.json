@@ -1,4 +1,4 @@
 {
   "entities": ["minecraft:player"],
-  "slots": ["belt"]
+  "slots": ["pill_furnace"]
 }
