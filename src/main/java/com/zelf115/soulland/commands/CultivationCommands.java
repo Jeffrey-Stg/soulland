@@ -10,6 +10,8 @@ import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.Rebirth;
+import com.zelf115.soulland.cultivation.technique.LearnedTechniques;
+import com.zelf115.soulland.cultivation.technique.Technique;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import com.zelf115.soulland.tournament.TournamentManager;
 import com.zelf115.soulland.trial.GodTrial;
@@ -36,6 +38,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation trial status} — shows the running god trial and the relics already earned</li>
  *   <li>{@code /cultivation trial advance|reset|grant <god>} — operator tools for testing trials</li>
  *   <li>{@code /cultivation tournament status|reset} — shows or reopens the daily tournament run</li>
+ *   <li>{@code /cultivation techniques [setlevel <technique> <level>]} — shows learned techniques; operators can set a level</li>
  * </ul>
  */
 public class CultivationCommands {
@@ -81,6 +84,13 @@ public class CultivationCommands {
                         .then(Commands.argument("value",
                                         IntegerArgumentType.integer(CultivationData.MIN_INNATE_STAT, CultivationData.MAX_INNATE_STAT))
                                 .executes(CultivationCommands::setInnateStat)))
+                .then(Commands.literal("techniques")
+                        .executes(CultivationCommands::techniqueStatus)
+                        .then(Commands.literal("setlevel")
+                                .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                                .then(Commands.argument("technique", StringArgumentType.word())
+                                        .then(Commands.argument("level", IntegerArgumentType.integer(0))
+                                                .executes(CultivationCommands::setTechniqueLevel)))))
         );
     }
 
@@ -103,6 +113,16 @@ public class CultivationCommands {
                 .append(Component.literal(String.valueOf(data.getPlayerTier())).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nInnate Stat: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.valueOf(data.getEffectiveInnateStat())).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nHealth: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("%.1f", Stats.getHealth(player))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nDamage: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("%.1f", Stats.getDamage(player))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nDefense: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("%.1f", Stats.getDefense(player))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nSpirit: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("%.1f", Stats.getSpirit(player))).withStyle(ChatFormatting.AQUA))
+                .append(Component.literal("\nCultivation Speed: ").withStyle(ChatFormatting.WHITE))
+                .append(Component.literal(String.format("+%.1f%%", Stats.getCultivationSpeed(player))).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nAbsorbable Ring Tier: ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.valueOf(CultivationManager.maxAbsorbableTier(Stats.getSpirit(player)))).withStyle(ChatFormatting.AQUA))
                 .append(Component.literal("\nSpirit Bones: ").withStyle(ChatFormatting.WHITE))
@@ -192,6 +212,48 @@ public class CultivationCommands {
         player.getData(CultivationAttachment.CULTIVATION_DATA.get()).addCompletedGodTrial(trial);
         player.sendSystemMessage(Component.translatable("soulland.command.trial.granted", trial.displayName()));
         return 1;
+    }
+
+    private static int techniqueStatus(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final LearnedTechniques techniques = player.getData(CultivationAttachment.CULTIVATION_DATA.get()).getTechniques();
+        if (techniques.learned().isEmpty()) {
+            player.sendSystemMessage(Component.translatable("soulland.command.techniques.none"));
+            return 1;
+        }
+        for (final Technique technique : techniques.learned()) {
+            player.sendSystemMessage(Component.translatable("soulland.command.techniques.entry", technique.displayName(),
+                    techniques.level(technique), technique.maxLevel(),
+                    technique.percentToNextLevel(techniques.getProgress(technique))));
+        }
+        return 1;
+    }
+
+    private static int setTechniqueLevel(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        final Technique technique = readTechnique(StringArgumentType.getString(ctx, "technique"));
+        if (technique == null) {
+            player.sendSystemMessage(Component.translatable("soulland.command.techniques.unknown"));
+            return 0;
+        }
+
+        final int level = Math.clamp(IntegerArgumentType.getInteger(ctx, "level"), technique.minLevel(), technique.maxLevel());
+        player.getData(CultivationAttachment.CULTIVATION_DATA.get()).getTechniques()
+                .setProgress(technique, technique.progressForLevel(level));
+        player.sendSystemMessage(Component.translatable("soulland.command.techniques.set", technique.displayName(), level));
+        return 1;
+    }
+
+    private static Technique readTechnique(final String name) {
+        try {
+            return Technique.valueOf(name.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     private static GodTrial readGodTrial(final String name) {

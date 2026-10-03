@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.zelf115.soulland.cultivation.technique.LearnedTechniques;
 import com.zelf115.soulland.spirit.Affinity;
 import com.zelf115.soulland.trial.GodTrial;
 import com.zelf115.soulland.trial.GodTrialReward;
@@ -105,6 +106,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private SoulSlot activeSoulSlot = SoulSlot.PRIMARY;
     // Index of the ring, inside the active soul's own track, whose skill the cast key uses
     private int selectedRingIndex = 0;
+    private LearnedTechniques techniques = new LearnedTechniques();
 
     // ---- Getters ----
 
@@ -150,6 +152,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public int getTournamentRound() { return tournamentRound; }
     public long getTournamentRunStartedAt() { return tournamentRunStartedAt; }
     public boolean isTournamentRunSpent() { return tournamentRunSpent; }
+    public LearnedTechniques getTechniques() { return techniques; }
 
     // ---- Setters ----
 
@@ -333,6 +336,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putInt("tournamentRound", tournamentRound);
         tag.putLong("tournamentRunStartedAt", tournamentRunStartedAt);
         tag.putBoolean("tournamentRunSpent", tournamentRunSpent);
+        tag.put("techniques", techniques.toNbt());
         return tag;
     }
 
@@ -389,6 +393,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tournamentRound = Math.max(0, tag.getInt("tournamentRound"));
         tournamentRunStartedAt = tag.getLong("tournamentRunStartedAt");
         tournamentRunSpent = tag.getBoolean("tournamentRunSpent");
+        techniques = LearnedTechniques.readFrom(tag.getCompound("techniques"));
     }
 
     private static GodTrial readGodTrial(final CompoundTag tag) {

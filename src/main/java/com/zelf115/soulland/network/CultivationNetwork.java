@@ -12,6 +12,8 @@ import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.RingDisplayMode;
 import com.zelf115.soulland.cultivation.RingDisplaySync;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
+import com.zelf115.soulland.cultivation.technique.PurpleDemonEye;
+import com.zelf115.soulland.cultivation.technique.ShadowStep;
 import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.cultivation.MartialSoul;
@@ -111,6 +113,9 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU -> openMartialSoulMenu(player);
                 case CultivationActionPayload.SWITCH_MARTIAL_SOUL -> MartialSoulAbility.switchActiveSoul(player, data);
                 case CultivationActionPayload.SELECT_NEXT_RING -> MartialSoulAbility.selectNextRing(player, data);
+                case CultivationActionPayload.DEMON_EYE -> PurpleDemonEye.use(player, data);
+                case CultivationActionPayload.DEMON_EYE_STRIKE -> PurpleDemonEye.strike(player, data);
+                case CultivationActionPayload.SHADOW_STEP -> ShadowStep.use(player, data);
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });
