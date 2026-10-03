@@ -1,5 +1,6 @@
 package com.zelf115.soulland.cultivation;
 
+import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.network.OpenMartialSoulPickerPayload;
 import com.zelf115.soulland.spirit.AffinitySystem;
@@ -11,7 +12,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Sends a cultivator back to level one, keeping only what a rebirth is meant to carry: the count
- * itself, which raises the innate stat and opens the level 100 gate, and the god relics already won.
+ * itself, which raises the innate stat, opens the level 100 gate and lifts every stat by 5% per
+ * rebirth, and the god relics already won.
  *
  * <p>The martial souls go with the rest, so every rebirth puts the player through the picker again.
  *
@@ -21,6 +23,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class Rebirth {
 
     private static final int REBIRTH_LEVEL = CultivationManager.MAX_LEVEL;
+    private static final double BONUS_PER_REBIRTH = 0.05;
 
     private Rebirth() {
     }
@@ -32,16 +35,24 @@ public final class Rebirth {
         }
 
         MartialSoulAbility.forceDeactivate(player, data);
+        endModEffects(player, data);
         removeRingBonuses(player, data);
         data.clearAbsorbedRings();
+        removeBoneBonuses(player, data);
+        data.clearSpiritBones();
+        data.setSelectedBoneIndex(0);
         removeGodTrialBonuses(player, data);
         GodTrialManager.clearTrial(data);
+        Stats.resetEarnedStats(player);
         resetProgress(data);
+        data.setTitle("");
         data.setRebirthCount(data.getRebirthCount() + 1);
+        Stats.applyRebirthBonus(player, data.getRebirthCount() * BONUS_PER_REBIRTH);
         AffinitySystem.clearMartialSoulForRebirth(data);
         data.setActiveSoulSlot(SoulSlot.PRIMARY);
         data.setSelectedRingIndex(0);
         data.setMartialSoulCanReachLevel100(false);
+        CultivationManager.applyFlightAbilities(player, data.getLevel());
         Stats.syncDerivedPlayerStats(player, data);
         RingDisplaySync.broadcast(player);
 
@@ -50,9 +61,21 @@ public final class Rebirth {
         return true;
     }
 
+    private static void endModEffects(final ServerPlayer player, final CultivationData data) {
+        SoulLand.MOB_EFFECTS.getEntries().forEach(player::removeEffect);
+        SoulRingSkills.endBuff(player, data);
+        data.getSkillRuntime().stopSustainedSkill();
+    }
+
     private static void removeRingBonuses(final ServerPlayer player, final CultivationData data) {
         for (int index = 0; index < data.getSoulRingCount(); index++) {
             Stats.removeBonus(player, AbsorbedRing.modifierId(index));
+        }
+    }
+
+    private static void removeBoneBonuses(final ServerPlayer player, final CultivationData data) {
+        for (final AbsorbedBone bone : data.getSpiritBones().values()) {
+            Stats.removeBonus(player, AbsorbedBone.modifierId(bone.slot()));
         }
     }
 

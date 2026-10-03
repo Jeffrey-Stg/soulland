@@ -1,0 +1,11 @@
+{
+  "values": [
+    "#minecraft:dirt",
+    "minecraft:snow_block",
+    "minecraft:sand",
+    "minecraft:netherrack",
+    "minecraft:soul_soil",
+    "minecraft:soul_sand",
+    "minecraft:end_stone"
+  ]
+}

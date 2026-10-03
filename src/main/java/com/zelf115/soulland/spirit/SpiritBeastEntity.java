@@ -1,9 +1,13 @@
 package com.zelf115.soulland.spirit;
 
+import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -23,8 +27,14 @@ public class SpiritBeastEntity extends Monster {
     private static final EntityDataAccessor<Integer> TIER =
             SynchedEntityData.defineId(SpiritBeastEntity.class, EntityDataSerializers.INT);
 
+    private final Optional<ServerBossEvent> bossBar;
+
     public SpiritBeastEntity(final EntityType<? extends Monster> entityType, final Level level) {
         super(entityType, level);
+        this.bossBar = SpiritBosses.isBoss(entityType)
+                ? Optional.of(new ServerBossEvent(entityType.getDescription(),
+                        BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS))
+                : Optional.empty();
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -45,6 +55,25 @@ public class SpiritBeastEntity extends Monster {
     /** Publishes the rolled tier so the client can colour the beast by the ring it will drop. */
     public void syncTier(final int tier) {
         this.entityData.set(TIER, tier);
+        bossBar.ifPresent(bar -> bar.setName(getDisplayName()));
+    }
+
+    @Override
+    public void startSeenByPlayer(final ServerPlayer player) {
+        super.startSeenByPlayer(player);
+        bossBar.ifPresent(bar -> bar.addPlayer(player));
+    }
+
+    @Override
+    public void stopSeenByPlayer(final ServerPlayer player) {
+        super.stopSeenByPlayer(player);
+        bossBar.ifPresent(bar -> bar.removePlayer(player));
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        bossBar.ifPresent(bar -> bar.setProgress(getHealth() / getMaxHealth()));
     }
 
     public int getTier() {
@@ -69,12 +98,16 @@ public class SpiritBeastEntity extends Monster {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new FloatGoal(this));
+        registerMovementGoals();
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, false));
-        this.goalSelector.addGoal(3, new RandomStrollGoal(this, 0.8D));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    protected void registerMovementGoals() {
+        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(3, new RandomStrollGoal(this, 0.8D));
     }
 }

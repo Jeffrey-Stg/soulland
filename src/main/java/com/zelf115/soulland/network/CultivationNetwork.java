@@ -14,6 +14,7 @@ import com.zelf115.soulland.cultivation.RingDisplaySync;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.cultivation.technique.PurpleDemonEye;
 import com.zelf115.soulland.cultivation.technique.ShadowStep;
+import com.zelf115.soulland.cultivation.skill.SpiritBoneSkills;
 import com.zelf115.soulland.item.PillFurnaceItem;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.cultivation.MartialSoul;
@@ -29,7 +30,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class CultivationNetwork {
-    private static final int SPEED_STEP_PERCENT = 10;
+    private static final int SPEED_STEP_PERCENT = 1;
 
     private CultivationNetwork() {
     }
@@ -116,6 +117,9 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.DEMON_EYE -> PurpleDemonEye.use(player, data);
                 case CultivationActionPayload.DEMON_EYE_STRIKE -> PurpleDemonEye.strike(player, data);
                 case CultivationActionPayload.SHADOW_STEP -> ShadowStep.use(player, data);
+                case CultivationActionPayload.SELECT_NEXT_BONE -> SpiritBoneSkills.selectNextBone(player, data);
+                case CultivationActionPayload.CAST_BONE_SKILL -> SpiritBoneSkills.useSelectedBoneSkill(player, data);
+                case CultivationActionPayload.RELEASE_CHANNEL -> data.getSkillRuntime().releaseChannel();
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
         });

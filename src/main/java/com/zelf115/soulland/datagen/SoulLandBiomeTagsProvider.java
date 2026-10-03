@@ -2,6 +2,7 @@ package com.zelf115.soulland.datagen;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.biome.SoulLandBiomes;
+import com.zelf115.soulland.events.HerbSpawnEvents;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -9,6 +10,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
@@ -36,6 +38,7 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
         addSoulOceanTags();
         addSoulHellTags();
         addSoulEndTags();
+        addHerbTags();
     }
 
     private void addOverworldTags() {
@@ -64,6 +67,7 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
     /** Stands in for snowy plains, ice spikes, snowy slopes and frozen peaks. */
     private void addExtremeNorthTags() {
         this.tag(BiomeTags.IS_MOUNTAIN).add(SoulLandBiomes.EXTREME_NORTH);
+        this.tag(Tags.Biomes.IS_SNOWY).add(SoulLandBiomes.EXTREME_NORTH);
         this.tag(BiomeTags.INCREASED_FIRE_BURNOUT).add(SoulLandBiomes.EXTREME_NORTH);
         this.tag(BiomeTags.SPAWNS_COLD_VARIANT_FROGS).add(SoulLandBiomes.EXTREME_NORTH);
         this.tag(BiomeTags.SPAWNS_SNOW_FOXES).add(SoulLandBiomes.EXTREME_NORTH);
@@ -79,6 +83,7 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
     private void addIceboundForestTags() {
         this.tag(BiomeTags.IS_TAIGA).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.IS_FOREST).add(SoulLandBiomes.ICEBOUND_FOREST);
+        this.tag(Tags.Biomes.IS_SNOWY).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.SPAWNS_COLD_VARIANT_FROGS).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.SPAWNS_SNOW_FOXES).add(SoulLandBiomes.ICEBOUND_FOREST);
         this.tag(BiomeTags.SPAWNS_WHITE_RABBITS).add(SoulLandBiomes.ICEBOUND_FOREST);
@@ -120,5 +125,18 @@ public class SoulLandBiomeTagsProvider extends TagsProvider<Biome> {
     private void addSoulEndTags() {
         this.tag(BiomeTags.IS_END).add(SoulLandBiomes.SOUL_END);
         this.tag(BiomeTags.HAS_END_CITY).add(SoulLandBiomes.SOUL_END);
+    }
+
+    /** Every mod biome grows wild spirit herbs. */
+    private void addHerbTags() {
+        this.tag(HerbSpawnEvents.HERB_BIOMES).add(
+                SoulLandBiomes.EXTREME_NORTH,
+                SoulLandBiomes.ICEBOUND_FOREST,
+                SoulLandBiomes.SUNSET_FOREST,
+                SoulLandBiomes.STAR_DOU_FOREST,
+                SoulLandBiomes.ISLAND,
+                SoulLandBiomes.SOUL_OCEAN,
+                SoulLandBiomes.SOUL_HELL,
+                SoulLandBiomes.SOUL_END);
     }
 }

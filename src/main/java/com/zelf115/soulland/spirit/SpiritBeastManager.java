@@ -2,15 +2,22 @@ package com.zelf115.soulland.spirit;
 
 import com.zelf115.soulland.Config;
 import com.zelf115.soulland.DerivedStats;
+import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.StatBonus;
+import com.zelf115.soulland.cultivation.skill.SkillPools;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
+import com.zelf115.soulland.spirit.SpiritBosses.BossBone;
+import com.zelf115.soulland.spirit.SpiritBosses.BossProfile;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
@@ -58,7 +65,7 @@ public final class SpiritBeastManager {
     /** Every bone slot a beast carries inside its body, as opposed to the external bones. */
     public static final List<String> INTERNAL_BONE_SLOTS = Stream.concat(
             BODY_BONE_SLOTS.stream(), Stream.of(SKULL_BONE_SLOT)).toList();
-    /** Spread of a single ring stat around what the beast's age and colour earn it. */
+    /** Spread of a single ring or bone stat around what the beast's age and colour earn it. */
     private static final double MIN_STAT_ROLL = 0.60;
     private static final double MAX_STAT_ROLL = 1.60;
     /** Age lifts a ring at most this far above the floor of its colour, so the top end stays finite. */
@@ -67,9 +74,13 @@ public final class SpiritBeastManager {
     /** Youngest age each tier starts at, in tier order; the inverse of the year roll table. */
     private static final int[] TIER_YEAR_FLOORS = {1, 100, 1_000, 10_000, 100_000, 200_000, 1_000_000};
     private static final int LOWEST_TIER = 1;
-    /** Beasts whose bones are boss loot, so no other source may hand them out. */
-    public static final Set<String> BOSS_BEAST_PATHS = Set.of(
-            "ice_jade_scorpion", "ice_bear", "evil_spirit_orca", "three_eyed_golden_lion");
+    /**
+     * The tier roll where 1 000-year beasts begin: wild lands roll below it, capping beasts at 999
+     * years, and the mod's own biomes roll above it.
+     */
+    private static final double HOMELAND_ROLL_FLOOR = 0.55D;
+    /** Bosses must last long enough for a real fight, so they carry this many times the health of their age. */
+    private static final double BOSS_HEALTH_MULTIPLIER = 5.0;
     /** The external spirit bone each of these named beasts carries, keyed by entity path. */
     private static final Map<String, String> EXTERNAL_BONE_BY_BEAST = Map.of(
             "ice_jade_scorpion", "Ice Jade Tail",
@@ -93,11 +104,17 @@ public final class SpiritBeastManager {
         applyStatsAtFullHealth(monster);
     }
 
-    /** Rolls a beast's age, tier and starting stats, recording the vanilla values it started from. */
+    /**
+     * Rolls a beast's age, tier and starting stats, recording the vanilla values it started from.
+     * A boss is always the age its profile names.
+     */
     private static void rollBeast(final SpiritBeastEntity monster, final CompoundTag data) {
-        final int tier = rollTier(monster.getRandom().nextDouble());
-        final int years = randomYearsForTier(monster, tier);
+        final Optional<BossProfile> boss = SpiritBosses.of(monster.getType());
+        final int years = boss.map(BossProfile::years)
+                .orElseGet(() -> randomYearsForTier(monster, rollTier(tierRollFor(monster))));
+        final int tier = tierForYears(years);
         final int level = effectiveLevelForYears(years);
+        final double healthMultiplier = boss.isPresent() ? BOSS_HEALTH_MULTIPLIER : 1.0;
         final double baseMaxHealth = getBaseValue(monster, Attributes.MAX_HEALTH, DEFAULT_BASE_MAX_HEALTH);
         final double baseDamage = getBaseValue(monster, Attributes.ATTACK_DAMAGE, DEFAULT_BASE_DAMAGE);
         final double baseArmor = getBaseValue(monster, Attributes.ARMOR, DEFAULT_BASE_ARMOR);
@@ -109,7 +126,8 @@ public final class SpiritBeastManager {
         data.putDouble(BASE_MAX_HEALTH_KEY, baseMaxHealth);
         data.putDouble(BASE_DAMAGE_KEY, baseDamage);
         data.putDouble(BASE_ARMOR_KEY, baseArmor);
-        data.putDouble(HEALTH_STAT_KEY, grownStat(DerivedStats.healthStatFor(baseMaxHealth), level, tier));
+        data.putDouble(HEALTH_STAT_KEY,
+                grownStat(DerivedStats.healthStatFor(baseMaxHealth), level, tier) * healthMultiplier);
         data.putDouble(DAMAGE_STAT_KEY, grownStat(DerivedStats.damageStatFor(baseDamage), level, tier));
         data.putDouble(DEFENSE_STAT_KEY, grownStat(DerivedStats.defenseStatFor(baseArmor), level, tier));
         data.putDouble(SPEED_STAT_KEY, grownStat(DerivedStats.speedStatFor(baseSpeed), level, tier));
@@ -163,8 +181,12 @@ public final class SpiritBeastManager {
         final StatBonus bonus = rolledPerStat(
                 statsOf(data).scaled(SOUL_RING_STRENGTH_SHARE * ageStrength(years, tier)), monster.getRandom())
                 .withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
-        return SoulRingItem.create(beastName(monster), tier, years, bonus,
-            AffinitySystem.affinitiesOf(monster));
+        final Set<Affinity> affinities = AffinitySystem.affinitiesOf(monster);
+        final ItemStack ring = SoulRingItem.create(beastName(monster), tier, years, bonus, affinities);
+        SpiritBosses.of(monster.getType()).map(BossProfile::ringSkill)
+                .or(() -> SkillPools.roll(affinities, monster.getRandom()))
+                .ifPresent(skill -> SkillTag.attach(ring, skill));
+        return ring;
     }
 
     /**
@@ -183,8 +205,8 @@ public final class SpiritBeastManager {
     }
 
     /**
-     * Rolls each stat of the ring separately, so two rings of one colour and age are still worth
-     * comparing rather than being the same ring twice.
+     * Rolls each stat of a ring or bone separately, so two drops of one colour and age are still worth
+     * comparing rather than being the same drop twice.
      */
     private static StatBonus rolledPerStat(final StatBonus bonus, final RandomSource random) {
         return new StatBonus(
@@ -230,7 +252,23 @@ public final class SpiritBeastManager {
         final CompoundTag data = monster.getPersistentData();
         final String slot = rollBoneSlot(monster.getRandom(), monster.getType());
         return SpiritBoneItem.create(beastName(monster), slot, data.getInt(TIER_KEY), data.getInt(YEARS_KEY),
-                statsOf(data).scaled(SPIRIT_BONE_STRENGTH_SHARE));
+                rolledBoneBonus(monster, data));
+    }
+
+    /** The bones a boss always leaves behind, each carrying the skill its profile names. */
+    public static List<ItemStack> createBossBones(final SpiritBeastEntity monster) {
+        final CompoundTag data = monster.getPersistentData();
+        final List<BossBone> bones = SpiritBosses.of(monster.getType()).map(BossProfile::bones).orElse(List.of());
+        return bones.stream().map(bone -> {
+            final ItemStack stack = SpiritBoneItem.create(beastName(monster), bone.slot(), data.getInt(TIER_KEY),
+                    data.getInt(YEARS_KEY), rolledBoneBonus(monster, data));
+            SkillTag.attach(stack, bone.skill());
+            return stack;
+        }).toList();
+    }
+
+    private static StatBonus rolledBoneBonus(final SpiritBeastEntity monster, final CompoundTag data) {
+        return rolledPerStat(statsOf(data).scaled(SPIRIT_BONE_STRENGTH_SHARE), monster.getRandom());
     }
 
     public static int getTier(final SpiritBeastEntity monster) {
@@ -260,6 +298,10 @@ public final class SpiritBeastManager {
         return monster.getPersistentData().getDouble(DEFENSE_STAT_KEY);
     }
 
+    public static double getSpiritStat(final SpiritBeastEntity monster) {
+        return monster.getPersistentData().getDouble(SPIRIT_STAT_KEY);
+    }
+
     /**
      * The colour of the soul ring each age band drops, as exact text colours.
      *
@@ -274,6 +316,11 @@ public final class SpiritBeastManager {
     public static int tierTextColor(final int tier) {
         final int index = Math.max(LOWEST_TIER, Math.min(TIER_TEXT_COLORS.length, tier)) - 1;
         return TIER_TEXT_COLORS[index];
+    }
+
+    /** A beast's name in the colour of its age band, so chat reads the same as the beast's name tag. */
+    public static Component nameInTierColor(final String name, final int tier) {
+        return Component.literal(name).withStyle(style -> style.withColor(tierTextColor(tier)));
     }
 
     public static String describeTier(final int tier) {
@@ -327,11 +374,25 @@ public final class SpiritBeastManager {
         return id == null ? "" : id.getPath();
     }
 
+    private static double tierRollFor(final SpiritBeastEntity monster) {
+        final double roll = monster.getRandom().nextDouble();
+        if (isInSoulLandBiome(monster)) {
+            return HOMELAND_ROLL_FLOOR + roll * (1.0D - HOMELAND_ROLL_FLOOR);
+        }
+        return roll * HOMELAND_ROLL_FLOOR;
+    }
+
+    private static boolean isInSoulLandBiome(final SpiritBeastEntity monster) {
+        return monster.level().getBiome(monster.blockPosition()).unwrapKey()
+                .map(key -> key.location().getNamespace().equals(SoulLand.MODID))
+                .orElse(false);
+    }
+
     private static int rollTier(final double roll) {
         if (roll < 0.30D) {
             return 1;
         }
-        if (roll < 0.55D) {
+        if (roll < HOMELAND_ROLL_FLOOR) {
             return 2;
         }
         if (roll < 0.75D) {

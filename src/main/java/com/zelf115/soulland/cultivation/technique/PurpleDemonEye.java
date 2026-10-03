@@ -5,21 +5,16 @@ import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.skill.SkillEffects;
 import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
 
 /**
  * Purple Demon Eye: Survey (timed glow pulse), Detailed (toggle), Surreal (free, plus a paralysing
@@ -39,7 +34,6 @@ public final class PurpleDemonEye {
     private static final double STRIKE_RANGE = 20.0;
     private static final float STRIKE_DAMAGE = 5.0F;
     private static final int PARALYSIS_TICKS = 5 * TPS;
-    private static final int PARALYSIS_AMPLIFIER = 19;
     private static final int STRIKE_COOLDOWN_TICKS = 3 * TPS;
     private static final long DAY_LENGTH_TICKS = 24000L;
     private static final long DAWN_START_TICK = 23000L;
@@ -152,7 +146,7 @@ public final class PurpleDemonEye {
         final long now = player.level().getGameTime();
         if (now < techniques.getDemonEyeStrikeReadyAt()) return;
 
-        final Optional<LivingEntity> target = lookedAtEntity(player);
+        final Optional<LivingEntity> target = SkillEffects.lookTarget(player, STRIKE_RANGE);
         if (target.isEmpty()) {
             player.sendSystemMessage(Component.translatable("soulland.technique.demon_eye.no_target"));
             return;
@@ -163,22 +157,6 @@ public final class PurpleDemonEye {
 
     private static void paralyse(final Player player, final LivingEntity target) {
         target.hurt(player.damageSources().indirectMagic(player, player), STRIKE_DAMAGE);
-        target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, PARALYSIS_TICKS, PARALYSIS_AMPLIFIER));
-    }
-
-    private static Optional<LivingEntity> lookedAtEntity(final Player player) {
-        final Vec3 eye = player.getEyePosition();
-        final Vec3 reach = player.getViewVector(1.0F).scale(STRIKE_RANGE);
-        final Vec3 sightEnd = player.level().clip(new ClipContext(eye, eye.add(reach),
-                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player)).getLocation();
-        final AABB searchBox = player.getBoundingBox().expandTowards(reach).inflate(1.0);
-        final EntityHitResult hit = ProjectileUtil.getEntityHitResult(player, eye, sightEnd, searchBox,
-                PurpleDemonEye::isStrikeable, eye.distanceToSqr(sightEnd));
-        if (hit == null) return Optional.empty();
-        return Optional.of((LivingEntity) hit.getEntity());
-    }
-
-    private static boolean isStrikeable(final Entity entity) {
-        return entity instanceof LivingEntity && entity.isPickable() && !entity.isSpectator();
+        SkillEffects.freeze(target, PARALYSIS_TICKS);
     }
 }

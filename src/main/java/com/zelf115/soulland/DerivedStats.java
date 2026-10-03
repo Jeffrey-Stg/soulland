@@ -72,6 +72,11 @@ public final class DerivedStats {
         return (float) (incomingDamage * (1.0 - reduction));
     }
 
+    /** Skill buffs and durations grow with spirit along the same curve damage grows with the damage stat. */
+    public static double scaledBySpirit(final double value, final double spiritStat) {
+        return value * (1.0 + bonusFraction(spiritStat));
+    }
+
     public static double maxSpiritEnergy(final double spiritStat) {
         return Math.max(0.0, spiritStat / SPIRIT_POINTS_PER_ENERGY);
     }

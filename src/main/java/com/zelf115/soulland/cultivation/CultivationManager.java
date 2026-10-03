@@ -53,8 +53,6 @@ public class CultivationManager {
     public static final int CREATIVE_FLIGHT_LEVEL = 90;
     /** Level at which a player may name themselves a title. */
     public static final int TITLE_LEVEL = 90;
-    /** Downward speed past which gliding kicks in, so a small hop does not trigger it. */
-    private static final double GLIDE_START_FALL_SPEED = -0.1;
     /** Identifies this mod's flight grant, so revoking it never touches another source of flight. */
     private static final ResourceLocation CULTIVATION_FLIGHT_ID =
             ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "cultivation_flight");
@@ -291,6 +289,52 @@ public class CultivationManager {
         player.sendSystemMessage(Component.translatable("soulland.cultivation.bottleneck", level));
     }
 
+    // ---- Operator Level Control ----
+
+    /**
+     * Moves the player straight to {@code targetLevel}, skipping every gate, one level at a time so
+     * each level crossed gives or takes back exactly the stats it would in play. Stats from herbs,
+     * pills and meditation stay where they are. XP starts over at zero.
+     */
+    public static void forceLevel(final Player player, final CultivationData data, final int targetLevel) {
+        final int target = Math.max(1, Math.min(MAX_LEVEL, targetLevel));
+        while (data.getLevel() < target) {
+            raiseOneLevel(player, data);
+        }
+        while (data.getLevel() > target) {
+            lowerOneLevel(player, data);
+        }
+        data.setXp(0.0);
+        data.setInBottleneck(isBottleneckLevel(target));
+        Stats.syncDerivedPlayerStats(player, data);
+        applyFlightAbilities(player, target);
+    }
+
+    private static void raiseOneLevel(final Player player, final CultivationData data) {
+        final int from = data.getLevel();
+        final int to = from + 1;
+        if (isBottleneckLevel(from)) {
+            applyBreakthroughStats(player, to);
+            data.setSuccessfulBreakthroughCount(data.getSuccessfulBreakthroughCount() + 1);
+        } else {
+            applyRegularLevelStats(player, to);
+        }
+        data.setLevel(to);
+        MartialSoulEvolution.tryEvolve(player, data);
+    }
+
+    private static void lowerOneLevel(final Player player, final CultivationData data) {
+        final int from = data.getLevel();
+        final int to = from - 1;
+        if (isBottleneckLevel(to)) {
+            Stats.multiplyCultivationStats(player, 1.0 / breakthroughStatMultiplier(from));
+            data.setSuccessfulBreakthroughCount(data.getSuccessfulBreakthroughCount() - 1);
+        } else {
+            Stats.addToCultivationStats(player, -regularStatIncrease(from));
+        }
+        data.setLevel(to);
+    }
+
     // ---- Flight Abilities ----
 
     /**
@@ -298,7 +342,7 @@ public class CultivationManager {
      *
      * <ul>
      *   <li>Level ≥ 90: full creative flight (mayfly = true)</li>
-     *   <li>Level 70–89: elytra-like gliding (toggled via slow falling + glide state tracking)</li>
+     *   <li>Level 70–89: elytra-like gliding, started by jumping in mid-air (see {@link CultivationGlide})</li>
      *   <li>Level &lt; 70: no cultivation-based flight</li>
      * </ul>
      *
@@ -321,20 +365,5 @@ public class CultivationManager {
         } else if (granted) {
             flight.removeModifier(CULTIVATION_FLIGHT_ID);
         }
-    }
-
-    // ---- Elytra Glide Helper ----
-
-    /**
-     * Between {@link #GLIDE_LEVEL} and {@link #CREATIVE_FLIGHT_LEVEL} the player glides instead of
-     * falling. Sneaking opts out, so a cultivator can still drop straight down when they mean to.
-     */
-    public static void tickElytraGlide(Player player, int level) {
-        if (player.level().isClientSide()) return;
-        if (level < GLIDE_LEVEL || level >= CREATIVE_FLIGHT_LEVEL) return;
-        if (player.onGround() || player.isInWater() || player.isFallFlying() || player.isCrouching()) return;
-        if (player.getDeltaMovement().y >= GLIDE_START_FALL_SPEED) return;
-
-        player.startFallFlying();
     }
 }

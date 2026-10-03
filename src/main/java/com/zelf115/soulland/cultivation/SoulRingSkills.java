@@ -1,8 +1,11 @@
 package com.zelf115.soulland.cultivation;
 
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.cultivation.skill.Skill;
 import java.util.Comparator;
 import java.util.List;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -64,21 +67,26 @@ public final class SoulRingSkills {
             player.sendSystemMessage(Component.translatable("soulland.cultivation.ring_skill.no_rings"));
             return;
         }
+        final int ringIndex = Math.min(data.getSelectedRingIndex(), rings.size() - 1);
+        final AbsorbedRing ring = rings.get(ringIndex);
+        if (!isPagoda(soul) && ring.skill().isPresent()) {
+            data.getSkillRuntime().cast(player, data, ring.skill().get());
+            return;
+        }
         if (data.getSpiritEnergy() < SKILL_ENERGY_COST) {
             player.sendSystemMessage(Component.translatable("soulland.cultivation.ring_skill.no_energy"));
             return;
         }
 
         data.setSpiritEnergy(data.getSpiritEnergy() - SKILL_ENERGY_COST);
-        final int ringIndex = Math.min(data.getSelectedRingIndex(), rings.size() - 1);
         if (isPagoda(soul)) {
             applyPagodaBuff(player, ringIndex);
             return;
         }
-        applyRingSkill(player, data, rings.get(ringIndex));
+        applyRingSkill(player, data, ring);
     }
 
-    /** Moves the cast key onto the next ring of the active soul's own track. */
+    /** Moves the cast key onto the next ring of the active soul's own track, passing over passive skills. */
     public static void selectNextRing(final Player player, final CultivationData data) {
         final List<AbsorbedRing> rings = data.getRings(data.getActiveSoulSlot());
         if (rings.isEmpty()) {
@@ -86,17 +94,35 @@ public final class SoulRingSkills {
             return;
         }
 
-        final int next = (data.getSelectedRingIndex() + 1) % rings.size();
-        data.setSelectedRingIndex(next);
+        final boolean pagoda = isPagoda(data.getActiveMartialSoul());
+        final OptionalInt next = IntStream.rangeClosed(1, rings.size())
+                .map(offset -> (data.getSelectedRingIndex() + offset) % rings.size())
+                .filter(index -> pagoda || !isPassive(rings.get(index)))
+                .findFirst();
+        if (next.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("soulland.cultivation.ring_skill.none_castable"));
+            return;
+        }
+
+        final AbsorbedRing ring = rings.get(next.getAsInt());
+        data.setSelectedRingIndex(next.getAsInt());
         player.sendSystemMessage(Component.translatable("soulland.cultivation.ring_skill.selected",
-                next + 1, rings.get(next).sourceName()));
+                next.getAsInt() + 1, ring.skill().map(Skill::displayName).orElse(ring.coloredSourceName())));
+    }
+
+    private static boolean isPassive(final AbsorbedRing ring) {
+        return ring.skill().map(Skill::isPassive).orElse(false);
     }
 
     public static void expireBuff(final Player player, final CultivationData data, final long gameTick) {
         if (data.getMartialSoulBuffUntil() > 0 && gameTick >= data.getMartialSoulBuffUntil()) {
-            Stats.removeTemporaryBonus(player, SKILL_BUFF_ID);
-            data.setMartialSoulBuffUntil(0L);
+            endBuff(player, data);
         }
+    }
+
+    public static void endBuff(final Player player, final CultivationData data) {
+        Stats.removeTemporaryBonus(player, SKILL_BUFF_ID);
+        data.setMartialSoulBuffUntil(0L);
     }
 
     private static boolean isPagoda(final MartialSoul soul) {
@@ -107,7 +133,7 @@ public final class SoulRingSkills {
     private static void applyRingSkill(final Player player, final CultivationData data, final AbsorbedRing ring) {
         Stats.applyTemporaryStatPercentBonus(player, SKILL_BUFF_ID, RING_SKILL_PERCENT_PER_TIER * ring.tier());
         startBuffTimer(player, data);
-        player.sendSystemMessage(Component.translatable("soulland.cultivation.ring_skill.used", ring.sourceName()));
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.ring_skill.used", ring.coloredSourceName()));
     }
 
     private static void applyPagodaBuff(final Player caster, final int ringIndex) {

@@ -17,4 +17,8 @@ public final class HudClientData {
     public static HudSyncPayload latest() {
         return latest;
     }
+
+    public static void clear() {
+        latest = null;
+    }
 }

@@ -1,0 +1,7 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "soulland:soul_ocean",
+  "spawners": [
+    { "type": "soulland:evil_spirit_orca_king", "weight": 1, "minCount": 1, "maxCount": 1 }
+  ]
+}

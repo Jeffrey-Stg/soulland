@@ -7,6 +7,7 @@ import com.zelf115.soulland.cultivation.AbsorbedBone;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -63,26 +64,35 @@ public final class SpiritBoneItem extends Item {
         }
 
         final AbsorbedBone bone = new AbsorbedBone(tag.getString(AbsorbedBone.SLOT_KEY), tag.getString(AbsorbedBone.SOURCE_NAME_KEY),
-                boneTier, tag.getInt(AbsorbedBone.YEARS_KEY), StatBonus.readFrom(tag));
+                boneTier, tag.getInt(AbsorbedBone.YEARS_KEY), StatBonus.readFrom(tag), SkillTag.read(tag));
         replaceBone(player, data, bone);
-        player.sendSystemMessage(Component.translatable("soulland.spirit_bone.absorbed", bone.slot(), bone.sourceName()));
+        player.sendSystemMessage(Component.translatable("soulland.spirit_bone.absorbed", bone.slot(), bone.coloredSourceName()));
 
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-        }
+        stack.shrink(1);
         return InteractionResultHolder.sidedSuccess(stack, false);
     }
 
     /**
-     * Takes the new bone into its body slot, discarding whatever occupied it.
+     * Takes the new bone into its body slot and hands back the bone that occupied it, so each limb
+     * holds one bone at a time and no bone is ever lost to a swap.
      *
      * <p>Both bones share one modifier id per slot, so replacing takes back exactly what the old
      * bone gave no matter how many breakthroughs happened while it was worn.
      */
     private static void replaceBone(final Player player, final CultivationData data, final AbsorbedBone bone) {
-        data.putBone(bone);
+        final AbsorbedBone previous = data.putBone(bone);
         Stats.applyBonus(player, AbsorbedBone.modifierId(bone.slot()), bone.bonus());
         Stats.syncDerivedPlayerStats(player, data);
+        if (previous != null) {
+            returnBone(player, previous);
+        }
+    }
+
+    private static void returnBone(final Player player, final AbsorbedBone bone) {
+        final ItemStack stack = create(bone.sourceName(), bone.slot(), bone.tier(), bone.years(), bone.bonus());
+        bone.skill().ifPresent(skill -> SkillTag.attach(stack, skill));
+        player.getInventory().placeItemBackInInventory(stack);
+        player.sendSystemMessage(Component.translatable("soulland.spirit_bone.returned", bone.slot(), bone.coloredSourceName()));
     }
 
     @Override
@@ -95,6 +105,7 @@ public final class SpiritBoneItem extends Item {
         StatBonusTooltip.appendOrigin(tooltipComponents, tag.getString(AbsorbedBone.SOURCE_NAME_KEY), tag.getInt(AbsorbedBone.YEARS_KEY));
         tooltipComponents.add(Component.translatable("soulland.tooltip.slot", tag.getString(AbsorbedBone.SLOT_KEY))
                 .withStyle(ChatFormatting.DARK_GRAY));
+        SkillTag.appendTooltip(tooltipComponents, tag);
         StatBonusTooltip.appendStats(tooltipComponents, StatBonus.readFrom(tag));
     }
 

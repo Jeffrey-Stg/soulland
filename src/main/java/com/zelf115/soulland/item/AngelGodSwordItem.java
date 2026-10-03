@@ -31,7 +31,7 @@ public class AngelGodSwordItem extends SwordItem {
     @Override
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
-        if (!GodRelic.isEntitled(player, GodTrial.SERAPHIM)) {
+        if (GodRelic.refusesUse(player, GodTrial.SERAPHIM)) {
             GodRelic.refuse(player);
             return InteractionResultHolder.fail(stack);
         }

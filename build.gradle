@@ -41,6 +41,13 @@ repositories {
             includeGroup 'top.theillusivec4.curios'
         }
     }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 
 base {
@@ -50,7 +57,7 @@ base {
 // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-//minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
+minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
 //minecraft.accessTransformers.entry public net.minecraft.client.Minecraft textureManager # textureManager
 
 // Default run configurations.
@@ -126,6 +133,11 @@ dependencies {
     compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
     localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
 
+    // Overflowing Bars is an optional client dependency: cultivator health runs far past vanilla's
+    // heart rows, and it folds the extra rows into one stacked bar. Puzzles Lib is its library.
+    localRuntime "maven.modrinth:overflowing-bars:${overflowing_bars_version}"
+    localRuntime "maven.modrinth:puzzles-lib:${puzzles_lib_version}"
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -162,6 +174,8 @@ tasks.withType(ProcessResources).configureEach {
             loader_version_range   : loader_version_range,
             terrablender_version_range: terrablender_version_range,
             curios_version_range   : curios_version_range,
+            overflowing_bars_version_range: overflowing_bars_version_range,
+            botany_pots_version_range: botany_pots_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

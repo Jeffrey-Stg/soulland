@@ -89,6 +89,11 @@ public final class MartialSoulEvolution {
     }
 
     private static void evolve(final Player player, final CultivationData data, final SoulSlot slot, final MartialSoul target) {
+        // Put the soul away first: deactivation looks up the tool by the soul it holds, so after the
+        // swap it would no longer find the old soul's tool and would leave it in the inventory.
+        if (data.getActiveSoulSlot() == slot) {
+            MartialSoulAbility.forceDeactivate(player, data);
+        }
         if (slot == SoulSlot.PRIMARY) {
             data.setMartialSoul(target);
         } else {

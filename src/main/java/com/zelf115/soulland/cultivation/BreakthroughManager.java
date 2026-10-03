@@ -34,8 +34,8 @@ public class BreakthroughManager {
     public static final double REGULAR_BASE_CHANCE = 0.50;
     /** Additional success probability per breakthrough failure. */
     public static final double FAILURE_BONUS_CHANCE = 0.05;
-    /** Cooldown in ticks (5 min) imposed after a failed breakthrough attempt. */
-    public static final int FAILURE_COOLDOWN_TICKS = 20 * 60 * 5;
+    /** Cooldown in ticks (1 min) imposed after a failed breakthrough attempt. */
+    public static final int FAILURE_COOLDOWN_TICKS = 20 * 60;
     /** Lowest damage the heavenly lightning can roll. */
     private static final float MIN_LIGHTNING_DAMAGE = 1.0F;
     /** The twin-soul chance is only rolled after the first two breakthroughs. */

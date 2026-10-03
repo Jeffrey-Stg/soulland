@@ -72,7 +72,7 @@ public final class TournamentManager {
             return;
         }
 
-        final int opponentLevel = SoulMasterStats.rollOpponentLevel(data.getLevel(), player.getRandom());
+        final int opponentLevel = SoulMasterStats.opponentLevelForRound(data.getTournamentRound());
         opponent.moveTo(pos.getX() + SPAWN_DISTANCE + HALF_BLOCK, pos.getY() + 1, pos.getZ() + HALF_BLOCK,
                 player.getYRot(), 0.0F);
         opponent.prepareForDuel(opponentLevel, player.getUUID(), data.getTournamentRound());
@@ -85,7 +85,9 @@ public final class TournamentManager {
     /** The challenger won the round: pay out, then advance or crown them. */
     public static void recordOpponentDefeat(final ServerPlayer player, final CultivationData data,
                                             final SoulMasterEntity opponent) {
-        if (data.isTournamentRunSpent()) {
+        // An opponent left over from a lost run, or a second one summoned out of search range,
+        // fights for a round the run is no longer on and must not advance it.
+        if (data.isTournamentRunSpent() || opponent.getRound() != data.getTournamentRound()) {
             return;
         }
         if (data.getTournamentRound() >= TOTAL_ROUNDS) {

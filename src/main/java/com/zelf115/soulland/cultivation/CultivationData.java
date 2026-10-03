@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.zelf115.soulland.cultivation.skill.SkillRuntime;
 import com.zelf115.soulland.cultivation.technique.LearnedTechniques;
 import com.zelf115.soulland.spirit.Affinity;
 import com.zelf115.soulland.trial.GodTrial;
@@ -30,7 +31,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public static final int MIN_INNATE_STAT = 1;
     public static final int MAX_INNATE_STAT = 20;
     public static final int NEUTRAL_INNATE_STAT = 10;
-    private static final int MIN_MOVEMENT_USAGE_PERCENT = 10;
+    private static final int MIN_MOVEMENT_USAGE_PERCENT = 0;
     private static final int MAX_MOVEMENT_USAGE_PERCENT = 100;
 
     // Current cultivation level (1–120)
@@ -62,8 +63,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private boolean martialSoulCanReachLevel100 = false;
     // Number of times the player has reborn (gate for level 100 as an alternative)
     private int rebirthCount = 0;
-    // Permanent flat bonus applied to all stats, accumulated across rebirths
-    private double permanentBonusStats = 0.0;
     // The god trial undertaken this rebirth; null until an altar starts one
     private GodTrial godTrial;
     // The five tasks rolled when the trial started, in order
@@ -88,8 +87,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private double spiritEnergy = 0.0;
     // Whether the starting spirit energy pool has already been filled once, on first login
     private boolean spiritEnergySeeded = false;
-    // Percentage of the derived movement speed the player wants to actively use
-    private int movementUsagePercent = 100;
+    // Percentage of the Speed stat bonus the player wants to apply to movement and swimming
+    private int movementUsagePercent = MIN_MOVEMENT_USAGE_PERCENT;
     // Innate stat rolled 1–20 when the martial soul is chosen; drives the XP bonus
     private int innateStat = NEUTRAL_INNATE_STAT;
     // How absorbed soul rings are shown
@@ -106,6 +105,9 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private SoulSlot activeSoulSlot = SoulSlot.PRIMARY;
     // Index of the ring, inside the active soul's own track, whose skill the cast key uses
     private int selectedRingIndex = 0;
+    // Index, among the bones that carry a castable skill, of the one the bone cast key uses
+    private int selectedBoneIndex = 0;
+    private final SkillRuntime skillRuntime = new SkillRuntime();
     private LearnedTechniques techniques = new LearnedTechniques();
 
     // ---- Getters ----
@@ -127,7 +129,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public boolean hasGodInheritance() { return hasGodInheritance; }
     public boolean canMartialSoulReachLevel100() { return martialSoulCanReachLevel100; }
     public int getRebirthCount() { return rebirthCount; }
-    public double getPermanentBonusStats() { return permanentBonusStats; }
     public double getSpiritEnergy() { return spiritEnergy; }
     public boolean isSpiritEnergySeeded() { return spiritEnergySeeded; }
     public int getMovementUsagePercent() { return movementUsagePercent; }
@@ -142,6 +143,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setMartialSoulBuffUntil(final long tick) { martialSoulBuffUntil = tick; }
     public SoulSlot getActiveSoulSlot() { return activeSoulSlot; }
     public int getSelectedRingIndex() { return selectedRingIndex; }
+    public int getSelectedBoneIndex() { return selectedBoneIndex; }
+    public SkillRuntime getSkillRuntime() { return skillRuntime; }
     public GodTrial getGodTrial() { return godTrial; }
     public List<TrialTask> getGodTrialTasks() { return Collections.unmodifiableList(godTrialTasks); }
     public int getGodTrialTaskIndex() { return godTrialTaskIndex; }
@@ -166,7 +169,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public void setHasGodInheritance(boolean value) { this.hasGodInheritance = value; }
     public void setMartialSoulCanReachLevel100(final boolean value) { martialSoulCanReachLevel100 = value; }
     public void setRebirthCount(int count) { this.rebirthCount = Math.max(0, count); }
-    public void setPermanentBonusStats(double bonus) { this.permanentBonusStats = bonus; }
     public void setSpiritEnergy(double spiritEnergy) { this.spiritEnergy = Math.max(0.0, spiritEnergy); }
     public void markSpiritEnergySeeded() { this.spiritEnergySeeded = true; }
     public void setRingDisplayMode(RingDisplayMode mode) { this.ringDisplayMode = mode == null ? RingDisplayMode.NONE : mode; }
@@ -180,6 +182,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
 
     public void setActiveSoulSlot(final SoulSlot slot) { this.activeSoulSlot = slot == null ? SoulSlot.PRIMARY : slot; }
     public void setSelectedRingIndex(final int index) { this.selectedRingIndex = Math.max(0, index); }
+    public void setSelectedBoneIndex(final int index) { this.selectedBoneIndex = Math.max(0, index); }
 
     public void setGodTrial(final GodTrial trial) { this.godTrial = trial; }
     public void setGodTrialTaskIndex(final int index) { this.godTrialTaskIndex = Math.max(0, index); }
@@ -311,7 +314,6 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putBoolean("hasGodInheritance", hasGodInheritance);
         tag.putBoolean("martialSoulCanReachLevel100", martialSoulCanReachLevel100);
         tag.putInt("rebirthCount", rebirthCount);
-        tag.putDouble("permanentBonusStats", permanentBonusStats);
         tag.putDouble("spiritEnergy", spiritEnergy);
         tag.putBoolean("spiritEnergySeeded", spiritEnergySeeded);
         tag.putInt("movementUsagePercent", movementUsagePercent);
@@ -324,6 +326,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putLong("martialSoulBuffUntil", martialSoulBuffUntil);
         tag.putString("activeSoulSlot", activeSoulSlot.name());
         tag.putInt("selectedRingIndex", selectedRingIndex);
+        tag.putInt("selectedBoneIndex", selectedBoneIndex);
         if (godTrial != null) {
             tag.putString("godTrial", godTrial.name());
         }
@@ -370,10 +373,9 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         hasGodInheritance = tag.getBoolean("hasGodInheritance");
         martialSoulCanReachLevel100 = tag.getBoolean("martialSoulCanReachLevel100");
         rebirthCount = tag.getInt("rebirthCount");
-        permanentBonusStats = tag.getDouble("permanentBonusStats");
         spiritEnergy = Math.max(0.0, tag.getDouble("spiritEnergy"));
         spiritEnergySeeded = tag.getBoolean("spiritEnergySeeded");
-        setMovementUsagePercent(tag.contains("movementUsagePercent") ? tag.getInt("movementUsagePercent") : 100);
+        setMovementUsagePercent(tag.contains("movementUsagePercent") ? tag.getInt("movementUsagePercent") : MIN_MOVEMENT_USAGE_PERCENT);
         setInnateStat(tag.contains("innateStat") ? tag.getInt("innateStat") : NEUTRAL_INNATE_STAT);
         ringDisplayMode = RingDisplayMode.byOrdinal(tag.getInt("ringDisplayMode"));
         externalBoneVisible = !tag.contains("externalBoneVisible") || tag.getBoolean("externalBoneVisible");
@@ -383,6 +385,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         martialSoulBuffUntil = tag.getLong("martialSoulBuffUntil");
         activeSoulSlot = readSoulSlot(tag.getString("activeSoulSlot"));
         selectedRingIndex = Math.max(0, tag.getInt("selectedRingIndex"));
+        selectedBoneIndex = Math.max(0, tag.getInt("selectedBoneIndex"));
         godTrial = readGodTrial(tag);
         readTrialTasks(tag.getList("godTrialTasks", Tag.TAG_COMPOUND));
         godTrialTaskIndex = Math.max(0, tag.getInt("godTrialTaskIndex"));

@@ -1,0 +1,16 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#minecraft:is_nether",
+  "spawners": [
+    { "type": "soulland:fire_phoenix", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:black_flame_phoenix", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:evil_fire_phoenix", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:flame_lion", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:blood_demonic_bear", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:scarlet_fire_monkey", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:blazing_demon_lion", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:ice_fire_demonic_tiger", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:lava_hound", "weight": 1, "minCount": 1, "maxCount": 1 },
+    { "type": "soulland:hell_spirit_cat", "weight": 1, "minCount": 1, "maxCount": 1 }
+  ]
+}
