@@ -19,9 +19,9 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 /**
  * Lets spirit beasts appear in the world on their own.
  *
- * <p>Which biome holds which beast is handled elsewhere; every beast uses the standard monster rules
- * here, sea beasts on the ocean floor and the rest on dry ground, so that the biome modifiers can
- * place them at all.
+ * <p>Which biome holds which beast is handled elsewhere; every beast uses the monster rules minus the
+ * darkness check here, so they roam by day as well as by night, sea beasts on the ocean floor and the
+ * rest on dry ground, so that the biome modifiers can place them at all.
  */
 @EventBusSubscriber(modid = SoulLand.MODID)
 public final class SpiritBeastSpawns {
@@ -47,7 +47,7 @@ public final class SpiritBeastSpawns {
         event.register(spiritBeastType,
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                aloneIfBoss(spiritBeastType, Monster::checkMonsterSpawnRules),
+                aloneIfBoss(spiritBeastType, Monster::checkAnyLightMonsterSpawnRules),
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
@@ -81,6 +81,6 @@ public final class SpiritBeastSpawns {
             final BlockPos pos,
             final RandomSource random) {
         return level.getFluidState(pos).is(FluidTags.WATER)
-                && Monster.checkMonsterSpawnRules(spiritBeastType, level, spawnType, pos, random);
+                && Monster.checkAnyLightMonsterSpawnRules(spiritBeastType, level, spawnType, pos, random);
     }
 }

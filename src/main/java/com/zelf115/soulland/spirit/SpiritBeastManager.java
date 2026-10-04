@@ -290,14 +290,6 @@ public final class SpiritBeastManager {
         return tier;
     }
 
-    public static double getDamageStat(final SpiritBeastEntity monster) {
-        return monster.getPersistentData().getDouble(DAMAGE_STAT_KEY);
-    }
-
-    public static double getDefenseStat(final SpiritBeastEntity monster) {
-        return monster.getPersistentData().getDouble(DEFENSE_STAT_KEY);
-    }
-
     public static double getSpiritStat(final SpiritBeastEntity monster) {
         return monster.getPersistentData().getDouble(SPIRIT_STAT_KEY);
     }

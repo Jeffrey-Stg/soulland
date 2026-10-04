@@ -3,6 +3,7 @@ package com.zelf115.soulland;
 import com.zelf115.soulland.effect.MarkerEffect;
 import com.zelf115.soulland.effect.MeditationEffect;
 import com.zelf115.soulland.effect.SkillBuffEffect;
+import com.zelf115.soulland.effect.SunderedEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
 import com.zelf115.soulland.block.GodAltarBlock;
 import com.zelf115.soulland.block.SpiritHerbBlock;
@@ -196,7 +197,7 @@ public class SoulLand {
     public static final DeferredHolder<MobEffect, MobEffect> SKILL_TITAN_FIST_EFFECT = MOB_EFFECTS.register("skill_titan_fist",
             () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, 0x8B5A2B));
     public static final DeferredHolder<MobEffect, MobEffect> SUNDERED_EFFECT = MOB_EFFECTS.register("sundered",
-            () -> new MarkerEffect(MobEffectCategory.HARMFUL, 0x5A5A5A));
+            () -> new SunderedEffect(0x5A5A5A));
 
     private static DeferredItem<Item> registerTechniqueBook(final String name, final Technique technique) {
         return ITEMS.register(name, () -> new TechniqueBookItem(technique, new Item.Properties().stacksTo(1)));
