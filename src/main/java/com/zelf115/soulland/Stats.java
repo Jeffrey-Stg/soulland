@@ -213,7 +213,7 @@ public class Stats {
                 DerivedStats.movementSpeed(DEFAULT_PLAYER_MOVEMENT_SPEED, usedSpeedStat));
         setVanillaBaseValue(player, NeoForgeMod.SWIM_SPEED,
                 DerivedStats.swimSpeed(DEFAULT_PLAYER_SWIM_SPEED, usedSpeedStat));
-        setVanillaBaseValue(player, Attributes.ATTACK_SPEED, DerivedStats.attackSpeed(DEFAULT_PLAYER_ATTACK_SPEED, speedStat));
+        setVanillaBaseValue(player, Attributes.ATTACK_SPEED, DEFAULT_PLAYER_ATTACK_SPEED);
         if (player.getHealth() > player.getMaxHealth()) {
             player.setHealth(player.getMaxHealth());
         }
@@ -222,14 +222,6 @@ public class Stats {
         if (data.getSpiritEnergy() < 0.0 || data.getSpiritEnergy() > maxSpiritEnergy) {
             data.setSpiritEnergy(maxSpiritEnergy);
         }
-    }
-
-    public static double applyOutgoingDamageBonus(final double baseDamage, final double damageStat) {
-        return DerivedStats.outgoingDamage(baseDamage, damageStat);
-    }
-
-    public static float applyDefenseReduction(final float incomingDamage, final double defenseStat) {
-        return DerivedStats.reducedIncomingDamage(incomingDamage, defenseStat);
     }
 
     // ---- Removable stat bonuses ----

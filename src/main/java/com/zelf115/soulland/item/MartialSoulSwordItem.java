@@ -48,6 +48,12 @@ public class MartialSoulSwordItem extends SwordItem {
                 String.valueOf((int) (BONUS_DAMAGE_PERCENT_OF_STAT * PERCENT))).withStyle(ChatFormatting.RED));
     }
 
+    /** Keeps the tool out of bundles and shulker boxes, which would carry it away from its owner. */
+    @Override
+    public boolean canFitInsideContainerItems(final ItemStack stack) {
+        return false;
+    }
+
     /** A martial soul's tool isn't a possession to throw away — dropping it just puts the soul away. */
     @Override
     public boolean onDroppedByPlayer(final ItemStack item, final Player player) {

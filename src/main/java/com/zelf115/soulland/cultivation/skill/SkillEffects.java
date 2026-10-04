@@ -1,6 +1,5 @@
 package com.zelf115.soulland.cultivation.skill;
 
-import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationManager;
@@ -54,13 +53,6 @@ public final class SkillEffects {
 
     public static void freeze(final LivingEntity target, final int ticks) {
         target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, ticks, FREEZE_AMPLIFIER));
-    }
-
-    /** The defense a creature keeps once Sundered: one point lost per effect level, never below zero. */
-    public static double defenseAfterSunder(final LivingEntity victim, final double defense) {
-        final MobEffectInstance sundered = victim.getEffect(SoulLand.SUNDERED_EFFECT);
-        if (sundered == null) return defense;
-        return Math.max(0.0, defense - (sundered.getAmplifier() + 1));
     }
 
     /** Acts on the creature under the crosshair; with nothing in sight the skill does not fire. */
@@ -117,21 +109,19 @@ public final class SkillEffects {
         return true;
     }
 
-    /** A timed flat stat bonus: one effect level is one stat point, and spirit raises both size and length. */
+    /** A timed flat stat bonus: one effect level is one stat point, and spirit raises its size. */
     static boolean timedBuff(final SkillCast cast, final Holder<MobEffect> effect, final double amount,
                              final int seconds) {
         final Player caster = cast.caster();
         final int points = (int) Math.round(cast.scaledBySpirit(amount));
-        caster.addEffect(new MobEffectInstance(effect, spiritScaledTicks(cast, seconds), amplifierForLevels(points)));
+        caster.addEffect(new MobEffectInstance(effect, ticks(seconds), amplifierForLevels(points)));
         Stats.syncDerivedPlayerStats(caster, caster.getData(CultivationAttachment.CULTIVATION_DATA.get()));
         return true;
     }
 
-    /** A status effect whose level and length both grow with the caster's spirit, starting from level I. */
     static void applyStatus(final SkillCast cast, final LivingEntity target, final Holder<MobEffect> effect,
                             final int seconds) {
-        final int amplifier = amplifierForLevels((int) Math.round(cast.scaledBySpirit(1.0)));
-        target.addEffect(new MobEffectInstance(effect, spiritScaledTicks(cast, seconds), amplifier), cast.caster());
+        target.addEffect(new MobEffectInstance(effect, ticks(seconds)), cast.caster());
     }
 
     static void healPlayersNear(final SkillCast cast, final double radius, final double amount) {
@@ -142,13 +132,11 @@ public final class SkillEffects {
                 .forEach(player -> player.heal(healed));
     }
 
-    /**
-     * Unscaled on purpose: the player-attack damage handler raises any hit a player causes by their
-     * damage stat. Invulnerability frames are cleared so a channel pulse is not swallowed by the last one.
-     */
     static void magicDamage(final SkillCast cast, final LivingEntity target) {
-        magicDamage(cast, target, cast.skill().baseDamage());
+        magicDamage(cast, target, cast.scaledBySpirit(cast.skill().baseDamage()));
     }
+
+    /** Invulnerability frames are cleared so a channel pulse is not swallowed by the last one. */
 
     static void magicDamage(final SkillCast cast, final LivingEntity target, final double amount) {
         final Player caster = cast.caster();
@@ -171,10 +159,6 @@ public final class SkillEffects {
 
     static int ticks(final int seconds) {
         return seconds * CultivationManager.TPS;
-    }
-
-    private static int spiritScaledTicks(final SkillCast cast, final int seconds) {
-        return (int) Math.round(cast.scaledBySpirit(ticks(seconds)));
     }
 
     private static void drawLine(final Player caster, final Vec3 end, final ParticleOptions particle) {

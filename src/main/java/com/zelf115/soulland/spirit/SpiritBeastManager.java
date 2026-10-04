@@ -68,9 +68,9 @@ public final class SpiritBeastManager {
     /** Spread of a single ring or bone stat around what the beast's age and colour earn it. */
     private static final double MIN_STAT_ROLL = 0.60;
     private static final double MAX_STAT_ROLL = 1.60;
-    /** Age lifts a ring at most this far above the floor of its colour, so the top end stays finite. */
-    private static final double MIN_AGE_STRENGTH = 1.0;
-    private static final double MAX_AGE_STRENGTH = 4.0;
+    /** How strongly age weighs on a ring, from the youngest beast of a colour to the oldest; capped so the top end stays finite. */
+    private static final double MIN_AGE_STRENGTH = 0.25;
+    private static final double MAX_AGE_STRENGTH = 1.0;
     /** Youngest age each tier starts at, in tier order; the inverse of the year roll table. */
     private static final int[] TIER_YEAR_FLOORS = {1, 100, 1_000, 10_000, 100_000, 200_000, 1_000_000};
     private static final int LOWEST_TIER = 1;
@@ -288,14 +288,6 @@ public final class SpiritBeastManager {
             }
         }
         return tier;
-    }
-
-    public static double getDamageStat(final SpiritBeastEntity monster) {
-        return monster.getPersistentData().getDouble(DAMAGE_STAT_KEY);
-    }
-
-    public static double getDefenseStat(final SpiritBeastEntity monster) {
-        return monster.getPersistentData().getDouble(DEFENSE_STAT_KEY);
     }
 
     public static double getSpiritStat(final SpiritBeastEntity monster) {

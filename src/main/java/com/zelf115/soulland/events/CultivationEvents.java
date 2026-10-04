@@ -6,7 +6,6 @@ import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.skill.MeleeRiders;
-import com.zelf115.soulland.cultivation.skill.SkillEffects;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulAbility;
 import com.zelf115.soulland.cultivation.RingDisplaySync;
@@ -42,7 +41,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  *   <li>Spirit-stat boost during bottleneck meditation</li>
  *   <li>Flight ability reapplication on tick</li>
  *   <li>Spirit-beast kill XP rewards</li>
- *   <li>Stat-driven damage dealt and taken</li>
+ *   <li>God relic refusal and melee on-hit riders</li>
  *   <li>Ability restoration on player respawn and login</li>
  * </ul>
  */
@@ -206,32 +205,14 @@ public class CultivationEvents {
 
     @SubscribeEvent
     public static void onLivingIncomingDamage(final LivingIncomingDamageEvent event) {
-        final LivingEntity victim = event.getEntity();
-        float updatedAmount = event.getAmount();
-
-        if (event.getSource().getEntity() instanceof Player attackingPlayer) {
-            if (GodRelic.isUnearnedRelic(attackingPlayer)) {
-                GodRelic.refuse(attackingPlayer);
-                event.setCanceled(true);
-                return;
-            }
-            MeleeRiders.applyOnHitEffects(attackingPlayer, victim, event.getSource());
-            updatedAmount += MeleeRiders.consumeSmashBonus(attackingPlayer, event.getSource());
-            updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, Stats.getDamage(attackingPlayer));
-        } else if (event.getSource().getEntity() instanceof SpiritBeastEntity spiritBeast) {
-            SpiritBeastManager.ensureSpiritBeast(spiritBeast);
-            updatedAmount = (float) Stats.applyOutgoingDamageBonus(updatedAmount, SpiritBeastManager.getDamageStat(spiritBeast));
+        if (!(event.getSource().getEntity() instanceof Player attackingPlayer)) return;
+        if (GodRelic.isUnearnedRelic(attackingPlayer)) {
+            GodRelic.refuse(attackingPlayer);
+            event.setCanceled(true);
+            return;
         }
-
-        if (victim instanceof Player defendingPlayer) {
-            updatedAmount = Stats.applyDefenseReduction(updatedAmount,
-                    SkillEffects.defenseAfterSunder(victim, Stats.getDefense(defendingPlayer)));
-        } else if (victim instanceof SpiritBeastEntity spiritBeast) {
-            updatedAmount = Stats.applyDefenseReduction(updatedAmount,
-                    SkillEffects.defenseAfterSunder(victim, SpiritBeastManager.getDefenseStat(spiritBeast)));
-        }
-
-        event.setAmount(updatedAmount);
+        MeleeRiders.applyOnHitEffects(attackingPlayer, event.getEntity(), event.getSource());
+        event.setAmount(event.getAmount() + MeleeRiders.consumeSmashBonus(attackingPlayer, event.getSource()));
     }
 
     // ---- Helper Methods ----

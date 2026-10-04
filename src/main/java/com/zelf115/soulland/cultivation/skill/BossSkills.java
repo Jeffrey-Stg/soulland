@@ -118,11 +118,11 @@ public final class BossSkills {
         });
     }
 
-    /** Lowers the target's defense; spirit raises both how much and for how long. */
+    /** Lowers the target's defense; spirit raises how much. */
     private static void sunder(final SkillCast cast, final LivingEntity target) {
         final int points = (int) Math.round(cast.scaledBySpirit(SUNDER_POINTS));
-        final int ticks = (int) Math.round(cast.scaledBySpirit(SkillEffects.ticks(SUNDER_SECONDS)));
-        target.addEffect(new MobEffectInstance(SoulLand.SUNDERED_EFFECT, ticks, SkillEffects.amplifierForLevels(points)), cast.caster());
+        target.addEffect(new MobEffectInstance(SoulLand.SUNDERED_EFFECT, SkillEffects.ticks(SUNDER_SECONDS),
+                SkillEffects.amplifierForLevels(points)), cast.caster());
     }
 
     private static double spiritEnergyOf(final LivingEntity target) {
