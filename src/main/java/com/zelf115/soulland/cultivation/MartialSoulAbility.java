@@ -111,6 +111,7 @@ public final class MartialSoulAbility {
             case SEVEN_KILL_SWORD -> SoulLand.SEVEN_KILL_SWORD;
             case NINE_HEART_BEGONIA -> SoulLand.NINE_HEART_BEGONIA;
             case SEVEN_TREASURE_GLAZED_TILE_PAGODA -> SoulLand.SEVEN_TREASURE_GLAZED_TILE_PAGODA;
+            case NINE_TREASURE_GLAZED_TILE_PAGODA -> SoulLand.NINE_TREASURE_GLAZED_TILE_PAGODA;
             default -> null;
         };
     }

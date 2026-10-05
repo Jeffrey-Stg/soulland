@@ -38,7 +38,7 @@ public final class SpiritBeastManager {
     public static final String BASE_ARMOR_KEY = "soulland_spirit_beast_base_armor";
 
     /** Share of a beast's strength carried by the soul ring it drops. */
-    private static final double SOUL_RING_STRENGTH_SHARE = 0.25;
+    private static final double SOUL_RING_STRENGTH_SHARE = 0.10;
     /** Share of a beast's strength carried by a spirit bone: a minor boost, not a major one. */
     private static final double SPIRIT_BONE_STRENGTH_SHARE = 0.10;
     /** Soul rings quicken cultivation in proportion to their colour. */

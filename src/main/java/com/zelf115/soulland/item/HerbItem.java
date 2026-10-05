@@ -6,6 +6,8 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulEvolution;
 import com.zelf115.soulland.spirit.Affinity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,6 +37,7 @@ public final class HerbItem extends Item {
 
     /** The multiplier a soul with no leaning toward an element carries for it. */
     private static final double NO_AFFINITY = 1.0;
+    private static final String WASTED_HERB_MESSAGE = "soulland.herb.no_evolution";
 
     private final Effect effect;
 
@@ -44,7 +47,7 @@ public final class HerbItem extends Item {
     }
 
     public static FoodProperties foodProperties() {
-        return new FoodProperties.Builder().nutrition(1).saturationModifier(0.1F).alwaysEdible().build();
+        return new FoodProperties.Builder().nutrition(1).saturationModifier(0.1F).alwaysEdible().fast().build();
     }
 
     @Override
@@ -56,13 +59,33 @@ public final class HerbItem extends Item {
         return super.use(level, player, hand);
     }
 
+    /**
+     * The Silk Tulip does nothing but evolve the pagoda, so it is refused rather than eaten for nothing.
+     * Only the server may judge that: the client's copy of the cultivation attachment is never synced,
+     * so the refusal comes once eating finishes, after the client has already eaten its own copy.
+     */
+    private boolean isWastedOn(final Player player) {
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        return effect == Effect.EVOLVE_PAGODA && !MartialSoulEvolution.canEvolveFromSilkTulip(data);
+    }
+
     @Override
     public ItemStack finishUsingItem(final ItemStack stack, final Level level, final LivingEntity entity) {
+        if (entity instanceof ServerPlayer player && isWastedOn(player)) {
+            refuse(player);
+            return stack;
+        }
         final ItemStack result = super.finishUsingItem(stack, level, entity);
         if (entity instanceof Player player && !level.isClientSide()) {
             applyEffect(player);
         }
         return result;
+    }
+
+    /** Resending the inventory gives the client back the herb it ate on its side. */
+    private static void refuse(final ServerPlayer player) {
+        player.sendSystemMessage(Component.translatable(WASTED_HERB_MESSAGE));
+        player.containerMenu.sendAllDataToRemote();
     }
 
     private boolean canEat(final Player player) {

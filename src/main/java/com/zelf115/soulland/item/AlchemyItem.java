@@ -18,6 +18,7 @@ import net.minecraft.world.food.FoodProperties;
 
 public final class AlchemyItem extends Item {
     private static final int LEVELS_PER_QI_GATHERING_TIER = 20;
+    private static final double QI_GATHERING_SPIRIT_PER_TIER = 25.0;
 
     public enum Effect {
         MYSTERIOUS_WATER,
@@ -36,7 +37,7 @@ public final class AlchemyItem extends Item {
 
     public static Properties pillProperties() {
         return new Properties().stacksTo(16).food(new FoodProperties.Builder()
-                .nutrition(0).saturationModifier(0.0F).alwaysEdible().build());
+                .nutrition(0).saturationModifier(0.0F).alwaysEdible().fast().build());
     }
 
     /**
@@ -77,7 +78,7 @@ public final class AlchemyItem extends Item {
                 data.setInnateStat(data.getInnateStat() + 1);
                 Stats.addSpirit(player, 110.0);
             }
-            case QI_GATHERING -> Stats.addSpirit(player, qiLevel * 10.0);
+            case QI_GATHERING -> Stats.addSpirit(player, qiLevel * QI_GATHERING_SPIRIT_PER_TIER);
         }
         Stats.syncDerivedPlayerStats(player, data);
     }

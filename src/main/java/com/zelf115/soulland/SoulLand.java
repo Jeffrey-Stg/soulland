@@ -84,7 +84,7 @@ public class SoulLand {
     /** Altars are meant to stay where they are put: as tough as obsidian is quick to mine. */
     private static final float ALTAR_STRENGTH = 25.0F;
     private static final FoodProperties COMMON_SPIRIT_HERB_FOOD =
-            new FoodProperties.Builder().nutrition(2).saturationModifier(0.5F).alwaysEdible().build();
+            new FoodProperties.Builder().nutrition(2).saturationModifier(0.5F).alwaysEdible().fast().build();
 
     public static final DeferredBlock<Block> FIRE_CRYSTAL = BLOCKS.registerSimpleBlock("fire_crystal",
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F).sound(SoundType.AMETHYST));
@@ -150,6 +150,7 @@ public class SoulLand {
     public static final DeferredItem<Item> SEVEN_KILL_SWORD = ITEMS.register("seven_kill_sword", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> NINE_HEART_BEGONIA = ITEMS.register("nine_heart_begonia", () -> new NineHeartBegoniaItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> SEVEN_TREASURE_GLAZED_TILE_PAGODA = ITEMS.register("seven_treasure_glazed_tile_pagoda", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> NINE_TREASURE_GLAZED_TILE_PAGODA = ITEMS.register("nine_treasure_glazed_tile_pagoda", () -> new MartialSoulSwordItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> ANGEL_GOD_SWORD = ITEMS.register("angel_god_sword", AngelGodSwordItem::new);
     public static final DeferredItem<Item> ASURA_SWORD = ITEMS.register("asura_sword", AsuraSwordItem::new);
     public static final DeferredItem<Item> RAKSHASA_DAGGER = ITEMS.register("rakshasa_dagger", RakshasaDaggerItem::new);
@@ -304,6 +305,7 @@ public class SoulLand {
             event.accept(SoulLandFluids.CYAN_WATER_BUCKET);
             event.accept(NINE_HEART_BEGONIA);
             event.accept(SEVEN_TREASURE_GLAZED_TILE_PAGODA);
+            event.accept(NINE_TREASURE_GLAZED_TILE_PAGODA);
             event.accept(BEAUTIFUL_SILK_TULIP);
             event.accept(BLACK_JADE_DIVINE_BAMBOO);
             event.accept(COMMON_SPIRIT_HERB);

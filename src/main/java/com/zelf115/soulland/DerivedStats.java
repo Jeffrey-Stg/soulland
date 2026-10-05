@@ -8,10 +8,10 @@ package com.zelf115.soulland;
  */
 public final class DerivedStats {
 
-    private static final double HEALTH_POINTS_PER_HITPOINT = 20.0;
-    private static final double DAMAGE_POINTS_PER_DAMAGE = 20.0;
-    private static final double DEFENSE_POINTS_PER_ARMOR = 50.0;
-    private static final double SPEED_POINTS_PER_MOVE_PERCENT = 25.0;
+    private static final double HEALTH_POINTS_PER_HITPOINT = 100.0;
+    private static final double DAMAGE_POINTS_PER_DAMAGE = 100.0;
+    private static final double DEFENSE_POINTS_PER_ARMOR = 250.0;
+    private static final double SPEED_POINTS_PER_MOVE_PERCENT = 125.0;
     private static final double SPIRIT_POINTS_PER_ENERGY = 10.0;
     private static final double SPIRIT_POINTS_PER_SKILL_POWER = 200.0;
     private static final double SPIRIT_ENERGY_REGEN_FRACTION_PER_SECOND = 0.02;

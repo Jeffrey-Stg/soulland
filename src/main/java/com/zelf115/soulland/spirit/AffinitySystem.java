@@ -3,11 +3,13 @@ package com.zelf115.soulland.spirit;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.MartialSoul;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -98,24 +100,25 @@ public final class AffinitySystem {
         tag.put(RING_AFFINITIES_KEY, list);
     }
 
-    public static double ringMultiplier(final Player player, final CompoundTag ringTag) {
-        final ListTag list = ringTag.getList(RING_AFFINITIES_KEY, 8);
-        if (list.isEmpty()) return 1.0;
-        double multiplier = 1.0;
+    public static Set<Affinity> readRingAffinities(final CompoundTag ringTag) {
+        final ListTag list = ringTag.getList(RING_AFFINITIES_KEY, Tag.TAG_STRING);
+        final Set<Affinity> affinities = EnumSet.noneOf(Affinity.class);
         for (int index = 0; index < list.size(); index++) {
             try {
-                final Affinity affinity = Affinity.valueOf(list.getString(index));
-                multiplier *= playerAffinityMultiplier(player, affinity);
+                affinities.add(Affinity.valueOf(list.getString(index)));
             } catch (IllegalArgumentException ignored) {
                 // Ignore affinity names from future versions.
             }
         }
-        return multiplier;
+        return affinities;
     }
 
-    public static double playerAffinityMultiplier(final Player player, final Affinity affinity) {
-        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        return data.getAffinityMultiplier(affinity);
+    public static double ringMultiplier(final CultivationData data, final Set<Affinity> ringAffinities) {
+        double multiplier = 1.0;
+        for (final Affinity affinity : ringAffinities) {
+            multiplier *= data.getAffinityMultiplier(affinity);
+        }
+        return multiplier;
     }
 
     public static void setPlayerAffinity(final Player player, final Affinity affinity, final double multiplier) {

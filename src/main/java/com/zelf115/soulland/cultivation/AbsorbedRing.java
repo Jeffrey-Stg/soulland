@@ -4,15 +4,22 @@ import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.cultivation.skill.Skill;
 import com.zelf115.soulland.cultivation.skill.SkillTag;
+import com.zelf115.soulland.spirit.Affinity;
+import com.zelf115.soulland.spirit.AffinitySystem;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-/** A soul ring the player has absorbed, kept so it can be rendered, re-applied and inspected. */
+/**
+ * A soul ring the player has absorbed, kept so it can be rendered, re-applied and inspected.
+ *
+ * <p>Affinities are empty for rings absorbed before they were recorded.
+ */
 public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bonus, SoulSlot slot,
-                           Optional<Skill> skill) {
+                           Optional<Skill> skill, Optional<Set<Affinity>> affinities) {
 
     public static final String SOURCE_NAME_KEY = "SourceName";
     public static final String TIER_KEY = "Tier";
@@ -26,7 +33,15 @@ public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bon
                 tag.getInt(YEARS_KEY),
                 StatBonus.readFrom(tag),
                 readSlot(tag),
-                SkillTag.read(tag));
+                SkillTag.read(tag),
+                readAffinities(tag));
+    }
+
+    private static Optional<Set<Affinity>> readAffinities(final CompoundTag tag) {
+        if (!tag.contains(AffinitySystem.RING_AFFINITIES_KEY)) {
+            return Optional.empty();
+        }
+        return Optional.of(AffinitySystem.readRingAffinities(tag));
     }
 
     private static SoulSlot readSlot(final CompoundTag tag) {
@@ -48,6 +63,7 @@ public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bon
         tag.putString(SLOT_KEY, slot.name());
         bonus.writeTo(tag);
         SkillTag.write(tag, skill);
+        affinities.ifPresent(ringAffinities -> AffinitySystem.writeRingAffinities(tag, ringAffinities));
         return tag;
     }
 
