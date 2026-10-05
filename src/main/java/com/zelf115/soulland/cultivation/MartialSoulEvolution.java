@@ -68,7 +68,7 @@ public final class MartialSoulEvolution {
         return holdsSoul(data, MartialSoul.SEVEN_TREASURE_GLAZED_TILE_PAGODA);
     }
 
-    public static boolean canEvolveFromFullMoonDew(final CultivationData data) {
+    private static boolean canEvolveFromFullMoonDew(final CultivationData data) {
         return data.getLevel() >= POLYCORIA_EYES_LEVEL && holdsSoul(data, MartialSoul.SPIRIT_EYES);
     }
 
