@@ -6,6 +6,7 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.MartialSoulEvolution;
 import com.zelf115.soulland.spirit.Affinity;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,6 +36,7 @@ public final class HerbItem extends Item {
 
     /** The multiplier a soul with no leaning toward an element carries for it. */
     private static final double NO_AFFINITY = 1.0;
+    private static final String WASTED_HERB_MESSAGE = "soulland.herb.no_evolution";
 
     private final Effect effect;
 
@@ -44,7 +46,7 @@ public final class HerbItem extends Item {
     }
 
     public static FoodProperties foodProperties() {
-        return new FoodProperties.Builder().nutrition(1).saturationModifier(0.1F).alwaysEdible().build();
+        return new FoodProperties.Builder().nutrition(1).saturationModifier(0.1F).alwaysEdible().fast().build();
     }
 
     @Override
@@ -53,7 +55,24 @@ public final class HerbItem extends Item {
         if (!canEat(player)) {
             return InteractionResultHolder.fail(stack);
         }
+        if (!level.isClientSide() && isWastedOn(player)) {
+            player.sendSystemMessage(Component.translatable(WASTED_HERB_MESSAGE));
+            return InteractionResultHolder.fail(stack);
+        }
         return super.use(level, player, hand);
+    }
+
+    /**
+     * An evolution herb that would evolve nothing is refused rather than eaten for nothing. Only the
+     * server may judge that: the client's copy of the cultivation attachment is never synced.
+     */
+    private boolean isWastedOn(final Player player) {
+        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+        return switch (effect) {
+            case EVOLVE_PAGODA -> !MartialSoulEvolution.canEvolveFromSilkTulip(data);
+            case SPIRIT_FIFTY -> !MartialSoulEvolution.canEvolveFromFullMoonDew(data);
+            default -> false;
+        };
     }
 
     @Override

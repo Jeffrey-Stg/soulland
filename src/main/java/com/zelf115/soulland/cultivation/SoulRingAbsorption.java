@@ -4,6 +4,7 @@ import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.spirit.AffinitySystem;
+import java.util.Optional;
 import java.util.OptionalInt;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -147,16 +148,29 @@ public final class SoulRingAbsorption {
                               final CompoundTag tag, final SoulSlot slot) {
         final AbsorbedRing ring = new AbsorbedRing(
                 tag.getString(AbsorbedRing.SOURCE_NAME_KEY), tierOf(tag), tag.getInt(AbsorbedRing.YEARS_KEY), StatBonus.readFrom(tag), slot,
-                SkillTag.read(tag));
+                SkillTag.read(tag), Optional.of(AffinitySystem.readRingAffinities(tag)));
         data.addRing(ring);
-        Stats.applyBonus(player, AbsorbedRing.modifierId(data.getSoulRingCount() - 1),
-            ring.bonus().scaled(AffinitySystem.ringMultiplier(player, tag)));
+        applyRingBonus(player, data, data.getSoulRingCount() - 1);
         MartialSoulEvolution.tryEvolve(player, data);
         Stats.syncDerivedPlayerStats(player, data);
         if (player instanceof ServerPlayer serverPlayer) {
             RingDisplaySync.broadcast(serverPlayer);
         }
         destroy(stack);
+    }
+
+    /** Re-scales every ring by the player's current affinities, as an evolution changes them. */
+    public static void reapplyRingBonuses(final Player player, final CultivationData data) {
+        for (int index = 0; index < data.getSoulRingCount(); index++) {
+            applyRingBonus(player, data, index);
+        }
+    }
+
+    /** A ring absorbed before its affinities were recorded keeps the bonus it was granted. */
+    private static void applyRingBonus(final Player player, final CultivationData data, final int ringIndex) {
+        final AbsorbedRing ring = data.getAbsorbedRings().get(ringIndex);
+        ring.affinities().ifPresent(affinities -> Stats.applyBonus(player, AbsorbedRing.modifierId(ringIndex),
+                ring.bonus().scaled(AffinitySystem.ringMultiplier(data, affinities))));
     }
 
     /**

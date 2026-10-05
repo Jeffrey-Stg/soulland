@@ -64,7 +64,7 @@ public class BreakthroughManager {
             return "soulland.cultivation.breakthrough.need_xp";
         }
         if (CultivationManager.requiresSoulRing(level)
-                && data.getSoulRingCount() < level / CultivationManager.SOUL_RING_GATE_INTERVAL) {
+                && data.getLargestSoulRingCount() < level / CultivationManager.SOUL_RING_GATE_INTERVAL) {
             return "soulland.cultivation.breakthrough.need_ring";
         }
         if (CultivationManager.requiresLevel100Gate(level) && !hasLevel100Path(data)) {

@@ -33,6 +33,8 @@ public class CultivationManager {
     private static final double XP_GROWTH = 1.15;
     /** Flat stat increase per level (x in the formula y + x * level). */
     private static final double STAT_FLAT_INCREASE_PER_LEVEL = 0.5;
+    /** Flat stat increase of a breakthrough per ten levels reached. */
+    private static final double BREAKTHROUGH_STAT_INCREASE_PER_GATE = 100.0;
     /** Ticks per second. */
     public static final int TPS = 20;
     /** Ticks between passive meditation XP ticks (1 second). */
@@ -41,8 +43,8 @@ public class CultivationManager {
     public static final int MEDITATION_DURATION_TICKS = TPS * 60 * 5;
     /** Passive XP awarded per meditation tick (before multipliers). */
     public static final double MEDITATION_XP_PER_TICK = 2.0;
-    /** Spirit stat increase per minute (60 s) while bottlenecked and meditating. */
-    public static final double SPIRIT_BOTTLENECK_INCREASE_PER_MINUTE = 1.0;
+    /** Spirit stat increase per minute (60 s) while meditating. */
+    public static final double MEDITATION_SPIRIT_PER_MINUTE = 1.0;
     /** Ticks in one minute. */
     public static final int TICKS_PER_MINUTE = TPS * 60;
     /** XP swing per innate stat point away from neutral. */
@@ -103,13 +105,13 @@ public class CultivationManager {
     }
 
     /**
-     * The stat multiplier of a breakthrough, applied on levels 11, 21, 31 … 91.
+     * The flat stat gain of a breakthrough: the ten-level gates from 11 to 91 and every special
+     * breakthrough from 95 to 120.
      *
-     * <p>Formula: {@code 2^round(level / 10)}.
+     * <p>Formula: {@code 100 * floor(level / 10)}.
      */
-    public static double breakthroughStatMultiplier(int level) {
-        final long exponent = Math.round((double) level / SOUL_RING_GATE_INTERVAL);
-        return Math.pow(2.0, exponent);
+    public static double breakthroughStatIncrease(final int level) {
+        return BREAKTHROUGH_STAT_INCREASE_PER_GATE * (level / SOUL_RING_GATE_INTERVAL);
     }
 
     // ---- Gate / Bottleneck Detection ----
@@ -237,13 +239,13 @@ public class CultivationManager {
     }
 
     /**
-     * Applies the breakthrough multiplier stat boost to the player.
+     * Applies the breakthrough's flat stat boost to the player.
      *
      * @param player the player
      * @param breakthroughLevel the level that triggered the breakthrough (11, 21, …, 91)
      */
     public static void applyBreakthroughStats(Player player, int breakthroughLevel) {
-        Stats.multiplyCultivationStats(player, breakthroughStatMultiplier(breakthroughLevel));
+        Stats.addToCultivationStats(player, breakthroughStatIncrease(breakthroughLevel));
     }
 
     /**
@@ -327,7 +329,7 @@ public class CultivationManager {
         final int from = data.getLevel();
         final int to = from - 1;
         if (isBottleneckLevel(to)) {
-            Stats.multiplyCultivationStats(player, 1.0 / breakthroughStatMultiplier(from));
+            Stats.addToCultivationStats(player, -breakthroughStatIncrease(from));
             data.setSuccessfulBreakthroughCount(data.getSuccessfulBreakthroughCount() - 1);
         } else {
             Stats.addToCultivationStats(player, -regularStatIncrease(from));

@@ -1,5 +1,6 @@
 package com.zelf115.soulland.item;
 
+import com.zelf115.soulland.DerivedStats;
 import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
@@ -17,7 +18,8 @@ import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.component.Unbreakable;
 
 public class MartialSoulSwordItem extends SwordItem {
-    private static final double BONUS_DAMAGE_PERCENT_OF_STAT = 0.10;
+    private static final double BONUS_DAMAGE_FRACTION = 0.10;
+    private static final double NO_BASE_DAMAGE = 0.0;
     private static final double PERCENT = 100.0;
     private static final float BASE_ATTACK_DAMAGE_BONUS = 3.0F;
     private static final float BASE_ATTACK_SPEED_MODIFIER = -2.4F;
@@ -36,16 +38,20 @@ public class MartialSoulSwordItem extends SwordItem {
             // would drop the follow-up hit outright (or shave it down to the difference). Reopening
             // the window is what makes the advertised bonus actually land.
             target.invulnerableTime = 0;
-            target.hurt(player.damageSources().playerAttack(player), (float) (Stats.getDamage(player) * BONUS_DAMAGE_PERCENT_OF_STAT));
+            target.hurt(player.damageSources().playerAttack(player), (float) bonusDamageFor(player));
         }
         return result;
+    }
+
+    private static double bonusDamageFor(final Player player) {
+        return DerivedStats.attackDamage(NO_BASE_DAMAGE, Stats.getDamage(player)) * BONUS_DAMAGE_FRACTION;
     }
 
     @Override
     public void appendHoverText(final ItemStack stack, final TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         tooltip.add(Component.translatable("soulland.tooltip.martial_soul_sword.bonus_damage",
-                String.valueOf((int) (BONUS_DAMAGE_PERCENT_OF_STAT * PERCENT))).withStyle(ChatFormatting.RED));
+                String.valueOf((int) (BONUS_DAMAGE_FRACTION * PERCENT))).withStyle(ChatFormatting.RED));
     }
 
     /** Keeps the tool out of bundles and shulker boxes, which would carry it away from its owner. */

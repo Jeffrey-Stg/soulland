@@ -1,5 +1,6 @@
 package com.zelf115.soulland.cultivation;
 
+import com.zelf115.soulland.Stats;
 import com.zelf115.soulland.spirit.AffinitySystem;
 import java.util.HashSet;
 import java.util.List;
@@ -30,12 +31,16 @@ public final class MartialSoulEvolution {
         tryEvolveSlot(player, data, SoulSlot.SECONDARY);
     }
 
+    /** Keeps evolving while each new stage's condition is already met, bounded by the number of souls. */
     private static void tryEvolveSlot(final Player player, final CultivationData data, final SoulSlot slot) {
-        final MartialSoul soul = soulIn(data, slot);
-        if (soul == null) return;
+        for (int stage = 0; stage < MartialSoul.values().length; stage++) {
+            final MartialSoul soul = data.getMartialSoul(slot);
+            if (soul == null) return;
 
-        final MartialSoul target = nextStageOf(soul, data, ringsIn(data, slot));
-        if (target != null) evolve(player, data, slot, target);
+            final MartialSoul target = nextStageOf(soul, data, data.getRings(slot));
+            if (target == null) return;
+            evolve(player, data, slot, target);
+        }
     }
 
     /** The stage a soul grows into once its own condition is met, or null while it stays as it is. */
@@ -59,6 +64,18 @@ public final class MartialSoulEvolution {
         };
     }
 
+    public static boolean canEvolveFromSilkTulip(final CultivationData data) {
+        return holdsSoul(data, MartialSoul.SEVEN_TREASURE_GLAZED_TILE_PAGODA);
+    }
+
+    public static boolean canEvolveFromFullMoonDew(final CultivationData data) {
+        return data.getLevel() >= POLYCORIA_EYES_LEVEL && holdsSoul(data, MartialSoul.SPIRIT_EYES);
+    }
+
+    private static boolean holdsSoul(final CultivationData data, final MartialSoul soul) {
+        return data.getMartialSoul(SoulSlot.PRIMARY) == soul || data.getMartialSoul(SoulSlot.SECONDARY) == soul;
+    }
+
     /** Beautiful Silk Tulip: grows the pagoda, which also lifts the level cap to 100. */
     public static void evolveFromSilkTulip(final Player player, final CultivationData data) {
         evolveSoulOfKind(player, data, MartialSoul.SEVEN_TREASURE_GLAZED_TILE_PAGODA,
@@ -67,25 +84,17 @@ public final class MartialSoulEvolution {
 
     /** Full Moon Wearing Autumn Dew: opens Spirit Eyes into Polycoria Eyes from level 40 on. */
     public static void evolveFromFullMoonDew(final Player player, final CultivationData data) {
-        if (data.getLevel() < POLYCORIA_EYES_LEVEL) return;
+        if (!canEvolveFromFullMoonDew(data)) return;
         evolveSoulOfKind(player, data, MartialSoul.SPIRIT_EYES, MartialSoul.POLYCORIA_EYES);
     }
 
     private static void evolveSoulOfKind(final Player player, final CultivationData data,
                                          final MartialSoul required, final MartialSoul target) {
         for (final SoulSlot slot : SoulSlot.values()) {
-            if (soulIn(data, slot) == required) {
+            if (data.getMartialSoul(slot) == required) {
                 evolve(player, data, slot, target);
             }
         }
-    }
-
-    private static MartialSoul soulIn(final CultivationData data, final SoulSlot slot) {
-        return slot == SoulSlot.PRIMARY ? data.getMartialSoul() : data.getSecondaryMartialSoul();
-    }
-
-    private static List<AbsorbedRing> ringsIn(final CultivationData data, final SoulSlot slot) {
-        return data.getAbsorbedRings().stream().filter(ring -> ring.slot() == slot).toList();
     }
 
     private static void evolve(final Player player, final CultivationData data, final SoulSlot slot, final MartialSoul target) {
@@ -103,6 +112,8 @@ public final class MartialSoulEvolution {
             data.setMartialSoulCanReachLevel100(true);
         }
         AffinitySystem.recomputeAffinities(data);
+        SoulRingAbsorption.reapplyRingBonuses(player, data);
+        Stats.syncDerivedPlayerStats(player, data);
         player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.evolved", target.displayName()));
     }
 

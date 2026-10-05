@@ -44,8 +44,13 @@ public final class AlchemyScreen extends AbstractContainerScreen<AlchemyMenu> {
             addRenderableWidget(new AlchemyRecipeRow(
                     leftPos + SIDE_MARGIN, topPos + LIST_TOP + row * (ROW_HEIGHT + ROW_GAP), rowWidth, ROW_HEIGHT,
                     recipes.get(row).value(), menu.tier().costMultiplier(),
-                    () -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, recipeId)));
+                    () -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonIdFor(recipeId))));
         }
+    }
+
+    /** Read on press, not when the row is built, so holding Shift at click time is what counts. */
+    private static int buttonIdFor(final int recipeIndex) {
+        return hasShiftDown() ? AlchemyMenu.brewStackButtonId(recipeIndex) : recipeIndex;
     }
 
     @Override

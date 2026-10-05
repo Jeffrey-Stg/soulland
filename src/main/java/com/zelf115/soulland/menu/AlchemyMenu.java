@@ -25,6 +25,10 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 public final class AlchemyMenu extends AbstractContainerMenu {
     private static final float BREW_VOLUME = 0.7F;
     private static final float BREW_PITCH = 1.2F;
+    /** Set on a recipe button id to brew as many batches as fit in one stack instead of one. */
+    private static final int BREW_STACK_FLAG = 1 << 16;
+    private static final int RECIPE_INDEX_MASK = BREW_STACK_FLAG - 1;
+    private static final int SINGLE_BATCH = 1;
 
     private final PillFurnaceItem.Tier tier;
     private final List<RecipeHolder<AlchemyPillRecipe>> recipes;
@@ -79,33 +83,56 @@ public final class AlchemyMenu extends AbstractContainerMenu {
         return recipes;
     }
 
+    public static int brewStackButtonId(final int recipeIndex) {
+        return recipeIndex | BREW_STACK_FLAG;
+    }
+
     @Override
     public boolean clickMenuButton(final Player player, final int id) {
-        if (id < 0 || id >= recipes.size()) {
+        final int recipeIndex = id & RECIPE_INDEX_MASK;
+        if (id < 0 || recipeIndex >= recipes.size()) {
             return false;
         }
         if (!player.level().isClientSide()) {
-            craftPill(player, recipes.get(id).value());
+            final AlchemyPillRecipe recipe = recipes.get(recipeIndex).value();
+            brew(player, recipe, batchesRequestedBy(id, brewedBatch(player, recipe)));
         }
         return true;
     }
 
+    private static int batchesRequestedBy(final int buttonId, final ItemStack batch) {
+        if ((buttonId & BREW_STACK_FLAG) == 0) {
+            return SINGLE_BATCH;
+        }
+        return Math.max(SINGLE_BATCH, batch.getMaxStackSize() / batch.getCount());
+    }
+
+    private ItemStack brewedBatch(final Player player, final AlchemyPillRecipe recipe) {
+        final ItemStack batch = recipe.getResultItem(player.level().registryAccess());
+        batch.setCount(batch.getCount() + tier.bonusPillCount());
+        return batch;
+    }
+
     /**
-     * Brews one pill, telling the player why whenever nothing comes of the click.
+     * Brews up to the given number of batches, telling the player why whenever nothing comes of the click.
      *
      * <p>A recipe's level band says which cultivators the pill will do anything for once eaten,
      * not who is allowed to brew it: an alchemist may stock pills they have long outgrown.
      */
-    private void craftPill(final Player player, final AlchemyPillRecipe recipe) {
+    private void brew(final Player player, final AlchemyPillRecipe recipe, final int maxBatches) {
         final double costMultiplier = tier.costMultiplier();
         if (!recipe.hasIngredients(player, costMultiplier)) {
             player.sendSystemMessage(Component.translatable("soulland.alchemy.missing_ingredients"));
             return;
         }
 
-        recipe.consumeIngredients(player, costMultiplier);
-        final ItemStack result = recipe.getResultItem(player.level().registryAccess());
-        result.setCount(result.getCount() + tier.bonusPillCount());
+        int batches = 0;
+        while (batches < maxBatches && recipe.hasIngredients(player, costMultiplier)) {
+            recipe.consumeIngredients(player, costMultiplier);
+            batches++;
+        }
+        final ItemStack result = brewedBatch(player, recipe);
+        result.setCount(result.getCount() * batches);
         announceBrew(player, result);
         // Inventory.add reports success as soon as a single pill fits and leaves the rest in the
         // stack, so the leftover has to be placed rather than tested for: it would be lost.

@@ -262,6 +262,11 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     /** Player tier is soul-ring count + 1, minimum 1. */
     public int getPlayerTier() { return Math.max(1, getSoulRingCount() + 1); }
 
+    /** Ring gates count one soul's track: rings split across both souls don't add up. */
+    public int getLargestSoulRingCount() {
+        return Math.max(getRingCount(SoulSlot.PRIMARY), getRingCount(SoulSlot.SECONDARY));
+    }
+
     /** How many rings the given soul slot's track holds, out of its own cap. */
     public int getRingCount(final SoulSlot slot) {
         return (int) absorbedRings.stream().filter(ring -> ring.slot() == slot).count();

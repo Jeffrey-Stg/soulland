@@ -165,20 +165,6 @@ public class Stats {
         }
     }
 
-    /** Scales every cultivation stat the player has earned, leaving ring and bone bonuses alone. */
-    public static void multiplyCultivationStats(final Player player, final double factor) {
-        if (player.level().isClientSide()) {
-            return;
-        }
-
-        for (final Holder<Attribute> attribute : CULTIVATION_STATS) {
-            final AttributeInstance instance = player.getAttribute(attribute);
-            if (instance != null) {
-                instance.setBaseValue(instance.getBaseValue() * factor);
-            }
-        }
-    }
-
     /**
      * Vanilla stops max health at 1024, which cultivators pass long before their Health stat stops
      * growing; past it every extra point of Health would silently do nothing.
