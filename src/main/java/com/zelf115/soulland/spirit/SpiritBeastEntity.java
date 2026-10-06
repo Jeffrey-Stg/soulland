@@ -1,6 +1,7 @@
 package com.zelf115.soulland.spirit;
 
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -21,6 +22,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 
 public class SpiritBeastEntity extends Monster {
 
@@ -44,6 +46,20 @@ public class SpiritBeastEntity extends Monster {
                 .add(Attributes.ARMOR, 0.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
+    }
+
+    /**
+     * Monsters value dark ground and refuse to spawn on lit ground; spirit beasts roam by day as well
+     * as by night, so every position is worth the same to them.
+     */
+    @Override
+    public float getWalkTargetValue(final BlockPos pos, final LevelReader level) {
+        return 0.0F;
+    }
+
+    /** Left empty on purpose: monsters age toward despawning faster in daylight, and spirit beasts must not. */
+    @Override
+    protected void updateNoActionTime() {
     }
 
     @Override

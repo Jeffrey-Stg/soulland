@@ -25,7 +25,7 @@ public final class SkillRuntime {
             case INSTANT -> fireOnce(caster, data, skill);
             case CHANNEL -> sustain(caster, data, skill);
             case TOGGLE -> toggle(caster, data, skill);
-            case PASSIVE -> caster.sendSystemMessage(Component.translatable("soulland.skill.passive", skill.displayName()));
+            case PASSIVE -> caster.displayClientMessage(Component.translatable("soulland.skill.passive", skill.displayName()), true);
         }
     }
 
@@ -79,7 +79,7 @@ public final class SkillRuntime {
 
     private static boolean canAfford(final Player caster, final CultivationData data, final Skill skill) {
         if (data.getSpiritEnergy() >= skill.spiritCost()) return true;
-        caster.sendSystemMessage(Component.translatable("soulland.skill.no_energy", skill.displayName()));
+        caster.displayClientMessage(Component.translatable("soulland.skill.no_energy", skill.displayName()), true);
         return false;
     }
 

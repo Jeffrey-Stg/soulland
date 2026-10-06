@@ -1,5 +1,6 @@
 package com.zelf115.soulland.spirit;
 
+import com.zelf115.soulland.Config;
 import com.zelf115.soulland.SoulLand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
@@ -21,12 +23,15 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  *
  * <p>Which biome holds which beast is handled elsewhere; every beast uses the monster rules minus the
  * darkness check here, so they roam by day as well as by night, sea beasts on the ocean floor and the
- * rest on dry ground, so that the biome modifiers can place them at all.
+ * rest on dry ground, so that the biome modifiers can place them at all. Each player keeps only a
+ * handful of beasts around them, whatever the time of day.
  */
 @EventBusSubscriber(modid = SoulLand.MODID)
 public final class SpiritBeastSpawns {
 
     private static final double BOSS_EXCLUSION_RADIUS = 128.0;
+    /** {@code getNearestPlayer} reads a negative distance as no limit. */
+    private static final double ANY_DISTANCE = -1.0;
 
     private SpiritBeastSpawns() {
     }
@@ -47,7 +52,7 @@ public final class SpiritBeastSpawns {
         event.register(spiritBeastType,
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                aloneIfBoss(spiritBeastType, Monster::checkAnyLightMonsterSpawnRules),
+                belowPlayerCap(aloneIfBoss(spiritBeastType, Monster::checkAnyLightMonsterSpawnRules)),
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
@@ -56,8 +61,28 @@ public final class SpiritBeastSpawns {
         event.register(spiritBeastType,
                 SpawnPlacementTypes.IN_WATER,
                 Heightmap.Types.OCEAN_FLOOR,
-                aloneIfBoss(spiritBeastType, SpiritBeastSpawns::checkInWaterSpawnRules),
+                belowPlayerCap(aloneIfBoss(spiritBeastType, SpiritBeastSpawns::checkInWaterSpawnRules)),
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
+    }
+
+    /**
+     * Natural spawning stops around a player once enough beasts roam there. Spirit beasts share the
+     * monster cap, which alone lets them crowd a player at night.
+     */
+    private static SpawnPlacements.SpawnPredicate<SpiritBeastEntity> belowPlayerCap(
+            final SpawnPlacements.SpawnPredicate<SpiritBeastEntity> rules) {
+        return (type, level, spawnType, pos, random) ->
+                rules.test(type, level, spawnType, pos, random)
+                        && (spawnType != MobSpawnType.NATURAL || hasRoomNearNearestPlayer(level, pos));
+    }
+
+    private static boolean hasRoomNearNearestPlayer(final ServerLevelAccessor level, final BlockPos pos) {
+        final Player player = level.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), ANY_DISTANCE, false);
+        if (player == null) return true;
+        final double radius = Config.SPIRIT_BEAST_DENSITY_RADIUS.getAsInt();
+        final int beastsNearby = level.getEntitiesOfClass(SpiritBeastEntity.class,
+                player.getBoundingBox().inflate(radius), SpiritBeastEntity::isAlive).size();
+        return beastsNearby < Config.SPIRIT_BEAST_MAX_PER_PLAYER.getAsInt();
     }
 
     /** A boss never spawns while another of its kind is still alive nearby. */

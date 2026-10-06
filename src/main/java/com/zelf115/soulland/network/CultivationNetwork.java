@@ -9,6 +9,7 @@ import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.ModStatsToggle;
 import com.zelf115.soulland.cultivation.RingDisplayMode;
 import com.zelf115.soulland.cultivation.RingDisplaySync;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
@@ -43,7 +44,8 @@ public final class CultivationNetwork {
                 .playToClient(HudSyncPayload.TYPE, HudSyncPayload.STREAM_CODEC, CultivationNetwork::handleHudSync)
                 .playToServer(ChooseMartialSoulPayload.TYPE, ChooseMartialSoulPayload.STREAM_CODEC, CultivationNetwork::handleChooseMartialSoul)
                 .playToClient(OpenMartialSoulPickerPayload.TYPE, OpenMartialSoulPickerPayload.STREAM_CODEC, CultivationNetwork::handleOpenMartialSoulPicker)
-                .playToClient(RingDisplayPayload.TYPE, RingDisplayPayload.STREAM_CODEC, CultivationNetwork::handleRingDisplay);
+                .playToClient(RingDisplayPayload.TYPE, RingDisplayPayload.STREAM_CODEC, CultivationNetwork::handleRingDisplay)
+                .playToServer(SetMovementUsagePayload.TYPE, SetMovementUsagePayload.STREAM_CODEC, CultivationNetwork::handleSetMovementUsage);
     }
 
     private static void handleHudSync(final HudSyncPayload payload, final IPayloadContext context) {
@@ -63,16 +65,19 @@ public final class CultivationNetwork {
 
     private static void handleOpenMartialSoulPicker(final OpenMartialSoulPickerPayload payload, final IPayloadContext context) {
         // Resolved inside the lambda so the dedicated server never loads the client screen class.
-        context.enqueueWork(com.zelf115.soulland.client.MartialSoulSelectScreen::open);
+        context.enqueueWork(com.zelf115.soulland.client.screen.CultivationScreen::open);
     }
 
-    private static void openMartialSoulMenu(final ServerPlayer player) {
-        final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        if (data.getMartialSoul() != null && !data.isSecondMartialSoulPending()) {
-            player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.already_chosen"));
-            return;
-        }
-        PacketDistributor.sendToPlayer(player, new OpenMartialSoulPickerPayload());
+    private static void handleSetMovementUsage(final SetMovementUsagePayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
+            data.setMovementUsagePercent(payload.percent());
+            Stats.syncDerivedPlayerStats(player, data);
+            HudSync.send(player, data);
+        });
     }
 
     private static void handleChooseMartialSoul(final ChooseMartialSoulPayload payload, final IPayloadContext context) {
@@ -91,6 +96,7 @@ public final class CultivationNetwork {
             } else if (data.isSecondMartialSoulPending()) {
                 com.zelf115.soulland.spirit.AffinitySystem.chooseSecondMartialSoul(player, chosen);
             }
+            HudSync.send(player, data);
         });
     }
 
@@ -111,7 +117,6 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.USE_MARTIAL_SOUL -> MartialSoulAbility.toggle(player, data);
                 case CultivationActionPayload.CAST_MARTIAL_SOUL -> MartialSoulAbility.cast(player, data);
                 case CultivationActionPayload.OPEN_ALCHEMY_MENU -> openAlchemyMenu(player);
-                case CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU -> openMartialSoulMenu(player);
                 case CultivationActionPayload.SWITCH_MARTIAL_SOUL -> MartialSoulAbility.switchActiveSoul(player, data);
                 case CultivationActionPayload.SELECT_NEXT_RING -> MartialSoulAbility.selectNextRing(player, data);
                 case CultivationActionPayload.DEMON_EYE -> PurpleDemonEye.use(player, data);
@@ -120,8 +125,10 @@ public final class CultivationNetwork {
                 case CultivationActionPayload.SELECT_NEXT_BONE -> SpiritBoneSkills.selectNextBone(player, data);
                 case CultivationActionPayload.CAST_BONE_SKILL -> SpiritBoneSkills.useSelectedBoneSkill(player, data);
                 case CultivationActionPayload.RELEASE_CHANNEL -> data.getSkillRuntime().releaseChannel();
+                case CultivationActionPayload.TOGGLE_MOD_STATS -> ModStatsToggle.toggle(player, data);
                 default -> SoulLand.LOGGER.warn("Ignoring unknown cultivation action {}", payload.action());
             }
+            HudSync.send(player, data);
         });
     }
 
@@ -147,12 +154,12 @@ public final class CultivationNetwork {
 
     private static void startMeditation(final ServerPlayer player) {
         if (player.hasEffect(SoulLand.MEDITATION_EFFECT)) {
-            player.sendSystemMessage(Component.translatable("soulland.cultivation.meditation.already_active"));
+            player.displayClientMessage(Component.translatable("soulland.cultivation.meditation.already_active"), true);
             return;
         }
 
         player.addEffect(new MobEffectInstance(SoulLand.MEDITATION_EFFECT, CultivationManager.MEDITATION_DURATION_TICKS));
-        player.sendSystemMessage(Component.translatable("soulland.cultivation.meditation.started"));
+        player.displayClientMessage(Component.translatable("soulland.cultivation.meditation.started"), true);
     }
 
     private static void adjustSpeed(final ServerPlayer player, final CultivationData data, final int deltaPercent) {
@@ -163,29 +170,29 @@ public final class CultivationNetwork {
         }
 
         Stats.syncDerivedPlayerStats(player, data);
-        player.sendSystemMessage(Component.translatable("soulland.cultivation.speed_usage.set", data.getMovementUsagePercent()));
+        player.displayClientMessage(Component.translatable("soulland.cultivation.speed_usage.set", data.getMovementUsagePercent()), true);
     }
 
     private static void cycleRingDisplay(final ServerPlayer player, final CultivationData data) {
         final RingDisplayMode next = data.getRingDisplayMode().next(data.getSecondaryMartialSoul() != null);
         data.setRingDisplayMode(next);
         RingDisplaySync.broadcast(player);
-        player.sendSystemMessage(Component.translatable("soulland.soul_ring.display.set",
-                Component.translatable(next.translationKey())));
+        player.displayClientMessage(Component.translatable("soulland.soul_ring.display.set",
+                Component.translatable(next.translationKey())), true);
     }
 
     private static void toggleExternalBone(final ServerPlayer player, final CultivationData data) {
         data.setExternalBoneVisible(!data.isExternalBoneVisible());
-        player.sendSystemMessage(Component.translatable(data.isExternalBoneVisible()
+        player.displayClientMessage(Component.translatable(data.isExternalBoneVisible()
                 ? "soulland.spirit_bone.external.shown"
-                : "soulland.spirit_bone.external.hidden"));
+                : "soulland.spirit_bone.external.hidden"), true);
     }
 
     private static void openAlchemyMenu(final ServerPlayer player) {
         // The hotkey only works from a worn Curios slot; right-clicking a furnace item always
         // works and doesn't go through this payload at all.
         if (!CuriosCompat.isLoaded()) {
-            player.sendSystemMessage(Component.translatable("soulland.alchemy.curios_not_loaded"));
+            player.displayClientMessage(Component.translatable("soulland.alchemy.curios_not_loaded"), true);
             return;
         }
 
@@ -193,6 +200,6 @@ public final class CultivationNetwork {
                 .map(stack -> (PillFurnaceItem) stack.getItem())
                 .ifPresentOrElse(
                         furnace -> AlchemyMenu.open(player, furnace.tier()),
-                        () -> player.sendSystemMessage(Component.translatable("soulland.alchemy.no_furnace_equipped")));
+                        () -> player.displayClientMessage(Component.translatable("soulland.alchemy.no_furnace_equipped"), true));
     }
 }

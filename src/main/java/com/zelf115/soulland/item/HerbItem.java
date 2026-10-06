@@ -84,7 +84,7 @@ public final class HerbItem extends Item {
 
     /** Resending the inventory gives the client back the herb it ate on its side. */
     private static void refuse(final ServerPlayer player) {
-        player.sendSystemMessage(Component.translatable(WASTED_HERB_MESSAGE));
+        player.displayClientMessage(Component.translatable(WASTED_HERB_MESSAGE), true);
         player.containerMenu.sendAllDataToRemote();
     }
 

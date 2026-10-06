@@ -74,7 +74,7 @@ public final class GodTrialRewards {
                                        final GodTrialRewardType type) {
         data.addGodTrialReward(new GodTrialReward(type, REWARD_STAT_POINTS));
         final int rewardIndex = data.getGodTrialRewards().size() - 1;
-        Stats.applyBonus(player, GodTrialReward.modifierId(rewardIndex), statBonusFor(type));
+        Stats.applyBonus(player, GodTrialReward.modifierId(rewardIndex), statBonusFor(type, REWARD_STAT_POINTS));
         return Component.translatable("soulland.trial.reward.stat", (int) REWARD_STAT_POINTS,
                 Component.translatable(statNameKey(type)));
     }
@@ -85,7 +85,7 @@ public final class GodTrialRewards {
         data.addGodTrialReward(new GodTrialReward(GodTrialRewardType.SOUL_RING, tier));
         final ItemStack ring = SoulRingItem.create(
                 Component.translatable("soulland.trial.reward.ring_source").getString(),
-                tier, years, SpiritBeastManager.soulRingBonusForAge(tier, years), EnumSet.allOf(Affinity.class));
+                tier, years, SpiritBeastManager.rollSoulRingBonus(tier, player.getRandom()), EnumSet.allOf(Affinity.class));
         player.getInventory().placeItemBackInInventory(ring);
         return Component.translatable("soulland.trial.reward.soul_ring", SpiritBeastManager.describeTier(tier));
     }
@@ -96,12 +96,27 @@ public final class GodTrialRewards {
                 && SoulRingCapacity.hasRoomFor(Stats.getSpirit(player), data.getAbsorbedRings(), tier);
     }
 
-    private static StatBonus statBonusFor(final GodTrialRewardType type) {
+    /** Grants every stat reward already earned again, under the modifier id it was first granted with. */
+    public static void reapplyStatRewards(final ServerPlayer player, final CultivationData data) {
+        final List<GodTrialReward> rewards = data.getGodTrialRewards();
+        for (int index = 0; index < rewards.size(); index++) {
+            final GodTrialReward reward = rewards.get(index);
+            if (isStatReward(reward.type())) {
+                Stats.applyBonus(player, GodTrialReward.modifierId(index), statBonusFor(reward.type(), reward.amount()));
+            }
+        }
+    }
+
+    private static boolean isStatReward(final GodTrialRewardType type) {
+        return type != GodTrialRewardType.EXPERIENCE && type != GodTrialRewardType.SOUL_RING;
+    }
+
+    private static StatBonus statBonusFor(final GodTrialRewardType type, final double points) {
         return switch (type) {
-            case DAMAGE -> new StatBonus(REWARD_STAT_POINTS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
-            case HEALTH -> new StatBonus(NO_BONUS, REWARD_STAT_POINTS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
-            case DEFENSE -> new StatBonus(NO_BONUS, NO_BONUS, REWARD_STAT_POINTS, NO_BONUS, NO_BONUS, NO_BONUS);
-            default -> new StatBonus(NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, REWARD_STAT_POINTS, NO_BONUS);
+            case DAMAGE -> new StatBonus(points, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
+            case HEALTH -> new StatBonus(NO_BONUS, points, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
+            case DEFENSE -> new StatBonus(NO_BONUS, NO_BONUS, points, NO_BONUS, NO_BONUS, NO_BONUS);
+            default -> new StatBonus(NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, points, NO_BONUS);
         };
     }
 

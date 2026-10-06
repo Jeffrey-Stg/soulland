@@ -38,8 +38,7 @@ public final class SpiritBeastEvents {
             SpiritBeastManager.createBossBones(spiritBeast).forEach(spiritBeast::spawnAtLocation);
             return;
         }
-        if (SpiritBeastManager.getTier(spiritBeast) >= SpiritBeastManager.SPIRIT_BONE_MIN_TIER
-                && spiritBeast.getRandom().nextDouble() < SpiritBeastManager.SPIRIT_BONE_DROP_CHANCE) {
+        if (SpiritBeastManager.rollsSpiritBone(spiritBeast)) {
             spiritBeast.spawnAtLocation(SpiritBeastManager.createSpiritBone(spiritBeast));
         }
     }

@@ -66,7 +66,7 @@ public final class SkillEffects {
     static Optional<LivingEntity> lookTargetOrWarn(final SkillCast cast) {
         final Optional<LivingEntity> target = lookTarget(cast.caster(), TARGET_RANGE);
         if (target.isEmpty()) {
-            cast.caster().sendSystemMessage(Component.translatable("soulland.skill.no_target"));
+            cast.caster().displayClientMessage(Component.translatable("soulland.skill.no_target"), true);
         }
         return target;
     }

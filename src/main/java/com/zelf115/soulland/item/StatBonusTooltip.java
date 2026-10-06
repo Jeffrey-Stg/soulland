@@ -70,7 +70,7 @@ public final class StatBonusTooltip {
         return String.format(Locale.ROOT, "%,.1f", value);
     }
 
-    private static String formatYears(final int years) {
+    public static String formatYears(final int years) {
         return String.format(Locale.ROOT, "%,d", years);
     }
 }

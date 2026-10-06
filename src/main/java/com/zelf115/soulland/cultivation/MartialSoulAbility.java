@@ -38,7 +38,7 @@ public final class MartialSoulAbility {
     /** Moves the keys over to the player's other martial soul, putting the current one away first. */
     public static void switchActiveSoul(final Player player, final CultivationData data) {
         if (data.getSecondaryMartialSoul() == null) {
-            player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.no_second_soul"));
+            player.displayClientMessage(Component.translatable("soulland.cultivation.martial_soul.no_second_soul"), true);
             return;
         }
 
@@ -46,8 +46,8 @@ public final class MartialSoulAbility {
         final SoulSlot next = data.getActiveSoulSlot() == SoulSlot.PRIMARY ? SoulSlot.SECONDARY : SoulSlot.PRIMARY;
         data.setActiveSoulSlot(next);
         data.setSelectedRingIndex(0);
-        player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.switched",
-                data.getActiveMartialSoul().displayName()));
+        player.displayClientMessage(Component.translatable("soulland.cultivation.martial_soul.switched",
+                data.getActiveMartialSoul().displayName()), true);
     }
 
     private static void deactivate(final Player player, final CultivationData data) {
@@ -64,7 +64,7 @@ public final class MartialSoulAbility {
 
         final MartialSoul soul = data.getActiveMartialSoul();
         if (!grantToolItem(player, soul)) {
-            player.sendSystemMessage(Component.translatable("soulland.cultivation.martial_soul.no_room"));
+            player.displayClientMessage(Component.translatable("soulland.cultivation.martial_soul.no_room"), true);
             return;
         }
         data.setMartialSoulActive(true);

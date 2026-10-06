@@ -22,7 +22,6 @@ public final class CultivationKeyMappings {
     public static final KeyMapping USE_MARTIAL_SOUL = new KeyMapping("key.soulland.use_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY);
     public static final KeyMapping CAST_MARTIAL_SOUL = new KeyMapping("key.soulland.cast_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY);
     public static final KeyMapping OPEN_ALCHEMY_MENU = new KeyMapping("key.soulland.open_alchemy_menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, CATEGORY);
-    public static final KeyMapping OPEN_MARTIAL_SOUL_MENU = new KeyMapping("key.soulland.open_martial_soul_menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, CATEGORY);
     public static final KeyMapping SWITCH_MARTIAL_SOUL = new KeyMapping("key.soulland.switch_martial_soul", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, CATEGORY);
     public static final KeyMapping SELECT_NEXT_RING = new KeyMapping("key.soulland.select_next_ring", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, CATEGORY);
     public static final KeyMapping SELECT_NEXT_BONE = new KeyMapping("key.soulland.select_next_bone", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Y, CATEGORY);
@@ -30,7 +29,8 @@ public final class CultivationKeyMappings {
     public static final KeyMapping DEMON_EYE = new KeyMapping("key.soulland.demon_eye", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, CATEGORY);
     public static final KeyMapping DEMON_EYE_STRIKE = new KeyMapping("key.soulland.demon_eye_strike", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, CATEGORY);
     public static final KeyMapping SHADOW_STEP = new KeyMapping("key.soulland.shadow_step", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, CATEGORY);
-    public static final KeyMapping TOGGLE_HUD = new KeyMapping("key.soulland.toggle_hud", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY);
+    public static final KeyMapping OPEN_CULTIVATION_SCREEN = new KeyMapping("key.soulland.open_cultivation_screen", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY);
+    public static final KeyMapping TOGGLE_MOD_STATS = new KeyMapping("key.soulland.toggle_mod_stats", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY);
 
     private CultivationKeyMappings() {
     }
@@ -46,7 +46,6 @@ public final class CultivationKeyMappings {
         event.register(USE_MARTIAL_SOUL);
         event.register(CAST_MARTIAL_SOUL);
         event.register(OPEN_ALCHEMY_MENU);
-        event.register(OPEN_MARTIAL_SOUL_MENU);
         event.register(SWITCH_MARTIAL_SOUL);
         event.register(DEMON_EYE);
         event.register(DEMON_EYE_STRIKE);
@@ -54,6 +53,7 @@ public final class CultivationKeyMappings {
         event.register(SELECT_NEXT_RING);
         event.register(SELECT_NEXT_BONE);
         event.register(CAST_BONE_SKILL);
-        event.register(TOGGLE_HUD);
+        event.register(OPEN_CULTIVATION_SCREEN);
+        event.register(TOGGLE_MOD_STATS);
     }
 }

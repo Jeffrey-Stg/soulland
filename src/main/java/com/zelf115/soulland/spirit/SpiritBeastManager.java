@@ -3,6 +3,7 @@ package com.zelf115.soulland.spirit;
 import com.zelf115.soulland.Config;
 import com.zelf115.soulland.DerivedStats;
 import com.zelf115.soulland.SoulLand;
+import com.zelf115.soulland.StatBand;
 import com.zelf115.soulland.StatBonus;
 import com.zelf115.soulland.cultivation.skill.SkillPools;
 import com.zelf115.soulland.cultivation.skill.SkillTag;
@@ -37,16 +38,8 @@ public final class SpiritBeastManager {
     public static final String BASE_DAMAGE_KEY = "soulland_spirit_beast_base_damage";
     public static final String BASE_ARMOR_KEY = "soulland_spirit_beast_base_armor";
 
-    /** Share of a beast's strength carried by the soul ring it drops. */
-    private static final double SOUL_RING_STRENGTH_SHARE = 0.10;
-    /** Share of a beast's strength carried by a spirit bone: a minor boost, not a major one. */
-    private static final double SPIRIT_BONE_STRENGTH_SHARE = 0.10;
     /** Soul rings quicken cultivation in proportion to their colour. */
     private static final double CULTIVATION_SPEED_PER_TIER = 5.0;
-    /** Lowest tier that drops spirit bones at all, i.e. beasts of 10 000 years and up. */
-    public static final int SPIRIT_BONE_MIN_TIER = 4;
-    /** Chance a bone drops at all from a qualifying beast. */
-    public static final double SPIRIT_BONE_DROP_CHANCE = 0.02;
 
     /** Fallbacks for a beast whose entity type declares no such attribute. */
     private static final double DEFAULT_BASE_MAX_HEALTH = 20.0;
@@ -56,21 +49,12 @@ public final class SpiritBeastManager {
     /** Spirit has no vanilla attribute to grow from, so every beast starts at the same footing. */
     private static final double BASE_SPIRIT_STAT = 10.0;
 
-    private static final double SKULL_BONE_CHANCE = 0.12;
-    /** External bones are the rarest of all, and only the four beasts below carry one. */
-    private static final double EXTERNAL_BONE_CHANCE = 0.05;
     private static final List<String> BODY_BONE_SLOTS = List.of(
             "Torso Bone", "Left Arm Bone", "Right Arm Bone", "Left Leg Bone", "Right Leg Bone");
     private static final String SKULL_BONE_SLOT = "Skull Bone";
     /** Every bone slot a beast carries inside its body, as opposed to the external bones. */
     public static final List<String> INTERNAL_BONE_SLOTS = Stream.concat(
             BODY_BONE_SLOTS.stream(), Stream.of(SKULL_BONE_SLOT)).toList();
-    /** Spread of a single ring or bone stat around what the beast's age and colour earn it. */
-    private static final double MIN_STAT_ROLL = 0.60;
-    private static final double MAX_STAT_ROLL = 1.60;
-    /** How strongly age weighs on a ring, from the youngest beast of a colour to the oldest; capped so the top end stays finite. */
-    private static final double MIN_AGE_STRENGTH = 0.25;
-    private static final double MAX_AGE_STRENGTH = 1.0;
     /** Youngest age each tier starts at, in tier order; the inverse of the year roll table. */
     private static final int[] TIER_YEAR_FLOORS = {1, 100, 1_000, 10_000, 100_000, 200_000, 1_000_000};
     private static final int LOWEST_TIER = 1;
@@ -177,66 +161,18 @@ public final class SpiritBeastManager {
     public static ItemStack createSoulRing(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
         final int tier = data.getInt(TIER_KEY);
-        final int years = data.getInt(YEARS_KEY);
-        final StatBonus bonus = rolledPerStat(
-                statsOf(data).scaled(SOUL_RING_STRENGTH_SHARE * ageStrength(years, tier)), monster.getRandom())
-                .withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
         final Set<Affinity> affinities = AffinitySystem.affinitiesOf(monster);
-        final ItemStack ring = SoulRingItem.create(beastName(monster), tier, years, bonus, affinities);
+        final ItemStack ring = SoulRingItem.create(beastName(monster), tier, data.getInt(YEARS_KEY),
+                rollSoulRingBonus(tier, monster.getRandom()), affinities);
         SpiritBosses.of(monster.getType()).map(BossProfile::ringSkill)
                 .or(() -> SkillPools.roll(affinities, monster.getRandom()))
                 .ifPresent(skill -> SkillTag.attach(ring, skill));
         return ring;
     }
 
-    /**
-     * How much the beast's own age lifts the ring above the floor of its colour.
-     *
-     * <p>Combat stats stop climbing at the configured level ceiling, which would otherwise make the
-     * ring off a million-year beast identical to one off a beast a tenth its age. The ring reads the
-     * raw years instead, so within a colour the elder beast always yields the better ring.
-     */
-    private static double ageStrength(final int years, final int tier) {
-        final int band = Math.max(LOWEST_TIER, Math.min(TIER_YEAR_FLOORS.length, tier));
-        final double floor = TIER_YEAR_FLOORS[band - 1];
-        final double span = Math.max(1.0, oldestYearsOfTier(band) - floor);
-        final double throughBand = Math.max(0.0, Math.min(1.0, (years - floor) / span));
-        return MIN_AGE_STRENGTH + (MAX_AGE_STRENGTH - MIN_AGE_STRENGTH) * throughBand;
-    }
-
-    /**
-     * Rolls each stat of a ring or bone separately, so two drops of one colour and age are still worth
-     * comparing rather than being the same drop twice.
-     */
-    private static StatBonus rolledPerStat(final StatBonus bonus, final RandomSource random) {
-        return new StatBonus(
-                roll(bonus.damage(), random),
-                roll(bonus.health(), random),
-                roll(bonus.defense(), random),
-                roll(bonus.speed(), random),
-                roll(bonus.spirit(), random),
-                bonus.cultivationSpeed());
-    }
-
-    private static double roll(final double statValue, final RandomSource random) {
-        return statValue * (MIN_STAT_ROLL + random.nextDouble() * (MAX_STAT_ROLL - MIN_STAT_ROLL));
-    }
-
-    /**
-     * The strength of a ring that was never cut from a living beast, priced as if it had been taken
-     * from one of that colour and age.
-     */
-    public static StatBonus soulRingBonusForAge(final int tier, final int years) {
-        final double stat = grownStat(BASE_SPIRIT_STAT, effectiveLevelForYears(years), tier);
-        return new StatBonus(stat, stat, stat, stat, stat, 0.0)
-                .scaled(SOUL_RING_STRENGTH_SHARE * ageStrength(years, tier))
-                .withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
-    }
-
-    /** The strength of a bone that came from no particular beast, priced by colour and age. */
-    public static StatBonus spiritBoneBonusForAge(final int tier, final int years) {
-        final double stat = grownStat(BASE_SPIRIT_STAT, effectiveLevelForYears(years), tier);
-        return new StatBonus(stat, stat, stat, stat, stat, 0.0).scaled(SPIRIT_BONE_STRENGTH_SHARE);
+    /** The stats of a soul ring of this colour, with the cultivation speed every ring of it carries. */
+    public static StatBonus rollSoulRingBonus(final int tier, final RandomSource random) {
+        return StatBand.roll(tier, random).withCultivationSpeed(tier * CULTIVATION_SPEED_PER_TIER);
     }
 
     /** The greatest age a beast of this colour reaches; the top colour is open-ended, so it returns its floor. */
@@ -248,27 +184,35 @@ public final class SpiritBeastManager {
         return TIER_YEAR_FLOORS[index + 1] - 1;
     }
 
+    /** A bone from this beast, carrying a skill from the pools its affinities reach. */
     public static ItemStack createSpiritBone(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
+        final int tier = data.getInt(TIER_KEY);
         final String slot = rollBoneSlot(monster.getRandom(), monster.getType());
-        return SpiritBoneItem.create(beastName(monster), slot, data.getInt(TIER_KEY), data.getInt(YEARS_KEY),
-                rolledBoneBonus(monster, data));
+        final ItemStack bone = SpiritBoneItem.create(beastName(monster), slot, tier, data.getInt(YEARS_KEY),
+                StatBand.roll(tier, monster.getRandom()));
+        SkillPools.rollForBone(AffinitySystem.affinitiesOf(monster), monster.getRandom())
+                .ifPresent(skill -> SkillTag.attach(bone, skill));
+        return bone;
     }
 
     /** The bones a boss always leaves behind, each carrying the skill its profile names. */
     public static List<ItemStack> createBossBones(final SpiritBeastEntity monster) {
         final CompoundTag data = monster.getPersistentData();
+        final int tier = data.getInt(TIER_KEY);
         final List<BossBone> bones = SpiritBosses.of(monster.getType()).map(BossProfile::bones).orElse(List.of());
         return bones.stream().map(bone -> {
-            final ItemStack stack = SpiritBoneItem.create(beastName(monster), bone.slot(), data.getInt(TIER_KEY),
-                    data.getInt(YEARS_KEY), rolledBoneBonus(monster, data));
+            final ItemStack stack = SpiritBoneItem.create(beastName(monster), bone.slot(), tier,
+                    data.getInt(YEARS_KEY), StatBand.roll(tier, monster.getRandom()));
             SkillTag.attach(stack, bone.skill());
             return stack;
         }).toList();
     }
 
-    private static StatBonus rolledBoneBonus(final SpiritBeastEntity monster, final CompoundTag data) {
-        return rolledPerStat(statsOf(data).scaled(SPIRIT_BONE_STRENGTH_SHARE), monster.getRandom());
+    /** Whether a dying beast leaves a bone behind: old enough, and lucky enough. */
+    public static boolean rollsSpiritBone(final SpiritBeastEntity monster) {
+        return getTier(monster) >= Config.SPIRIT_BONE_MIN_TIER.getAsInt()
+                && monster.getRandom().nextDouble() < Config.SPIRIT_BONE_DROP_CHANCE.getAsDouble();
     }
 
     public static int getTier(final SpiritBeastEntity monster) {
@@ -331,29 +275,24 @@ public final class SpiritBeastManager {
         return monster.getType().getDescription().getString();
     }
 
-    private static StatBonus statsOf(final CompoundTag data) {
-        return new StatBonus(
-                data.getDouble(DAMAGE_STAT_KEY),
-                data.getDouble(HEALTH_STAT_KEY),
-                data.getDouble(DEFENSE_STAT_KEY),
-                data.getDouble(SPEED_STAT_KEY),
-                data.getDouble(SPIRIT_STAT_KEY),
-                0.0);
-    }
-
     /**
      * Picks which bone a beast yields: its external bone if it has one and the rarest roll lands,
      * otherwise a skull on an uncommon roll, otherwise one of the body slots.
      */
-    private static String rollBoneSlot(final RandomSource random, final EntityType<?> entityType) {
+    public static String rollBoneSlot(final RandomSource random, final EntityType<?> entityType) {
         final String externalBone = EXTERNAL_BONE_BY_BEAST.get(entityPath(entityType));
-        if (externalBone != null && random.nextDouble() < EXTERNAL_BONE_CHANCE) {
+        if (externalBone != null && random.nextDouble() < Config.EXTERNAL_BONE_CHANCE.getAsDouble()) {
             return externalBone;
         }
-        if (random.nextDouble() < SKULL_BONE_CHANCE) {
+        if (random.nextDouble() < Config.SKULL_BONE_CHANCE.getAsDouble()) {
             return SKULL_BONE_SLOT;
         }
         return BODY_BONE_SLOTS.get(random.nextInt(BODY_BONE_SLOTS.size()));
+    }
+
+    /** Every bone slot there is: the internal ones, then each external bone. */
+    public static List<String> allBoneSlots() {
+        return Stream.concat(INTERNAL_BONE_SLOTS.stream(), EXTERNAL_BONE_BY_BEAST.values().stream().sorted()).toList();
     }
 
     /** Whether this bone slot is one of the external bones that can be shown or hidden at will. */

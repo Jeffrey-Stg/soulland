@@ -28,7 +28,6 @@ public final class AlchemyRecipeRow extends AbstractButton {
     private static final int BACKGROUND = 0x30FFFFFF;
     private static final int BACKGROUND_HOVERED = 0x55FFFFFF;
     /** Colours drawn straight to the screen carry their alpha; text styles carry plain rgb. */
-    private static final int NAME_ARGB = 0xFFFFFFFF;
     private static final int COST_FALLBACK_ARGB = 0xFFB4B4B4;
     private static final int NAME_RGB = 0xFFFFFF;
     private static final int STOCKED_RGB = 0xB4B4B4;
@@ -63,7 +62,7 @@ public final class AlchemyRecipeRow extends AbstractButton {
 
         final int textWidth = width - TEXT_INSET * 2;
         graphics.drawString(font, clip(getMessage().getString(), textWidth), getX() + TEXT_INSET, getY() + NAME_TOP,
-                NAME_ARGB, false);
+                SoulLandStyle.HEADING_COLOR, false);
 
         final List<Component> costLines = costLines(textWidth);
         for (int index = 0; index < costLines.size(); index++) {

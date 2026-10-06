@@ -166,11 +166,13 @@ public final class SoulRingAbsorption {
         }
     }
 
-    /** A ring absorbed before its affinities were recorded keeps the bonus it was granted. */
+    /** A ring absorbed before its affinities were recorded is never scaled by them. */
     private static void applyRingBonus(final Player player, final CultivationData data, final int ringIndex) {
         final AbsorbedRing ring = data.getAbsorbedRings().get(ringIndex);
-        ring.affinities().ifPresent(affinities -> Stats.applyBonus(player, AbsorbedRing.modifierId(ringIndex),
-                ring.bonus().scaled(AffinitySystem.ringMultiplier(data, affinities))));
+        final double multiplier = ring.affinities()
+                .map(affinities -> AffinitySystem.ringMultiplier(data, affinities))
+                .orElse(1.0);
+        Stats.applyBonus(player, AbsorbedRing.modifierId(ringIndex), ring.bonus().scaled(multiplier));
     }
 
     /**

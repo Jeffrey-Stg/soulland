@@ -22,7 +22,6 @@ public record CultivationActionPayload(int action) implements CustomPacketPayloa
     public static final int USE_MARTIAL_SOUL = 6;
     public static final int CAST_MARTIAL_SOUL = 7;
     public static final int OPEN_ALCHEMY_MENU = 8;
-    public static final int OPEN_MARTIAL_SOUL_MENU = 9;
     public static final int SWITCH_MARTIAL_SOUL = 10;
     public static final int SELECT_NEXT_RING = 11;
     public static final int DEMON_EYE = 12;
@@ -31,6 +30,7 @@ public record CultivationActionPayload(int action) implements CustomPacketPayloa
     public static final int SELECT_NEXT_BONE = 15;
     public static final int CAST_BONE_SKILL = 16;
     public static final int RELEASE_CHANNEL = 17;
+    public static final int TOGGLE_MOD_STATS = 18;
 
     @Override
     public Type<CultivationActionPayload> type() {

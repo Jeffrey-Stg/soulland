@@ -107,6 +107,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     private int selectedRingIndex = 0;
     // Index, among the bones that carry a castable skill, of the one the bone cast key uses
     private int selectedBoneIndex = 0;
+    // Whether the mod's stats drive the player's vanilla attributes; off leaves them at vanilla defaults
+    private boolean modStatsEnabled = true;
     private final SkillRuntime skillRuntime = new SkillRuntime();
     private LearnedTechniques techniques = new LearnedTechniques();
 
@@ -144,6 +146,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
     public SoulSlot getActiveSoulSlot() { return activeSoulSlot; }
     public int getSelectedRingIndex() { return selectedRingIndex; }
     public int getSelectedBoneIndex() { return selectedBoneIndex; }
+    public boolean areModStatsEnabled() { return modStatsEnabled; }
+    public void setModStatsEnabled(final boolean enabled) { modStatsEnabled = enabled; }
     public SkillRuntime getSkillRuntime() { return skillRuntime; }
     public GodTrial getGodTrial() { return godTrial; }
     public List<TrialTask> getGodTrialTasks() { return Collections.unmodifiableList(godTrialTasks); }
@@ -277,6 +281,8 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
 
     public void addRing(final AbsorbedRing ring) { absorbedRings.add(ring); }
 
+    public void replaceRing(final int index, final AbsorbedRing ring) { absorbedRings.set(index, ring); }
+
     public void clearAbsorbedRings() { absorbedRings.clear(); }
 
     public void clearSpiritBones() { spiritBones.clear(); }
@@ -332,6 +338,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         tag.putString("activeSoulSlot", activeSoulSlot.name());
         tag.putInt("selectedRingIndex", selectedRingIndex);
         tag.putInt("selectedBoneIndex", selectedBoneIndex);
+        tag.putBoolean("modStatsEnabled", modStatsEnabled);
         if (godTrial != null) {
             tag.putString("godTrial", godTrial.name());
         }
@@ -391,6 +398,7 @@ public class CultivationData implements INBTSerializable<CompoundTag> {
         activeSoulSlot = readSoulSlot(tag.getString("activeSoulSlot"));
         selectedRingIndex = Math.max(0, tag.getInt("selectedRingIndex"));
         selectedBoneIndex = Math.max(0, tag.getInt("selectedBoneIndex"));
+        modStatsEnabled = !tag.contains("modStatsEnabled") || tag.getBoolean("modStatsEnabled");
         godTrial = readGodTrial(tag);
         readTrialTasks(tag.getList("godTrialTasks", Tag.TAG_COMPOUND));
         godTrialTaskIndex = Math.max(0, tag.getInt("godTrialTaskIndex"));

@@ -27,7 +27,7 @@ public class TournamentRegistryBlock extends Block {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        TournamentManager.interact(serverPlayer, data, pos);
+        TournamentManager.open(serverPlayer, data, pos);
         return InteractionResult.CONSUME;
     }
 }

@@ -33,11 +33,27 @@ public final class SkillPools {
 
     /** A random skill from every pool the affinities reach, or none when no pool covers them. */
     public static Optional<Skill> roll(final Set<Affinity> affinities, final RandomSource random) {
-        final List<Skill> candidates = affinities.stream()
+        return pick(candidatesFor(affinities), random);
+    }
+
+    /**
+     * A bone always carries a skill: from the pools its beast's affinities reach, or from every pool
+     * when none of them has one of its own.
+     */
+    public static Optional<Skill> rollForBone(final Set<Affinity> affinities, final RandomSource random) {
+        final List<Skill> candidates = candidatesFor(affinities);
+        return pick(candidates.isEmpty() ? candidatesFor(POOLS.keySet()) : candidates, random);
+    }
+
+    private static List<Skill> candidatesFor(final Set<Affinity> affinities) {
+        return affinities.stream()
                 .flatMap(SkillPools::poolsReachedBy)
                 .flatMap(affinity -> POOLS.getOrDefault(affinity, List.of()).stream())
                 .distinct()
                 .toList();
+    }
+
+    private static Optional<Skill> pick(final List<Skill> candidates, final RandomSource random) {
         if (candidates.isEmpty()) return Optional.empty();
         return Optional.of(candidates.get(random.nextInt(candidates.size())));
     }

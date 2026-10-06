@@ -28,6 +28,7 @@ public class Stats {
     private static final double PLAYER_MAX_HEALTH_CAP = 1_000_000.0;
     private static final ResourceLocation REBIRTH_BONUS_ID =
             ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "rebirth_bonus");
+    private static final String EFFECT_MODIFIER_PREFIX = "effect.";
 
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(Registries.ATTRIBUTE, SoulLand.MODID);
@@ -187,10 +188,11 @@ public class Stats {
             return;
         }
 
-        final double healthStat = getHealth(player);
-        final double damageStat = getDamage(player);
-        final double defenseStat = getDefense(player);
-        final double speedStat = getSpeed(player);
+        final boolean enabled = data.areModStatsEnabled();
+        final double healthStat = enabled ? getHealth(player) : 0.0;
+        final double damageStat = enabled ? getDamage(player) : 0.0;
+        final double defenseStat = enabled ? getDefense(player) : 0.0;
+        final double speedStat = enabled ? getSpeed(player) : 0.0;
         final double usedSpeedStat = speedStat * data.getMovementUsagePercent() / PERCENT;
         setVanillaBaseValue(player, Attributes.MAX_HEALTH, DerivedStats.maxHealth(DEFAULT_PLAYER_MAX_HEALTH, healthStat));
         setVanillaBaseValue(player, Attributes.ATTACK_DAMAGE, DerivedStats.attackDamage(DEFAULT_PLAYER_ATTACK_DAMAGE, damageStat));
@@ -257,25 +259,29 @@ public class Stats {
         }
     }
 
-    /** Raises a single attribute by a percentage, under an id the caller can take back later. */
+    /**
+     * Raises a single attribute by a percentage of its whole value, rings and bones included, under
+     * an id the caller can take back later.
+     */
     public static void applyTemporaryPercentBonus(final Player player, final String id,
                                                   final Holder<Attribute> attribute, final double percent) {
         final AttributeInstance instance = player.getAttribute(attribute);
         if (instance != null) {
             instance.addOrReplacePermanentModifier(new AttributeModifier(
                     ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id), percent,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
         }
         syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
     }
 
+    /** Raises every cultivation stat by a percentage of its whole value, rings and bones included. */
     public static void applyTemporaryStatPercentBonus(final Player player, final String id, final double percent) {
         final ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, id);
         for (final Holder<Attribute> attribute : CULTIVATION_STATS) {
             final AttributeInstance instance = player.getAttribute(attribute);
             if (instance != null) {
                 instance.addOrReplacePermanentModifier(new AttributeModifier(modifierId, percent,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
             }
         }
         syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
@@ -292,6 +298,26 @@ public class Stats {
             if (instance != null) instance.removeModifier(id);
         }
         syncDerivedPlayerStats(player, player.getData(com.zelf115.soulland.cultivation.CultivationAttachment.CULTIVATION_DATA.get()));
+    }
+
+    /**
+     * Takes back every modifier this mod granted on its own attributes, whatever id it went under,
+     * leaving those a running mob effect owns: the effect takes its own back when it ends.
+     */
+    public static void removeOwnBonuses(final Player player) {
+        for (final Holder<Attribute> attribute : ALL) {
+            final AttributeInstance instance = player.getAttribute(attribute);
+            if (instance == null) continue;
+            instance.getModifiers().stream()
+                    .map(AttributeModifier::id)
+                    .filter(Stats::isOwnBonusId)
+                    .toList()
+                    .forEach(instance::removeModifier);
+        }
+    }
+
+    private static boolean isOwnBonusId(final ResourceLocation id) {
+        return id.getNamespace().equals(SoulLand.MODID) && !id.getPath().startsWith(EFFECT_MODIFIER_PREFIX);
     }
 
     /**

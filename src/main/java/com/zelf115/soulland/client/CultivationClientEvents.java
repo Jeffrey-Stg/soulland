@@ -1,6 +1,7 @@
 package com.zelf115.soulland.client;
 
 import com.zelf115.soulland.SoulLand;
+import com.zelf115.soulland.client.screen.CultivationScreen;
 import com.zelf115.soulland.network.CultivationActionPayload;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,13 +33,13 @@ public final class CultivationClientEvents {
         sendWhileHeld(CultivationKeyMappings.CAST_BONE_SKILL, CultivationActionPayload.CAST_BONE_SKILL);
         sendOnPress(CultivationKeyMappings.SELECT_NEXT_BONE, CultivationActionPayload.SELECT_NEXT_BONE);
         sendOnPress(CultivationKeyMappings.OPEN_ALCHEMY_MENU, CultivationActionPayload.OPEN_ALCHEMY_MENU);
-        sendOnPress(CultivationKeyMappings.OPEN_MARTIAL_SOUL_MENU, CultivationActionPayload.OPEN_MARTIAL_SOUL_MENU);
         sendOnPress(CultivationKeyMappings.SWITCH_MARTIAL_SOUL, CultivationActionPayload.SWITCH_MARTIAL_SOUL);
         sendOnPress(CultivationKeyMappings.SELECT_NEXT_RING, CultivationActionPayload.SELECT_NEXT_RING);
         sendOnPress(CultivationKeyMappings.DEMON_EYE, CultivationActionPayload.DEMON_EYE);
         sendOnPress(CultivationKeyMappings.DEMON_EYE_STRIKE, CultivationActionPayload.DEMON_EYE_STRIKE);
         sendOnPress(CultivationKeyMappings.SHADOW_STEP, CultivationActionPayload.SHADOW_STEP);
-        toggleHudOnPress();
+        sendOnPress(CultivationKeyMappings.TOGGLE_MOD_STATS, CultivationActionPayload.TOGGLE_MOD_STATS);
+        openScreenOnPress();
     }
 
     /** Ring and HUD caches belong to one world; the next one starts empty, so glide never reads a stale level. */
@@ -48,9 +49,9 @@ public final class CultivationClientEvents {
         HudClientData.clear();
     }
 
-    private static void toggleHudOnPress() {
-        while (CultivationKeyMappings.TOGGLE_HUD.consumeClick()) {
-            CultivationHudLayer.toggleVisibility();
+    private static void openScreenOnPress() {
+        while (CultivationKeyMappings.OPEN_CULTIVATION_SCREEN.consumeClick()) {
+            CultivationScreen.open();
         }
     }
 
