@@ -67,11 +67,15 @@ public record AbsorbedRing(String sourceName, int tier, int years, StatBonus bon
         return tag;
     }
 
-    /** Stable modifier id for the ring in the given slot of the player ring list. */
+    public AbsorbedRing withBonus(final StatBonus newBonus) {
+        return new AbsorbedRing(sourceName, tier, years, newBonus, slot, skill, affinities);
+    }
+
     public Component coloredSourceName() {
         return SpiritBeastManager.nameInTierColor(sourceName, tier);
     }
 
+    /** Stable modifier id for the ring in the given slot of the player ring list. */
     public static ResourceLocation modifierId(final int ringIndex) {
         return ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "soul_ring_" + ringIndex);
     }

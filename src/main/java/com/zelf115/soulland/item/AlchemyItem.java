@@ -50,8 +50,8 @@ public final class AlchemyItem extends Item {
         final ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide() && effect == Effect.QI_GATHERING
                 && !isQiGatheringTierUsableAt(cultivationLevelOf(player))) {
-            player.sendSystemMessage(Component.translatable("soulland.alchemy.wrong_level_band",
-                    tierMinLevel(), tierMaxLevel()));
+            player.displayClientMessage(Component.translatable("soulland.alchemy.wrong_level_band",
+                    tierMinLevel(), tierMaxLevel()), true);
             return InteractionResultHolder.fail(stack);
         }
         return super.use(level, player, hand);

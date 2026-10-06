@@ -6,38 +6,51 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.zelf115.soulland.StatBand;
 import com.zelf115.soulland.Stats;
+import com.zelf115.soulland.cultivation.AbsorbedBone;
 import com.zelf115.soulland.cultivation.BreakthroughManager;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
+import com.zelf115.soulland.cultivation.ModStatsToggle;
 import com.zelf115.soulland.cultivation.Rebirth;
+import com.zelf115.soulland.cultivation.StatReapply;
 import com.zelf115.soulland.cultivation.skill.Skill;
 import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.cultivation.technique.LearnedTechniques;
 import com.zelf115.soulland.cultivation.technique.Technique;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.item.SpiritBoneItem;
+import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import com.zelf115.soulland.tournament.TournamentManager;
 import com.zelf115.soulland.trial.GodTrial;
 import com.zelf115.soulland.trial.GodTrialManager;
 import com.zelf115.soulland.trial.TrialTasks;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * Registers all {@code /cultivation} sub-commands.
@@ -52,7 +65,10 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /cultivation trial advance|reset|grant <god>} — operator tools for testing trials</li>
  *   <li>{@code /cultivation tournament status|reset} — shows or reopens the daily tournament run</li>
  *   <li>{@code /cultivation techniques [setlevel <technique> <level>]} — shows learned techniques; operators can set a level</li>
- *   <li>{@code /cultivation skillring <skill>} / {@code skillbone <skill>} — operator tools: a ring or bone carrying the named skill</li>
+ *   <li>{@code /cultivation skillring <skill>} / {@code skillbone <skill> [slot]} — operator tools: a ring or bone carrying the named skill</li>
+ *   <li>{@code /cultivation stats toggle} — sets aside, or takes back up, what the mod's stats do to the player</li>
+ *   <li>{@code /cultivation stats reapply <targets>} — operator tool: rebuilds every ring, bone and reward bonus</li>
+ *   <li>{@code /cultivation debug bonerolls <beast> <rolls>} — operator tool: tallies which bone slots a beast rolls</li>
  *   <li>{@code /cultivation xp add|set <targets> <amount>} — operator tool: grants XP, levelling up until the next gate</li>
  *   <li>{@code /cultivation level add|set <targets> <level>} — operator tool: moves straight to a level, skipping gates</li>
  * </ul>
@@ -62,6 +78,7 @@ public class CultivationCommands {
     private static final int OPERATOR_PERMISSION_LEVEL = 2;
     private static final int SKILL_ITEM_TIER = 1;
     private static final String SKILL_BONE_SLOT = "Torso Bone";
+    private static final int MAX_DEBUG_ROLLS = 1_000_000;
 
     public static void register(RegisterCommandsEvent event) {
         register(event.getDispatcher());
@@ -116,7 +133,24 @@ public class CultivationCommands {
                 .then(Commands.literal("skillbone")
                         .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
                         .then(Commands.argument("skill", StringArgumentType.word())
-                                .executes(CultivationCommands::giveSkillBone)))
+                                .executes(CultivationCommands::giveSkillBone)
+                                .then(Commands.argument("slot", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(boneSlotKeys(), builder))
+                                        .executes(CultivationCommands::giveSkillBoneInSlot))))
+                .then(Commands.literal("stats")
+                        .then(Commands.literal("toggle")
+                                .executes(CultivationCommands::toggleModStats))
+                        .then(Commands.literal("reapply")
+                                .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .executes(CultivationCommands::reapplyStats))))
+                .then(Commands.literal("debug")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.literal("bonerolls")
+                                .then(Commands.argument("beast", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(beastPaths(), builder))
+                                        .then(Commands.argument("rolls", IntegerArgumentType.integer(1, MAX_DEBUG_ROLLS))
+                                                .executes(CultivationCommands::debugBoneRolls)))))
                 .then(Commands.literal("xp")
                         .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
                         .then(Commands.literal("add")
@@ -299,11 +333,31 @@ public class CultivationCommands {
     }
 
     private static int giveSkillBone(CommandContext<CommandSourceStack> ctx) {
-        return giveSkillItem(ctx, CultivationCommands::youngestTestBone);
+        return giveSkillItem(ctx, random -> youngestTestBone(SKILL_BONE_SLOT, random));
+    }
+
+    private static int giveSkillBoneInSlot(CommandContext<CommandSourceStack> ctx) {
+        final Optional<String> slot = boneSlotFor(StringArgumentType.getString(ctx, "slot"));
+        if (slot.isEmpty()) {
+            ctx.getSource().sendFailure(Component.translatable("soulland.command.skillitem.unknown_slot"));
+            return 0;
+        }
+        return giveSkillItem(ctx, random -> youngestTestBone(slot.get(), random));
+    }
+
+    private static List<String> boneSlotKeys() {
+        return SpiritBeastManager.allBoneSlots().stream().map(AbsorbedBone::slotKey).toList();
+    }
+
+    private static Optional<String> boneSlotFor(final String slotKey) {
+        return SpiritBeastManager.allBoneSlots().stream()
+                .filter(slot -> AbsorbedBone.slotKey(slot).equals(slotKey.toLowerCase(Locale.ROOT)))
+                .findFirst();
     }
 
     /** Hands out a ring or bone carrying the named skill, so every skill can be tried without farming drops. */
-    private static int giveSkillItem(CommandContext<CommandSourceStack> ctx, final Supplier<ItemStack> carrier) {
+    private static int giveSkillItem(CommandContext<CommandSourceStack> ctx,
+                                     final Function<RandomSource, ItemStack> carrier) {
         final ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
@@ -313,7 +367,7 @@ public class CultivationCommands {
             return 0;
         }
 
-        final ItemStack item = carrier.get();
+        final ItemStack item = carrier.apply(player.getRandom());
         SkillTag.attach(item, skill.get());
         player.getInventory().placeItemBackInInventory(item);
         player.sendSystemMessage(Component.translatable("soulland.command.skillitem.given",
@@ -321,16 +375,63 @@ public class CultivationCommands {
         return 1;
     }
 
-    private static ItemStack youngestTestRing() {
+    private static ItemStack youngestTestRing(final RandomSource random) {
         final int years = SpiritBeastManager.oldestYearsOfTier(SKILL_ITEM_TIER);
         return SoulRingItem.create(testSourceName(), SKILL_ITEM_TIER, years,
-                SpiritBeastManager.soulRingBonusForAge(SKILL_ITEM_TIER, years), Set.of());
+                SpiritBeastManager.rollSoulRingBonus(SKILL_ITEM_TIER, random), Set.of());
     }
 
-    private static ItemStack youngestTestBone() {
+    private static ItemStack youngestTestBone(final String slot, final RandomSource random) {
         final int years = SpiritBeastManager.oldestYearsOfTier(SKILL_ITEM_TIER);
-        return SpiritBoneItem.create(testSourceName(), SKILL_BONE_SLOT, SKILL_ITEM_TIER, years,
-                SpiritBeastManager.spiritBoneBonusForAge(SKILL_ITEM_TIER, years));
+        return SpiritBoneItem.create(testSourceName(), slot, SKILL_ITEM_TIER, years,
+                StatBand.roll(SKILL_ITEM_TIER, random));
+    }
+
+    private static int toggleModStats(CommandContext<CommandSourceStack> ctx) {
+        final ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        ModStatsToggle.toggle(player, player.getData(CultivationAttachment.CULTIVATION_DATA.get()));
+        return 1;
+    }
+
+    private static int reapplyStats(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "targets");
+        for (final ServerPlayer target : targets) {
+            StatReapply.perform(target, target.getData(CultivationAttachment.CULTIVATION_DATA.get()));
+            ctx.getSource().sendSuccess(() -> Component.translatable("soulland.command.stats.reapplied",
+                    target.getDisplayName()), true);
+        }
+        return targets.size();
+    }
+
+    private static List<String> beastPaths() {
+        return SpiritBeastEntities.ALL.stream().map(holder -> holder.getId().getPath()).toList();
+    }
+
+    /** Rolls the bone slot of the named beast many times over and reports how often each slot came up. */
+    private static int debugBoneRolls(final CommandContext<CommandSourceStack> ctx) {
+        final String beastPath = StringArgumentType.getString(ctx, "beast");
+        final Optional<EntityType<?>> beast = SpiritBeastEntities.ALL.stream()
+                .filter(holder -> holder.getId().getPath().equals(beastPath))
+                .<EntityType<?>>map(DeferredHolder::get)
+                .findFirst();
+        if (beast.isEmpty()) {
+            ctx.getSource().sendFailure(Component.translatable("soulland.command.debug.unknown_beast", beastPath));
+            return 0;
+        }
+
+        final int rolls = IntegerArgumentType.getInteger(ctx, "rolls");
+        final RandomSource random = ctx.getSource().getLevel().getRandom();
+        final Map<String, Long> countsBySlot = IntStream.range(0, rolls)
+                .mapToObj(roll -> SpiritBeastManager.rollBoneSlot(random, beast.get()))
+                .collect(Collectors.groupingBy(Function.identity(), TreeMap::new, Collectors.counting()));
+        final String report = countsBySlot.entrySet().stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(Collectors.joining(", "));
+        ctx.getSource().sendSuccess(() -> Component.translatable("soulland.command.debug.bonerolls",
+                rolls, beastPath, report), false);
+        return 1;
     }
 
     private static String testSourceName() {

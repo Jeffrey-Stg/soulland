@@ -6,16 +6,21 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.cultivation.SoulRingCapacity;
+import com.zelf115.soulland.cultivation.skill.SkillPools;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.spirit.Affinity;
+import com.zelf115.soulland.spirit.AffinitySystem;
+import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 
 /** Rolls and hands out the reward a god owes for a finished trial task. */
@@ -74,20 +79,36 @@ public final class GodTrialRewards {
                                        final GodTrialRewardType type) {
         data.addGodTrialReward(new GodTrialReward(type, REWARD_STAT_POINTS));
         final int rewardIndex = data.getGodTrialRewards().size() - 1;
-        Stats.applyBonus(player, GodTrialReward.modifierId(rewardIndex), statBonusFor(type));
+        Stats.applyBonus(player, GodTrialReward.modifierId(rewardIndex), statBonusFor(type, REWARD_STAT_POINTS));
         return Component.translatable("soulland.trial.reward.stat", (int) REWARD_STAT_POINTS,
                 Component.translatable(statNameKey(type)));
     }
 
+    /**
+     * The strongest ring the player can hold, as if cut from a random beast of that colour: its
+     * name, a random age in the colour's band, its affinities and a skill from their pools, with
+     * every stat rolled on its own.
+     */
     private static Component grantSoulRing(final ServerPlayer player, final CultivationData data) {
+        final RandomSource random = player.getRandom();
         final int tier = SoulRingCapacity.maxAbsorbableTier(Stats.getSpirit(player));
-        final int years = Math.min(MAX_REWARD_RING_YEARS, SpiritBeastManager.oldestYearsOfTier(tier));
+        final int years = Math.min(MAX_REWARD_RING_YEARS, SpiritBeastManager.randomYearsForTier(tier, random));
+        final EntityType<?> beast = rollRingBeast(random);
+        final Set<Affinity> affinities = AffinitySystem.affinitiesOf(beast);
         data.addGodTrialReward(new GodTrialReward(GodTrialRewardType.SOUL_RING, tier));
-        final ItemStack ring = SoulRingItem.create(
-                Component.translatable("soulland.trial.reward.ring_source").getString(),
-                tier, years, SpiritBeastManager.soulRingBonusForAge(tier, years), EnumSet.allOf(Affinity.class));
+        final ItemStack ring = SoulRingItem.create(beast.getDescription().getString(), tier, years,
+                SpiritBeastManager.rollSoulRingBonus(tier, random), affinities);
+        SkillPools.roll(affinities, random).ifPresent(skill -> SkillTag.attach(ring, skill));
         player.getInventory().placeItemBackInInventory(ring);
         return Component.translatable("soulland.trial.reward.soul_ring", SpiritBeastManager.describeTier(tier));
+    }
+
+    /** Only beasts whose affinities reach a skill pool, so the god's ring always carries a skill. */
+    private static EntityType<?> rollRingBeast(final RandomSource random) {
+        final List<EntityType<?>> candidates = SpiritBeastEntities.ordinaryTypes().stream()
+                .filter(type -> SkillPools.hasPoolFor(AffinitySystem.affinitiesOf(type)))
+                .toList();
+        return candidates.get(random.nextInt(candidates.size()));
     }
 
     private static boolean hasOpenRingSlot(final ServerPlayer player, final CultivationData data) {
@@ -96,12 +117,27 @@ public final class GodTrialRewards {
                 && SoulRingCapacity.hasRoomFor(Stats.getSpirit(player), data.getAbsorbedRings(), tier);
     }
 
-    private static StatBonus statBonusFor(final GodTrialRewardType type) {
+    /** Grants every stat reward already earned again, under the modifier id it was first granted with. */
+    public static void reapplyStatRewards(final ServerPlayer player, final CultivationData data) {
+        final List<GodTrialReward> rewards = data.getGodTrialRewards();
+        for (int index = 0; index < rewards.size(); index++) {
+            final GodTrialReward reward = rewards.get(index);
+            if (isStatReward(reward.type())) {
+                Stats.applyBonus(player, GodTrialReward.modifierId(index), statBonusFor(reward.type(), reward.amount()));
+            }
+        }
+    }
+
+    private static boolean isStatReward(final GodTrialRewardType type) {
+        return type != GodTrialRewardType.EXPERIENCE && type != GodTrialRewardType.SOUL_RING;
+    }
+
+    private static StatBonus statBonusFor(final GodTrialRewardType type, final double points) {
         return switch (type) {
-            case DAMAGE -> new StatBonus(REWARD_STAT_POINTS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
-            case HEALTH -> new StatBonus(NO_BONUS, REWARD_STAT_POINTS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
-            case DEFENSE -> new StatBonus(NO_BONUS, NO_BONUS, REWARD_STAT_POINTS, NO_BONUS, NO_BONUS, NO_BONUS);
-            default -> new StatBonus(NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, REWARD_STAT_POINTS, NO_BONUS);
+            case DAMAGE -> new StatBonus(points, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
+            case HEALTH -> new StatBonus(NO_BONUS, points, NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS);
+            case DEFENSE -> new StatBonus(NO_BONUS, NO_BONUS, points, NO_BONUS, NO_BONUS, NO_BONUS);
+            default -> new StatBonus(NO_BONUS, NO_BONUS, NO_BONUS, NO_BONUS, points, NO_BONUS);
         };
     }
 

@@ -87,6 +87,10 @@ public enum Skill {
     }
 
     public Component displayName() {
-        return Component.translatable("soulland.skill." + name().toLowerCase(Locale.ROOT));
+        return Component.translatable(translationKey());
+    }
+
+    public String translationKey() {
+        return "soulland.skill." + name().toLowerCase(Locale.ROOT);
     }
 }

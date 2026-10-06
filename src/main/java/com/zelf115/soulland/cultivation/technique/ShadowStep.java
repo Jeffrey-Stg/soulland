@@ -28,7 +28,7 @@ public final class ShadowStep {
     public static void use(final Player player, final CultivationData data) {
         final LearnedTechniques techniques = data.getTechniques();
         if (!techniques.isLearned(STEP)) {
-            player.sendSystemMessage(Component.translatable("soulland.technique.not_learned", STEP.displayName()));
+            player.displayClientMessage(Component.translatable("soulland.technique.not_learned", STEP.displayName()), true);
             return;
         }
         final long now = player.level().getGameTime();

@@ -283,7 +283,7 @@ public class CultivationManager {
         Stats.syncDerivedPlayerStats(player, data);
         applyFlightAbilities(player, newLevel);
         MartialSoulEvolution.tryEvolve(player, data);
-        player.sendSystemMessage(Component.translatable("soulland.cultivation.level_up", newLevel));
+        player.displayClientMessage(Component.translatable("soulland.cultivation.level_up", newLevel), true);
     }
 
     private static void enterBottleneck(final Player player, final CultivationData data, final int level) {

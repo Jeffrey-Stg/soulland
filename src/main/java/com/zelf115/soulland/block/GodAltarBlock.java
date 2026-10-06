@@ -23,6 +23,10 @@ public class GodAltarBlock extends Block {
         this.trial = trial;
     }
 
+    public GodTrial trial() {
+        return trial;
+    }
+
     @Override
     protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos,
                                                final Player player, final BlockHitResult hit) {
@@ -31,7 +35,7 @@ public class GodAltarBlock extends Block {
         }
 
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
-        GodTrialManager.interact(serverPlayer, data, trial);
+        GodTrialManager.open(serverPlayer, data, trial, pos);
         return InteractionResult.CONSUME;
     }
 }

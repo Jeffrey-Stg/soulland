@@ -34,6 +34,34 @@ public class Config {
             .comment("Years of age worth one level of spirit beast stats.")
             .defineInRange("spiritBeast.yearsPerLevel", 100, 1, 100_000);
 
+    public static final ModConfigSpec.IntValue SPIRIT_BEAST_MAX_PER_PLAYER = BUILDER
+            .comment("Most spirit beasts allowed around a player before natural spawning stops there.")
+            .defineInRange("spiritBeast.maxPerPlayer", 10, 0, 1_000);
+
+    public static final ModConfigSpec.IntValue SPIRIT_BEAST_DENSITY_RADIUS = BUILDER
+            .comment("Radius, in blocks, around a player within which spirit beasts count toward maxPerPlayer.")
+            .defineInRange("spiritBeast.densityRadius", 64, 8, 256);
+
+    public static final ModConfigSpec.IntValue SPIRIT_BONE_MIN_TIER = BUILDER
+            .comment("Lowest beast tier (1 white .. 7 gold) that can drop a spirit bone.")
+            .defineInRange("spiritBone.minTier", 3, 1, 7);
+
+    public static final ModConfigSpec.DoubleValue SPIRIT_BONE_DROP_CHANCE = BUILDER
+            .comment("Chance a qualifying beast drops a spirit bone.")
+            .defineInRange("spiritBone.dropChance", 0.06, 0.0, 1.0);
+
+    public static final ModConfigSpec.DoubleValue SKULL_BONE_CHANCE = BUILDER
+            .comment("Chance a dropped bone is a skull rather than a body bone.")
+            .defineInRange("spiritBone.skullChance", 0.15, 0.0, 1.0);
+
+    public static final ModConfigSpec.DoubleValue EXTERNAL_BONE_CHANCE = BUILDER
+            .comment("Chance a dropped bone is the beast's external bone, for the beasts that carry one.")
+            .defineInRange("spiritBone.externalChance", 0.10, 0.0, 1.0);
+
+    public static final ModConfigSpec.BooleanValue AFFINITY_ENABLED = BUILDER
+            .comment("Whether martial soul affinities scale the stats of absorbed soul rings.")
+            .define("affinity.enabled", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {

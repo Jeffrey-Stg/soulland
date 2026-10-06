@@ -59,40 +59,47 @@ public final class SpiritBoneItem extends Item {
         final int boneTier = tag.getInt(AbsorbedBone.TIER_KEY);
         final int allowedTier = CultivationManager.maxAbsorbableTier(Stats.getSpirit(player));
         if (boneTier > allowedTier) {
-            player.sendSystemMessage(Component.translatable("soulland.spirit_bone.tier_locked", allowedTier));
+            player.displayClientMessage(Component.translatable("soulland.spirit_bone.tier_locked", allowedTier), true);
             return InteractionResultHolder.fail(stack);
         }
 
         final AbsorbedBone bone = new AbsorbedBone(tag.getString(AbsorbedBone.SLOT_KEY), tag.getString(AbsorbedBone.SOURCE_NAME_KEY),
                 boneTier, tag.getInt(AbsorbedBone.YEARS_KEY), StatBonus.readFrom(tag), SkillTag.read(tag));
-        replaceBone(player, data, bone);
-        player.sendSystemMessage(Component.translatable("soulland.spirit_bone.absorbed", bone.slot(), bone.coloredSourceName()));
+        final AbsorbedBone previous = data.putBone(bone);
+        applyBone(player, data, bone);
+        if (previous != null) {
+            player.getInventory().placeItemBackInInventory(createFrom(previous));
+        }
+        player.displayClientMessage(absorbedMessage(bone, previous), true);
 
         stack.shrink(1);
         return InteractionResultHolder.sidedSuccess(stack, false);
     }
 
     /**
-     * Takes the new bone into its body slot and hands back the bone that occupied it, so each limb
-     * holds one bone at a time and no bone is ever lost to a swap.
-     *
-     * <p>Both bones share one modifier id per slot, so replacing takes back exactly what the old
-     * bone gave no matter how many breakthroughs happened while it was worn.
+     * Grants the bone now in its body slot. Each limb holds one bone at a time, and the bone it
+     * replaced shares the slot's modifier id, so this takes back exactly what the old bone gave no
+     * matter how many breakthroughs happened while it was worn.
      */
-    private static void replaceBone(final Player player, final CultivationData data, final AbsorbedBone bone) {
-        final AbsorbedBone previous = data.putBone(bone);
+    private static void applyBone(final Player player, final CultivationData data, final AbsorbedBone bone) {
         Stats.applyBonus(player, AbsorbedBone.modifierId(bone.slot()), bone.bonus());
         Stats.syncDerivedPlayerStats(player, data);
-        if (previous != null) {
-            returnBone(player, previous);
-        }
     }
 
-    private static void returnBone(final Player player, final AbsorbedBone bone) {
+    /** One line for the action bar, naming the bone handed back when the slot was already taken. */
+    private static Component absorbedMessage(final AbsorbedBone bone, final AbsorbedBone previous) {
+        if (previous == null) {
+            return Component.translatable("soulland.spirit_bone.absorbed", bone.slot(), bone.coloredSourceName());
+        }
+        return Component.translatable("soulland.spirit_bone.swapped", bone.slot(), bone.coloredSourceName(),
+                previous.coloredSourceName());
+    }
+
+    /** The item an absorbed bone came from, skill included. */
+    public static ItemStack createFrom(final AbsorbedBone bone) {
         final ItemStack stack = create(bone.sourceName(), bone.slot(), bone.tier(), bone.years(), bone.bonus());
         bone.skill().ifPresent(skill -> SkillTag.attach(stack, skill));
-        player.getInventory().placeItemBackInInventory(stack);
-        player.sendSystemMessage(Component.translatable("soulland.spirit_bone.returned", bone.slot(), bone.coloredSourceName()));
+        return stack;
     }
 
     @Override

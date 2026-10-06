@@ -61,7 +61,7 @@ public final class BossSkills {
         if (target.isEmpty()) return false;
         final double spirit = spiritEnergyOf(target.get());
         if (spirit <= 0.0) {
-            cast.caster().sendSystemMessage(Component.translatable("soulland.skill.no_spirit"));
+            cast.caster().displayClientMessage(Component.translatable("soulland.skill.no_spirit"), true);
             return false;
         }
         SkillEffects.magicDamage(cast, target.get(), spirit / ICE_EXPLOSION_SPIRIT_DIVISOR);

@@ -1,10 +1,10 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": ["ENE", "NSN", "ENE"],
-  "key": {
-    "E": {"item": "soulland:enchanted_pill_furnace"},
-    "N": {"item": "soulland:nether_pill_furnace"},
-    "S": {"item": "soulland:star_pill_furnace"}
-  },
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {"item": "soulland:pill_furnace"},
+    {"item": "soulland:enchanted_pill_furnace"},
+    {"item": "soulland:nether_pill_furnace"},
+    {"item": "soulland:star_pill_furnace"}
+  ],
   "result": {"id": "soulland:divine_pill_furnace", "count": 1}
 }

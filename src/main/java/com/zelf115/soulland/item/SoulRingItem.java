@@ -55,6 +55,14 @@ public final class SoulRingItem extends Item {
         return stack;
     }
 
+    /** The item an absorbed ring came from, skill and affinities included. */
+    public static ItemStack createFrom(final AbsorbedRing ring) {
+        final ItemStack stack = create(ring.sourceName(), ring.tier(), ring.years(), ring.bonus(),
+                ring.affinities().orElse(Set.of()));
+        ring.skill().ifPresent(skill -> SkillTag.attach(stack, skill));
+        return stack;
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
@@ -78,11 +86,11 @@ public final class SoulRingItem extends Item {
     public static void reportAbsorption(final Player player, final SoulRingAbsorption.Result result) {
         final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
         switch (result) {
-            case ABSORBED -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.absorbed",
-                    data.getAbsorbedRings().get(data.getSoulRingCount() - 1).coloredSourceName(), data.getSoulRingCount()));
-            case LEVEL_LIMIT -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.limit",
-                    CultivationManager.maxSoulRingCountForLevel(data.getLevel())));
-            case SPIRIT_CAPACITY -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.no_capacity"));
+            case ABSORBED -> player.displayClientMessage(Component.translatable("soulland.soul_ring.absorbed",
+                    data.getAbsorbedRings().get(data.getSoulRingCount() - 1).coloredSourceName(), data.getSoulRingCount()), true);
+            case LEVEL_LIMIT -> player.displayClientMessage(Component.translatable("soulland.soul_ring.limit",
+                    CultivationManager.maxSoulRingCountForLevel(data.getLevel())), true);
+            case SPIRIT_CAPACITY -> player.displayClientMessage(Component.translatable("soulland.soul_ring.no_capacity"), true);
             case OVERREACH_FAILED -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.overreach_failed"));
             case NOT_A_RING, OVERREACH_REQUIRED -> {
                 // One is not a soul ring at all, the other has the confirmation screen to answer first.

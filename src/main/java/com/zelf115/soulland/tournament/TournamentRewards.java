@@ -1,14 +1,16 @@
 package com.zelf115.soulland.tournament;
 
 import com.zelf115.soulland.SoulLand;
+import com.zelf115.soulland.StatBand;
 import com.zelf115.soulland.cultivation.CultivationData;
+import com.zelf115.soulland.cultivation.skill.SkillPools;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.item.SpiritBoneItem;
+import com.zelf115.soulland.spirit.AffinitySystem;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
-import com.zelf115.soulland.spirit.SpiritBosses;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -120,8 +122,12 @@ public final class TournamentRewards {
         final int tier = SpiritBeastManager.tierForYears(years);
         final String slot = SpiritBeastManager.INTERNAL_BONE_SLOTS
                 .get(random.nextInt(SpiritBeastManager.INTERNAL_BONE_SLOTS.size()));
-        return SpiritBoneItem.create(rollSourceBeastName(random), slot, tier, years,
-                SpiritBeastManager.spiritBoneBonusForAge(tier, years));
+        final EntityType<?> source = rollSourceBeast(random);
+        final ItemStack bone = SpiritBoneItem.create(source.getDescription().getString(), slot, tier, years,
+                StatBand.roll(tier, random));
+        SkillPools.rollForBone(AffinitySystem.affinitiesOf(source), random)
+                .ifPresent(skill -> SkillTag.attach(bone, skill));
+        return bone;
     }
 
     private static int rollYearBand(final RandomSource random) {
@@ -144,18 +150,8 @@ public final class TournamentRewards {
     }
 
     /** Bosses keep their own bones, so a tournament prize never carries one. */
-    private static String rollSourceBeastName(final RandomSource random) {
-        final List<EntityType<?>> candidates = new ArrayList<>();
-        for (final var holder : SpiritBeastEntities.ALL) {
-            final EntityType<?> type = holder.get();
-            if (!SpiritBosses.paths().contains(pathOf(type))) {
-                candidates.add(type);
-            }
-        }
-        return candidates.get(random.nextInt(candidates.size())).getDescription().getString();
-    }
-
-    private static String pathOf(final EntityType<?> type) {
-        return BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath();
+    private static EntityType<?> rollSourceBeast(final RandomSource random) {
+        final List<EntityType<?>> candidates = SpiritBeastEntities.ordinaryTypes();
+        return candidates.get(random.nextInt(candidates.size()));
     }
 }

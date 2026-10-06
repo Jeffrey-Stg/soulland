@@ -1,11 +1,13 @@
 package com.zelf115.soulland.tournament;
 
 import com.zelf115.soulland.cultivation.CultivationData;
+import com.zelf115.soulland.network.OpenTournamentScreenPayload;
 import com.zelf115.soulland.trial.GodTrialManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Runs the daily tournament ladder: one run per period, ten rounds, one opponent at a time. */
 public final class TournamentManager {
@@ -22,8 +24,21 @@ public final class TournamentManager {
     private TournamentManager() {
     }
 
-    /** The registry block right-click: open the day's run, or send in the next opponent. */
-    public static void interact(final ServerPlayer player, final CultivationData data, final BlockPos pos) {
+    /**
+     * The registry block right-click: shows the run without touching it. A period that has rolled
+     * over shows as a fresh run, though the run itself only restarts on the next fight.
+     */
+    public static void open(final ServerPlayer player, final CultivationData data, final BlockPos pos) {
+        final boolean freshPeriod = TournamentClock.isNewPeriod(data.getTournamentRunStartedAt());
+        PacketDistributor.sendToPlayer(player, new OpenTournamentScreenPayload(pos,
+                freshPeriod ? NO_RUN : data.getTournamentRound(),
+                !freshPeriod && data.isTournamentRunSpent(),
+                freshPeriod ? 0L : TournamentClock.millisUntilNextPeriod(data.getTournamentRunStartedAt()),
+                hasOpponentWaiting(player)));
+    }
+
+    /** The Fight button: open the day's run, or send in the next opponent. */
+    public static void fight(final ServerPlayer player, final CultivationData data, final BlockPos pos) {
         if (TournamentClock.isNewPeriod(data.getTournamentRunStartedAt())) {
             beginRun(player, data);
         }

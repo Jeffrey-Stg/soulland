@@ -95,16 +95,20 @@ public final class AlchemyMenu extends AbstractContainerMenu {
         }
         if (!player.level().isClientSide()) {
             final AlchemyPillRecipe recipe = recipes.get(recipeIndex).value();
-            brew(player, recipe, batchesRequestedBy(id, brewedBatch(player, recipe)));
+            brew(player, recipe, batchesRequestedBy(id, recipe.getResultItem(player.level().registryAccess())));
         }
         return true;
     }
 
-    private static int batchesRequestedBy(final int buttonId, final ItemStack batch) {
+    /**
+     * A stack brew crafts one plain stack's worth of batches; the furnace's bonus then multiplies the
+     * yield on top, so a stronger furnace hands back more than a stack.
+     */
+    private static int batchesRequestedBy(final int buttonId, final ItemStack plainBatch) {
         if ((buttonId & BREW_STACK_FLAG) == 0) {
             return SINGLE_BATCH;
         }
-        return Math.max(SINGLE_BATCH, batch.getMaxStackSize() / batch.getCount());
+        return Math.max(SINGLE_BATCH, plainBatch.getMaxStackSize() / plainBatch.getCount());
     }
 
     private ItemStack brewedBatch(final Player player, final AlchemyPillRecipe recipe) {
@@ -122,7 +126,7 @@ public final class AlchemyMenu extends AbstractContainerMenu {
     private void brew(final Player player, final AlchemyPillRecipe recipe, final int maxBatches) {
         final double costMultiplier = tier.costMultiplier();
         if (!recipe.hasIngredients(player, costMultiplier)) {
-            player.sendSystemMessage(Component.translatable("soulland.alchemy.missing_ingredients"));
+            player.displayClientMessage(Component.translatable("soulland.alchemy.missing_ingredients"), true);
             return;
         }
 
@@ -141,8 +145,8 @@ public final class AlchemyMenu extends AbstractContainerMenu {
 
     /** Names the pill before it is handed over: adding it to the inventory empties the stack. */
     private static void announceBrew(final Player player, final ItemStack result) {
-        player.sendSystemMessage(Component.translatable("soulland.alchemy.brewed",
-                result.getCount(), result.getHoverName()));
+        player.displayClientMessage(Component.translatable("soulland.alchemy.brewed",
+                result.getCount(), result.getHoverName()), true);
         player.level().playSound(null, player.blockPosition(), SoundEvents.BREWING_STAND_BREW,
                 SoundSource.PLAYERS, BREW_VOLUME, BREW_PITCH);
     }

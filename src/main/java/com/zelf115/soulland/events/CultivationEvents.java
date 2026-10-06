@@ -2,7 +2,6 @@ package com.zelf115.soulland.events;
 
 import com.zelf115.soulland.SoulLand;
 import com.zelf115.soulland.Stats;
-import com.zelf115.soulland.cultivation.AbsorbedRing;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.skill.MeleeRiders;
@@ -13,14 +12,14 @@ import com.zelf115.soulland.cultivation.technique.MysteriousHaven;
 import com.zelf115.soulland.cultivation.technique.PurpleDemonEye;
 import com.zelf115.soulland.item.GodRelic;
 import com.zelf115.soulland.item.MartialSoulSwordItem;
-import com.zelf115.soulland.network.HudSyncPayload;
+import com.zelf115.soulland.network.HudSync;
+import com.zelf115.soulland.network.OpenMartialSoulPickerPayload;
 import com.zelf115.soulland.qi.QiManager;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import com.zelf115.soulland.tournament.SoulMasterEntity;
 import com.zelf115.soulland.tournament.TournamentManager;
 import com.zelf115.soulland.trial.GodTrialManager;
-import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -69,22 +68,8 @@ public class CultivationEvents {
         }
 
         if (player instanceof ServerPlayer serverPlayer && gameTick % CultivationManager.HUD_SYNC_INTERVAL_TICKS == 0) {
-            syncHud(serverPlayer, data);
+            HudSync.send(serverPlayer, data);
         }
-    }
-
-    private static void syncHud(final ServerPlayer player, final CultivationData data) {
-        // The player's own panel shows every ring they hold. visibleRings() is the choice of what
-        // other players get to see, and it starts out hidden, which would leave this panel blank.
-        final List<AbsorbedRing> rings = data.getAbsorbedRings();
-        final AbsorbedRing currentRing = rings.isEmpty() ? null : rings.get(rings.size() - 1);
-        final List<Integer> ringTiers = rings.stream().map(AbsorbedRing::tier).toList();
-        final HudSyncPayload.Gauge xp = new HudSyncPayload.Gauge(data.getXp(), CultivationManager.xpRequiredForLevel(data.getLevel()));
-        final HudSyncPayload.Gauge spiritEnergy = new HudSyncPayload.Gauge(data.getSpiritEnergy(), Stats.getMaxSpiritEnergy(player));
-        final HudSyncPayload.SoulBeast soulBeast = new HudSyncPayload.SoulBeast(
-                currentRing == null ? "" : currentRing.sourceName(), currentRing == null ? 0 : currentRing.tier());
-        PacketDistributor.sendToPlayer(player, new HudSyncPayload(
-                data.getLevel(), xp, data.isInBottleneck(), spiritEnergy, getRegionQi(player), soulBeast, ringTiers));
     }
 
     /**
@@ -158,6 +143,9 @@ public class CultivationEvents {
         if (!data.isSpiritEnergySeeded()) {
             data.setSpiritEnergy(Stats.getMaxSpiritEnergy(player));
             data.markSpiritEnergySeeded();
+        }
+        if (player instanceof ServerPlayer serverPlayer && (data.getMartialSoul() == null || data.isSecondMartialSoulPending())) {
+            PacketDistributor.sendToPlayer(serverPlayer, new OpenMartialSoulPickerPayload());
         }
     }
 

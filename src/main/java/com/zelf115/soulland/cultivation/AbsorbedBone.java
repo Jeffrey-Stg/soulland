@@ -41,11 +41,15 @@ public record AbsorbedBone(String slot, String sourceName, int tier, int years, 
         return tag;
     }
 
-    /** Stable modifier id for whatever bone currently occupies the given slot. */
+    public AbsorbedBone withBonus(final StatBonus newBonus) {
+        return new AbsorbedBone(slot, sourceName, tier, years, newBonus, skill);
+    }
+
     public Component coloredSourceName() {
         return SpiritBeastManager.nameInTierColor(sourceName, tier);
     }
 
+    /** Stable modifier id for whatever bone currently occupies the given slot. */
     public static ResourceLocation modifierId(final String slot) {
         return ResourceLocation.fromNamespaceAndPath(SoulLand.MODID, "spirit_bone_" + slotKey(slot));
     }

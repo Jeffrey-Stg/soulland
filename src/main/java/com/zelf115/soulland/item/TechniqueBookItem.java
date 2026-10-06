@@ -33,12 +33,12 @@ public class TechniqueBookItem extends Item {
 
         final LearnedTechniques techniques = player.getData(CultivationAttachment.CULTIVATION_DATA.get()).getTechniques();
         if (techniques.isLearned(technique)) {
-            player.sendSystemMessage(Component.translatable("soulland.technique.already_known", technique.displayName()));
+            player.displayClientMessage(Component.translatable("soulland.technique.already_known", technique.displayName()), true);
             return InteractionResultHolder.fail(stack);
         }
 
         techniques.learn(technique);
-        player.sendSystemMessage(Component.translatable("soulland.technique.learned", technique.displayName()));
+        player.displayClientMessage(Component.translatable("soulland.technique.learned", technique.displayName()), true);
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }

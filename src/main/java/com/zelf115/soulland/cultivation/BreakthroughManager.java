@@ -80,7 +80,7 @@ public class BreakthroughManager {
             return false;
         }
 
-        player.sendSystemMessage(Component.translatable(blocker));
+        player.displayClientMessage(Component.translatable(blocker), true);
         return true;
     }
 

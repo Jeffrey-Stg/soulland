@@ -2,6 +2,7 @@ package com.zelf115.soulland;
 
 import com.zelf115.soulland.effect.MarkerEffect;
 import com.zelf115.soulland.effect.MeditationEffect;
+import com.zelf115.soulland.effect.PagodaBlessings;
 import com.zelf115.soulland.effect.SkillBuffEffect;
 import com.zelf115.soulland.effect.SunderedEffect;
 import com.zelf115.soulland.block.CrystalBuddingBlock;
@@ -30,6 +31,7 @@ import com.zelf115.soulland.cultivation.skill.SkillEntities;
 import com.zelf115.soulland.cultivation.technique.Technique;
 import com.zelf115.soulland.menu.SoulLandMenus;
 import com.zelf115.soulland.network.CultivationNetwork;
+import com.zelf115.soulland.network.StationNetwork;
 import com.zelf115.soulland.recipe.SoulLandRecipes;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import org.slf4j.Logger;
@@ -199,6 +201,12 @@ public class SoulLand {
             () -> new MarkerEffect(MobEffectCategory.BENEFICIAL, 0x8B5A2B));
     public static final DeferredHolder<MobEffect, MobEffect> SUNDERED_EFFECT = MOB_EFFECTS.register("sundered",
             () -> new SunderedEffect(0x5A5A5A));
+    public static final DeferredHolder<MobEffect, MobEffect> DAMAGE_BLESSING_EFFECT =
+            MOB_EFFECTS.register("damage_blessing", PagodaBlessings::damageBlessing);
+    public static final DeferredHolder<MobEffect, MobEffect> DEFENSE_BLESSING_EFFECT =
+            MOB_EFFECTS.register("defense_blessing", PagodaBlessings::defenseBlessing);
+    public static final DeferredHolder<MobEffect, MobEffect> BERSERK_EFFECT =
+            MOB_EFFECTS.register("berserk", PagodaBlessings::berserk);
 
     private static DeferredItem<Item> registerTechniqueBook(final String name, final Technique technique) {
         return ITEMS.register(name, () -> new TechniqueBookItem(technique, new Item.Properties().stacksTo(1)));
@@ -255,6 +263,7 @@ public class SoulLand {
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(AttributeEvents::modifyPlayerAttributes);
         modEventBus.addListener(CultivationNetwork::register);
+        modEventBus.addListener(StationNetwork::register);
         Stats.register(modEventBus);
         Cultivation.register(modEventBus);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);

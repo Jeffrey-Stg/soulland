@@ -18,7 +18,8 @@ import net.minecraft.world.entity.player.Player;
 
 /**
  * Purple Demon Eye: Survey (timed glow pulse), Detailed (toggle), Surreal (free, plus a paralysing
- * strike) and Boundless (+100 Spirit). Time spent seeing at dawn trains it twice as fast.
+ * strike) and Boundless (+100 Spirit). The open eye sees in the dark, and time spent seeing at dawn
+ * trains it twice as fast.
  */
 public final class PurpleDemonEye {
 
@@ -29,6 +30,8 @@ public final class PurpleDemonEye {
     private static final int TPS = CultivationManager.TPS;
     private static final int PULSE_DURATION_TICKS = 10 * TPS;
     private static final int GLOW_DURATION_TICKS = 30;
+    /** Refreshed every second; under 200 ticks the vanilla night vision screen starts to flicker. */
+    private static final int NIGHT_VISION_TICKS = 220;
     private static final double SURVEY_RADIUS = 20.0;
     private static final double ENERGY_COST_PER_SECOND = 0.5;
     private static final double STRIKE_RANGE = 20.0;
@@ -49,7 +52,7 @@ public final class PurpleDemonEye {
     public static void use(final Player player, final CultivationData data) {
         final LearnedTechniques techniques = data.getTechniques();
         if (!techniques.isLearned(EYE)) {
-            player.sendSystemMessage(Component.translatable("soulland.technique.not_learned", EYE.displayName()));
+            player.displayClientMessage(Component.translatable("soulland.technique.not_learned", EYE.displayName()), true);
             return;
         }
         if (techniques.isDemonEyeOpen()) {
@@ -57,7 +60,7 @@ public final class PurpleDemonEye {
             return;
         }
         if (isCostly(techniques) && data.getSpiritEnergy() < ENERGY_COST_PER_SECOND) {
-            player.sendSystemMessage(Component.translatable("soulland.technique.no_energy"));
+            player.displayClientMessage(Component.translatable("soulland.technique.no_energy"), true);
             return;
         }
         open(player, techniques);
@@ -66,17 +69,18 @@ public final class PurpleDemonEye {
     private static void open(final Player player, final LearnedTechniques techniques) {
         if (techniques.level(EYE) >= DETAILED_LEVEL) {
             techniques.setDemonEyeOpen(true);
-            player.sendSystemMessage(Component.translatable("soulland.technique.demon_eye.opened"));
+            player.displayClientMessage(Component.translatable("soulland.technique.demon_eye.opened"), true);
             return;
         }
         techniques.setDemonEyePulseUntil(player.level().getGameTime() + PULSE_DURATION_TICKS);
-        player.sendSystemMessage(Component.translatable("soulland.technique.demon_eye.pulse"));
+        player.displayClientMessage(Component.translatable("soulland.technique.demon_eye.pulse"), true);
     }
 
     private static void close(final Player player, final LearnedTechniques techniques) {
         techniques.setDemonEyeOpen(false);
         techniques.setDemonEyePulseUntil(0L);
-        player.sendSystemMessage(Component.translatable("soulland.technique.demon_eye.closed"));
+        endNightVision(player);
+        player.displayClientMessage(Component.translatable("soulland.technique.demon_eye.closed"), true);
     }
 
     public static void tick(final Player player, final CultivationData data, final long gameTick) {
@@ -90,7 +94,20 @@ public final class PurpleDemonEye {
         }
 
         revealNearbyMobs(player);
+        grantNightVision(player);
         TechniqueTraining.train(player, techniques, EYE, trainingPerSecond(player));
+    }
+
+    private static void grantNightVision(final Player player) {
+        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, NIGHT_VISION_TICKS, 0, true, false));
+    }
+
+    /** Leaves alone a longer night vision the player drank, which outlasts anything the eye grants. */
+    private static void endNightVision(final Player player) {
+        final MobEffectInstance nightVision = player.getEffect(MobEffects.NIGHT_VISION);
+        if (nightVision != null && nightVision.getDuration() <= NIGHT_VISION_TICKS) {
+            player.removeEffect(MobEffects.NIGHT_VISION);
+        }
     }
 
     private static boolean isSeeing(final LearnedTechniques techniques, final long gameTick) {
@@ -140,7 +157,7 @@ public final class PurpleDemonEye {
     public static void strike(final Player player, final CultivationData data) {
         final LearnedTechniques techniques = data.getTechniques();
         if (!techniques.isLearned(EYE) || techniques.level(EYE) < SURREAL_LEVEL) {
-            player.sendSystemMessage(Component.translatable("soulland.technique.demon_eye.strike_locked"));
+            player.displayClientMessage(Component.translatable("soulland.technique.demon_eye.strike_locked"), true);
             return;
         }
         final long now = player.level().getGameTime();
@@ -148,7 +165,7 @@ public final class PurpleDemonEye {
 
         final Optional<LivingEntity> target = SkillEffects.lookTarget(player, STRIKE_RANGE);
         if (target.isEmpty()) {
-            player.sendSystemMessage(Component.translatable("soulland.technique.demon_eye.no_target"));
+            player.displayClientMessage(Component.translatable("soulland.technique.demon_eye.no_target"), true);
             return;
         }
         paralyse(player, target.get());

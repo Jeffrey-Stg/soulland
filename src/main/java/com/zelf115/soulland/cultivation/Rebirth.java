@@ -47,7 +47,7 @@ public final class Rebirth {
         resetProgress(data);
         data.setTitle("");
         data.setRebirthCount(data.getRebirthCount() + 1);
-        Stats.applyRebirthBonus(player, data.getRebirthCount() * BONUS_PER_REBIRTH);
+        reapplyBonus(player, data);
         AffinitySystem.clearMartialSoulForRebirth(data);
         data.setActiveSoulSlot(SoulSlot.PRIMARY);
         data.setSelectedRingIndex(0);
@@ -59,6 +59,13 @@ public final class Rebirth {
         player.sendSystemMessage(Component.translatable("soulland.cultivation.rebirth.done", data.getRebirthCount()));
         PacketDistributor.sendToPlayer(player, new OpenMartialSoulPickerPayload());
         return true;
+    }
+
+    /** Lifts every stat by 5% per rebirth so far; nothing at all before the first. */
+    public static void reapplyBonus(final ServerPlayer player, final CultivationData data) {
+        if (data.getRebirthCount() > 0) {
+            Stats.applyRebirthBonus(player, data.getRebirthCount() * BONUS_PER_REBIRTH);
+        }
     }
 
     private static void endModEffects(final ServerPlayer player, final CultivationData data) {

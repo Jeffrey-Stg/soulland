@@ -65,7 +65,7 @@ public final class GodRelic {
     }
 
     public static void refuse(final Player player) {
-        player.sendSystemMessage(Component.translatable("soulland.trial.relic.not_earned"));
+        player.displayClientMessage(Component.translatable("soulland.trial.relic.not_earned"), true);
     }
 
     public static void appendOwnerTooltip(final List<Component> tooltip) {

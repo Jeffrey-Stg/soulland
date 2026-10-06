@@ -1,13 +1,17 @@
 package com.zelf115.soulland.trial;
 
+import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
+import com.zelf115.soulland.network.OpenAltarScreenPayload;
 import com.zelf115.soulland.spirit.SpiritBeastEntity;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import com.zelf115.soulland.cultivation.AbsorbedBone;
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Runs a player's god trial: starting it, tracking its tasks, and paying out at the altar. */
 public final class GodTrialManager {
@@ -18,31 +22,27 @@ public final class GodTrialManager {
     private GodTrialManager() {
     }
 
-    /** The altar right-click: report, pay out, or start the trial of this god. */
-    public static void interact(final ServerPlayer player, final CultivationData data, final GodTrial trial) {
-        if (!data.hasStartedGodTrial()) {
-            start(player, data, trial);
-            return;
+    /**
+     * The altar right-click: settles any task the player now meets by what they have, then shows
+     * the altar screen. The screen reads the trial from the player's synced record, so it is synced first.
+     */
+    public static void open(final ServerPlayer player, final CultivationData data, final GodTrial trial,
+                            final BlockPos pos) {
+        if (data.getGodTrial() == trial && !data.isGodTrialFinished()) {
+            evaluateStateTasks(player, data);
         }
-        if (data.getGodTrial() != trial) {
-            player.sendSystemMessage(Component.translatable("soulland.trial.wrong_altar",
-                    data.getGodTrial().displayName()));
-            return;
-        }
-        if (data.isGodTrialFinished()) {
-            player.sendSystemMessage(Component.translatable("soulland.trial.finished", trial.displayName()));
-            return;
-        }
-
-        claimPendingRewards(player, data);
-        evaluateStateTasks(player, data);
-        reportProgress(player, data);
+        player.syncData(CultivationAttachment.CULTIVATION_DATA);
+        PacketDistributor.sendToPlayer(player, new OpenAltarScreenPayload(pos, trial.ordinal()));
     }
 
-    private static void start(final ServerPlayer player, final CultivationData data, final GodTrial trial) {
+    /** The altar's Begin button: starts this god's trial when no trial is under way yet. */
+    public static void begin(final ServerPlayer player, final CultivationData data, final GodTrial trial) {
+        if (data.hasStartedGodTrial()) {
+            return;
+        }
         if (!trial.acceptsMartialSoulOf(data)) {
-            player.sendSystemMessage(Component.translatable("soulland.trial.requires_martial_soul",
-                    trial.getRequiredMartialSoul().displayName()));
+            player.displayClientMessage(Component.translatable("soulland.trial.requires_martial_soul",
+                    trial.getRequiredMartialSoul().displayName()), true);
             return;
         }
 
@@ -157,18 +157,14 @@ public final class GodTrialManager {
         player.sendSystemMessage(Component.translatable("soulland.trial.complete", trial.displayName()));
     }
 
-    private static void claimPendingRewards(final ServerPlayer player, final CultivationData data) {
-        while (data.getGodTrialPendingRewards() > 0) {
-            data.setGodTrialPendingRewards(data.getGodTrialPendingRewards() - 1);
-            player.sendSystemMessage(Component.translatable("soulland.trial.reward.claimed",
-                    GodTrialRewards.grantRandom(player, data)));
+    /** The altar's Claim button: hands out one reward for a finished task, at the altar of the god owed it. */
+    public static void claimOneReward(final ServerPlayer player, final CultivationData data, final GodTrial trial) {
+        if (data.getGodTrial() != trial || data.getGodTrialPendingRewards() <= 0) {
+            return;
         }
-    }
-
-    private static void reportProgress(final ServerPlayer player, final CultivationData data) {
-        player.sendSystemMessage(Component.translatable("soulland.trial.progress",
-                data.getGodTrial().displayName(), data.getGodTrialTaskIndex() + 1, TrialTasks.TASK_COUNT,
-                describeCurrentTask(data)));
+        data.setGodTrialPendingRewards(data.getGodTrialPendingRewards() - 1);
+        player.sendSystemMessage(Component.translatable("soulland.trial.reward.claimed",
+                GodTrialRewards.grantRandom(player, data)));
     }
 
     /** The current task written out for the player, with its progress where the task counts. */
@@ -177,9 +173,13 @@ public final class GodTrialManager {
         if (task == null) {
             return Component.translatable("soulland.trial.task.none");
         }
+        return describeTask(task, data.getGodTrialProgress());
+    }
+
+    /** One task written out for the player, with the given progress where the task counts. */
+    public static Component describeTask(final TrialTask task, final int progress) {
         if (task.type() == TrialTaskType.KILL_HUNDRED_THOUSAND_YEAR_BEASTS) {
-            return Component.translatable(task.type().descriptionKey(), task.target(),
-                    data.getGodTrialProgress(), task.target());
+            return Component.translatable(task.type().descriptionKey(), task.target(), progress, task.target());
         }
         if (task.type() == TrialTaskType.REACH_LEVEL_99) {
             return Component.translatable(task.type().descriptionKey(), TrialTaskType.FINAL_TASK_LEVEL);

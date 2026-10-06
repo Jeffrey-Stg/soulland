@@ -1,5 +1,6 @@
 package com.zelf115.soulland.spirit;
 
+import com.zelf115.soulland.Config;
 import com.zelf115.soulland.cultivation.CultivationAttachment;
 import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.MartialSoul;
@@ -10,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -84,7 +86,11 @@ public final class AffinitySystem {
     }
 
     public static Set<Affinity> affinitiesOf(final SpiritBeastEntity beast) {
-        final var key = BuiltInRegistries.ENTITY_TYPE.getKey(beast.getType());
+        return affinitiesOf(beast.getType());
+    }
+
+    public static Set<Affinity> affinitiesOf(final EntityType<?> beastType) {
+        final var key = BuiltInRegistries.ENTITY_TYPE.getKey(beastType);
         return BEAST_AFFINITIES.getOrDefault(key == null ? "" : key.getPath(), Set.of(Affinity.BEAST));
     }
 
@@ -115,6 +121,9 @@ public final class AffinitySystem {
 
     public static double ringMultiplier(final CultivationData data, final Set<Affinity> ringAffinities) {
         double multiplier = 1.0;
+        if (!Config.AFFINITY_ENABLED.getAsBoolean()) {
+            return multiplier;
+        }
         for (final Affinity affinity : ringAffinities) {
             multiplier *= data.getAffinityMultiplier(affinity);
         }
