@@ -95,7 +95,7 @@ public final class SpiritBeastManager {
     private static void rollBeast(final SpiritBeastEntity monster, final CompoundTag data) {
         final Optional<BossProfile> boss = SpiritBosses.of(monster.getType());
         final int years = boss.map(BossProfile::years)
-                .orElseGet(() -> randomYearsForTier(monster, rollTier(tierRollFor(monster))));
+                .orElseGet(() -> randomYearsForTier(rollTier(tierRollFor(monster)), monster.getRandom()));
         final int tier = tierForYears(years);
         final int level = effectiveLevelForYears(years);
         final double healthMultiplier = boss.isPresent() ? BOSS_HEALTH_MULTIPLIER : 1.0;
@@ -341,15 +341,16 @@ public final class SpiritBeastManager {
         return 7;
     }
 
-    private static int randomYearsForTier(final SpiritBeastEntity monster, final int tier) {
+    /** A random age inside the year band of this colour. */
+    public static int randomYearsForTier(final int tier, final RandomSource random) {
         return switch (tier) {
-            case 1 -> 1 + monster.getRandom().nextInt(99);
-            case 2 -> 100 + monster.getRandom().nextInt(900);
-            case 3 -> 1_000 + monster.getRandom().nextInt(9_000);
-            case 4 -> 10_000 + monster.getRandom().nextInt(90_000);
-            case 5 -> 100_000 + monster.getRandom().nextInt(100_000);
-            case 6 -> 200_000 + monster.getRandom().nextInt(800_000);
-            default -> 1_000_000 + monster.getRandom().nextInt(Integer.MAX_VALUE - 1_000_000);
+            case 1 -> 1 + random.nextInt(99);
+            case 2 -> 100 + random.nextInt(900);
+            case 3 -> 1_000 + random.nextInt(9_000);
+            case 4 -> 10_000 + random.nextInt(90_000);
+            case 5 -> 100_000 + random.nextInt(100_000);
+            case 6 -> 200_000 + random.nextInt(800_000);
+            default -> 1_000_000 + random.nextInt(Integer.MAX_VALUE - 1_000_000);
         };
     }
 

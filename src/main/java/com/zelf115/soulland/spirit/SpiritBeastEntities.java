@@ -99,6 +99,14 @@ public final class SpiritBeastEntities {
         return SHAPES.get(EntityType.getKey(type).getPath());
     }
 
+    /** Every beast except the bosses, whose rings and bones are theirs alone. */
+    public static List<EntityType<?>> ordinaryTypes() {
+        return ALL.stream()
+                .<EntityType<?>>map(DeferredHolder::get)
+                .filter(type -> !SpiritBosses.isBoss(type))
+                .toList();
+    }
+
     private static DeferredHolder<EntityType<?>, EntityType<SpiritBeastEntity>> register(final String id, final SpiritBeastShape shape) {
         return register(id, shape, SpiritBeastEntity::new);
     }

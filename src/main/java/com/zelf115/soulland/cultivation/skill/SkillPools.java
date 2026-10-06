@@ -31,6 +31,11 @@ public final class SkillPools {
     private SkillPools() {
     }
 
+    /** Whether any skill pool covers these affinities, so a ring from them can carry a skill. */
+    public static boolean hasPoolFor(final Set<Affinity> affinities) {
+        return !candidatesFor(affinities).isEmpty();
+    }
+
     /** A random skill from every pool the affinities reach, or none when no pool covers them. */
     public static Optional<Skill> roll(final Set<Affinity> affinities, final RandomSource random) {
         return pick(candidatesFor(affinities), random);

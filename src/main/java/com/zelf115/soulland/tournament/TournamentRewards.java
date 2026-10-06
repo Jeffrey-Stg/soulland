@@ -9,10 +9,8 @@ import com.zelf115.soulland.item.SpiritBoneItem;
 import com.zelf115.soulland.spirit.AffinitySystem;
 import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
-import com.zelf115.soulland.spirit.SpiritBosses;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -153,17 +151,7 @@ public final class TournamentRewards {
 
     /** Bosses keep their own bones, so a tournament prize never carries one. */
     private static EntityType<?> rollSourceBeast(final RandomSource random) {
-        final List<EntityType<?>> candidates = new ArrayList<>();
-        for (final var holder : SpiritBeastEntities.ALL) {
-            final EntityType<?> type = holder.get();
-            if (!SpiritBosses.paths().contains(pathOf(type))) {
-                candidates.add(type);
-            }
-        }
+        final List<EntityType<?>> candidates = SpiritBeastEntities.ordinaryTypes();
         return candidates.get(random.nextInt(candidates.size()));
-    }
-
-    private static String pathOf(final EntityType<?> type) {
-        return BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath();
     }
 }

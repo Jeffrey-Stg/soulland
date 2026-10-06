@@ -23,8 +23,6 @@ public final class CultivationClientEvents {
     @SubscribeEvent
     public static void onClientTick(final ClientTickEvent.Post event) {
         sendOnPress(CultivationKeyMappings.START_MEDITATION, CultivationActionPayload.START_MEDITATION);
-        sendOnPress(CultivationKeyMappings.INCREASE_SPEED, CultivationActionPayload.INCREASE_SPEED);
-        sendOnPress(CultivationKeyMappings.DECREASE_SPEED, CultivationActionPayload.DECREASE_SPEED);
         sendOnPress(CultivationKeyMappings.CYCLE_RING_DISPLAY, CultivationActionPayload.CYCLE_RING_DISPLAY);
         sendOnPress(CultivationKeyMappings.TOGGLE_EXTERNAL_BONE, CultivationActionPayload.TOGGLE_EXTERNAL_BONE);
         sendOnPress(CultivationKeyMappings.ATTEMPT_BREAKTHROUGH, CultivationActionPayload.ATTEMPT_BREAKTHROUGH);

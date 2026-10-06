@@ -31,7 +31,6 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class CultivationNetwork {
-    private static final int SPEED_STEP_PERCENT = 1;
 
     private CultivationNetwork() {
     }
@@ -109,8 +108,6 @@ public final class CultivationNetwork {
             final CultivationData data = player.getData(CultivationAttachment.CULTIVATION_DATA.get());
             switch (payload.action()) {
                 case CultivationActionPayload.START_MEDITATION -> startMeditation(player);
-                case CultivationActionPayload.INCREASE_SPEED -> adjustSpeed(player, data, SPEED_STEP_PERCENT);
-                case CultivationActionPayload.DECREASE_SPEED -> adjustSpeed(player, data, -SPEED_STEP_PERCENT);
                 case CultivationActionPayload.CYCLE_RING_DISPLAY -> cycleRingDisplay(player, data);
                 case CultivationActionPayload.TOGGLE_EXTERNAL_BONE -> toggleExternalBone(player, data);
                 case CultivationActionPayload.ATTEMPT_BREAKTHROUGH -> BreakthroughManager.attemptBreakthrough(player, data, player.level().getGameTime());
@@ -160,17 +157,6 @@ public final class CultivationNetwork {
 
         player.addEffect(new MobEffectInstance(SoulLand.MEDITATION_EFFECT, CultivationManager.MEDITATION_DURATION_TICKS));
         player.displayClientMessage(Component.translatable("soulland.cultivation.meditation.started"), true);
-    }
-
-    private static void adjustSpeed(final ServerPlayer player, final CultivationData data, final int deltaPercent) {
-        final int previousPercent = data.getMovementUsagePercent();
-        data.setMovementUsagePercent(previousPercent + deltaPercent);
-        if (previousPercent == data.getMovementUsagePercent()) {
-            return;
-        }
-
-        Stats.syncDerivedPlayerStats(player, data);
-        player.displayClientMessage(Component.translatable("soulland.cultivation.speed_usage.set", data.getMovementUsagePercent()), true);
     }
 
     private static void cycleRingDisplay(final ServerPlayer player, final CultivationData data) {

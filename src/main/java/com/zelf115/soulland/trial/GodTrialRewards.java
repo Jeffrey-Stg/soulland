@@ -6,16 +6,21 @@ import com.zelf115.soulland.cultivation.CultivationData;
 import com.zelf115.soulland.cultivation.CultivationManager;
 import com.zelf115.soulland.cultivation.SoulRingAbsorption;
 import com.zelf115.soulland.cultivation.SoulRingCapacity;
+import com.zelf115.soulland.cultivation.skill.SkillPools;
+import com.zelf115.soulland.cultivation.skill.SkillTag;
 import com.zelf115.soulland.item.SoulRingItem;
 import com.zelf115.soulland.spirit.Affinity;
+import com.zelf115.soulland.spirit.AffinitySystem;
+import com.zelf115.soulland.spirit.SpiritBeastEntities;
 import com.zelf115.soulland.spirit.SpiritBeastManager;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 
 /** Rolls and hands out the reward a god owes for a finished trial task. */
@@ -79,15 +84,31 @@ public final class GodTrialRewards {
                 Component.translatable(statNameKey(type)));
     }
 
+    /**
+     * The strongest ring the player can hold, as if cut from a random beast of that colour: its
+     * name, a random age in the colour's band, its affinities and a skill from their pools, with
+     * every stat rolled on its own.
+     */
     private static Component grantSoulRing(final ServerPlayer player, final CultivationData data) {
+        final RandomSource random = player.getRandom();
         final int tier = SoulRingCapacity.maxAbsorbableTier(Stats.getSpirit(player));
-        final int years = Math.min(MAX_REWARD_RING_YEARS, SpiritBeastManager.oldestYearsOfTier(tier));
+        final int years = Math.min(MAX_REWARD_RING_YEARS, SpiritBeastManager.randomYearsForTier(tier, random));
+        final EntityType<?> beast = rollRingBeast(random);
+        final Set<Affinity> affinities = AffinitySystem.affinitiesOf(beast);
         data.addGodTrialReward(new GodTrialReward(GodTrialRewardType.SOUL_RING, tier));
-        final ItemStack ring = SoulRingItem.create(
-                Component.translatable("soulland.trial.reward.ring_source").getString(),
-                tier, years, SpiritBeastManager.rollSoulRingBonus(tier, player.getRandom()), EnumSet.allOf(Affinity.class));
+        final ItemStack ring = SoulRingItem.create(beast.getDescription().getString(), tier, years,
+                SpiritBeastManager.rollSoulRingBonus(tier, random), affinities);
+        SkillPools.roll(affinities, random).ifPresent(skill -> SkillTag.attach(ring, skill));
         player.getInventory().placeItemBackInInventory(ring);
         return Component.translatable("soulland.trial.reward.soul_ring", SpiritBeastManager.describeTier(tier));
+    }
+
+    /** Only beasts whose affinities reach a skill pool, so the god's ring always carries a skill. */
+    private static EntityType<?> rollRingBeast(final RandomSource random) {
+        final List<EntityType<?>> candidates = SpiritBeastEntities.ordinaryTypes().stream()
+                .filter(type -> SkillPools.hasPoolFor(AffinitySystem.affinitiesOf(type)))
+                .toList();
+        return candidates.get(random.nextInt(candidates.size()));
     }
 
     private static boolean hasOpenRingSlot(final ServerPlayer player, final CultivationData data) {
