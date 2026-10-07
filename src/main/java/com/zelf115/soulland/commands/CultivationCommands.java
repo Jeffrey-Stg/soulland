@@ -67,6 +67,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  *   <li>{@code /cultivation techniques [setlevel <technique> <level>]} — shows learned techniques; operators can set a level</li>
  *   <li>{@code /cultivation skillring <skill>} / {@code skillbone <skill> [slot]} — operator tools: a ring or bone carrying the named skill</li>
  *   <li>{@code /cultivation stats toggle} — sets aside, or takes back up, what the mod's stats do to the player</li>
+ *   <li>{@code /cultivation reset <targets>} — operator tool: wipes cultivation like a rebirth, without counting one</li>
  *   <li>{@code /cultivation stats reapply <targets>} — operator tool: rebuilds every ring, bone and reward bonus</li>
  *   <li>{@code /cultivation debug bonerolls <beast> <rolls>} — operator tool: tallies which bone slots a beast rolls</li>
  *   <li>{@code /cultivation xp add|set <targets> <amount>} — operator tool: grants XP, levelling up until the next gate</li>
@@ -95,6 +96,10 @@ public class CultivationCommands {
                                 .executes(CultivationCommands::setTitle)))
                 .then(Commands.literal("rebirth")
                         .executes(CultivationCommands::rebirth))
+                .then(Commands.literal("reset")
+                        .requires(source -> source.hasPermission(OPERATOR_PERMISSION_LEVEL))
+                        .then(Commands.argument("targets", EntityArgument.players())
+                                .executes(CultivationCommands::resetCultivation)))
                 .then(Commands.literal("trial")
                         .then(Commands.literal("status")
                                 .executes(CultivationCommands::trialStatus))
@@ -400,6 +405,16 @@ public class CultivationCommands {
         for (final ServerPlayer target : targets) {
             StatReapply.perform(target, target.getData(CultivationAttachment.CULTIVATION_DATA.get()));
             ctx.getSource().sendSuccess(() -> Component.translatable("soulland.command.stats.reapplied",
+                    target.getDisplayName()), true);
+        }
+        return targets.size();
+    }
+
+    private static int resetCultivation(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "targets");
+        for (final ServerPlayer target : targets) {
+            Rebirth.resetCultivation(target, target.getData(CultivationAttachment.CULTIVATION_DATA.get()));
+            ctx.getSource().sendSuccess(() -> Component.translatable("soulland.command.reset.done",
                     target.getDisplayName()), true);
         }
         return targets.size();
