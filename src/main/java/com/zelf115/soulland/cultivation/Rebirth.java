@@ -34,6 +34,17 @@ public final class Rebirth {
             return false;
         }
 
+        data.setRebirthCount(data.getRebirthCount() + 1);
+        resetCultivation(player, data);
+        player.sendSystemMessage(Component.translatable("soulland.cultivation.rebirth.done", data.getRebirthCount()));
+        return true;
+    }
+
+    /**
+     * Wipes everything a rebirth wipes without counting as one, then sends the player to the
+     * martial soul picker.
+     */
+    public static void resetCultivation(final ServerPlayer player, final CultivationData data) {
         MartialSoulAbility.forceDeactivate(player, data);
         endModEffects(player, data);
         removeRingBonuses(player, data);
@@ -46,7 +57,6 @@ public final class Rebirth {
         Stats.resetEarnedStats(player);
         resetProgress(data);
         data.setTitle("");
-        data.setRebirthCount(data.getRebirthCount() + 1);
         reapplyBonus(player, data);
         AffinitySystem.clearMartialSoulForRebirth(data);
         data.setActiveSoulSlot(SoulSlot.PRIMARY);
@@ -55,10 +65,7 @@ public final class Rebirth {
         CultivationManager.applyFlightAbilities(player, data.getLevel());
         Stats.syncDerivedPlayerStats(player, data);
         RingDisplaySync.broadcast(player);
-
-        player.sendSystemMessage(Component.translatable("soulland.cultivation.rebirth.done", data.getRebirthCount()));
         PacketDistributor.sendToPlayer(player, new OpenMartialSoulPickerPayload());
-        return true;
     }
 
     /** Lifts every stat by 5% per rebirth so far; nothing at all before the first. */

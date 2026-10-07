@@ -89,7 +89,7 @@ public final class SoulRingItem extends Item {
             case ABSORBED -> player.displayClientMessage(Component.translatable("soulland.soul_ring.absorbed",
                     data.getAbsorbedRings().get(data.getSoulRingCount() - 1).coloredSourceName(), data.getSoulRingCount()), true);
             case LEVEL_LIMIT -> player.displayClientMessage(Component.translatable("soulland.soul_ring.limit",
-                    CultivationManager.maxSoulRingCountForLevel(data.getLevel())), true);
+                    SoulRingAbsorption.activeRingCap(data)), true);
             case SPIRIT_CAPACITY -> player.displayClientMessage(Component.translatable("soulland.soul_ring.no_capacity"), true);
             case OVERREACH_FAILED -> player.sendSystemMessage(Component.translatable("soulland.soul_ring.overreach_failed"));
             case NOT_A_RING, OVERREACH_REQUIRED -> {

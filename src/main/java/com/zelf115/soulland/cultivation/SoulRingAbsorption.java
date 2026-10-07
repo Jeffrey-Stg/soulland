@@ -65,19 +65,21 @@ public final class SoulRingAbsorption {
     }
 
     /**
-     * Rings fill the primary track first, then the secondary one, each up to its own cap.
+     * Rings join the track of the selected martial soul, up to that soul's own cap.
      *
-     * @return the track the next ring joins, or null when both are full
+     * @return the selected track, or null when it is full
      */
     public static SoulSlot resolveSlotForNewRing(final CultivationData data) {
-        if (data.getRingCount(SoulSlot.PRIMARY) < ringCapFor(data.getMartialSoul(), data.getLevel())) {
-            return SoulSlot.PRIMARY;
+        final SoulSlot slot = data.getActiveSoulSlot();
+        if (data.getRingCount(slot) >= activeRingCap(data)) {
+            return null;
         }
-        if (data.getSecondaryMartialSoul() != null
-                && data.getRingCount(SoulSlot.SECONDARY) < ringCapFor(data.getSecondaryMartialSoul(), data.getLevel())) {
-            return SoulSlot.SECONDARY;
-        }
-        return null;
+        return slot;
+    }
+
+    /** How many rings the selected martial soul's track may hold at the current level. */
+    public static int activeRingCap(final CultivationData data) {
+        return ringCapFor(data.getActiveMartialSoul(), data.getLevel());
     }
 
     /**

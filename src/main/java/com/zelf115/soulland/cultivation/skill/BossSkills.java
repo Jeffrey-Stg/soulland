@@ -77,7 +77,10 @@ public final class BossSkills {
     }
 
     static boolean spiritualShock(final SkillCast cast) {
-        return SkillEffects.atLookTarget(cast, target -> SkillEffects.magicDamage(cast, target));
+        return SkillEffects.atLookTarget(cast, target -> {
+            SkillEffects.drawLine(cast.caster(), target.getBoundingBox().getCenter(), SPIRIT_BOLT);
+            SkillEffects.magicDamage(cast, target);
+        });
     }
 
     static boolean spiritualDispossession(final SkillCast cast) {

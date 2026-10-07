@@ -161,7 +161,7 @@ public final class SkillEffects {
         return seconds * CultivationManager.TPS;
     }
 
-    private static void drawLine(final Player caster, final Vec3 end, final ParticleOptions particle) {
+    static void drawLine(final Player caster, final Vec3 end, final ParticleOptions particle) {
         if (!(caster.level() instanceof ServerLevel level)) return;
         final Vec3 start = caster.getEyePosition().subtract(0.0, BEAM_DROP_BELOW_EYE, 0.0);
         final Vec3 path = end.subtract(start);
